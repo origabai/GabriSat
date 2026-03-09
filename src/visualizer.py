@@ -6,11 +6,13 @@ class Visualizer:
         self.edges = graph.edges
         self.num_nodes = graph.num_nodes
         
-        numerical_colors = graph.colors
+        #remembering colours
         if solution:
             numerical_colors = solution
         else:
             numerical_colors = graph.colors
+            
+        #deciding visualization colours
         self.colors = [self.color_gen(color) for color in numerical_colors]
         
     #to pass the test with flying colors
@@ -28,4 +30,4 @@ class Visualizer:
         net.add_nodes(list(range(self.num_nodes)), color = self.colors, label = labels)
         net.add_edges(self.edges)
         
-        net.show('graph.html', notebook = False)
+        net.show('visual.html', notebook = False)
