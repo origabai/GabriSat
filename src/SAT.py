@@ -57,10 +57,8 @@ class SAT:
         #Adding new type bcs pylance doens't like static types >:[
         Clause = NewType('Clause', self.Clause) 
         def check_interpretation_satisfaction(clauses : list[Clause], interpretation : list[bool]):
-            
             #checks wether a single clause is satisfied
             def check_clause_satisfaction(clause : Clause, interpretation : list[bool]):
-                
                 #checks wether at least one variable satisfies the clause
                 variable_satisfaction = [interpretation[i] for i in clause.pos_variables]
                 variable_satisfaction.extend([not interpretation[i] for i in clause.neg_variables])
@@ -71,8 +69,8 @@ class SAT:
             return all(clauses_satisfaction)
         
         #finally, check all interpretations
-        for interpretation in interpretation_iterator:
-            if check_interpretation_satisfaction(interpretation, self.clauses):
+        for interpretation in interpretation_iterator(self.num_variables):
+            if check_interpretation_satisfaction(self.clauses, interpretation):
                 return interpretation
         #if none found return None
         return None
