@@ -20,6 +20,20 @@ class GraphColoring(Graph):
                 self.colors.append(randint(0, self.max_colors-1))
 
     """
+    Generates a dense graph with num_nodes nodes(which was given to __init__),
+    and with coloring number ~ max_colors
+    """
+    def generate_interesting_graph(self):
+        group = [randint(0, self.max_colors-1) for i in range(self.num_nodes)]
+        self.colors = [None for i in range(self.num_nodes)]
+        self.edges = []
+        for i in range(self.num_nodes):
+            for j in range(i+1,self.num_nodes):
+                if (group[i] != group[j]):
+                    if (randint(0,3) < 3):
+                        self.edges.append([i,j])
+
+    """
     initalizes a graph from input in the following format:
     num_nodes
     num_edges
