@@ -40,7 +40,10 @@ class GraphColoring(Graph):
         self.colors = []
         for i in range(self.num_nodes):
             color = input(input("input color of node",i,"or -1 if unassigned: "))
-            self.colors.append(color)
+            if (color == -1):
+                self.colors.append(None)
+            else:
+                self.colors.append(color)
 
     # returns an array of numbers representing colors of a valid coloring, or None if none exists
     def solve(self):
