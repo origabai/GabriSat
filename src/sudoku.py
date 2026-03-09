@@ -1,5 +1,6 @@
 from math import sqrt
 from graph_coloring import GraphColoring
+from random import randint
 
 """
 Sudoku class
@@ -32,12 +33,33 @@ class Sudoku:
         )
         board = [[0 for _ in range(board_size)] for _ in range(board_size)]
         print(
-            f"Please now input the board in {board_size} seperate lines, each containing {board_size} numbers\
-                the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
+            f"Please now input the board in {board_size} separate lines, each containing {board_size} numbers\n\
+the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         )
         for i in range(board_size):
+            input_string: str = input()
+            input_list: list[str] = input_string.split(" ")
             for j in range(board_size):
-                board[i][j] = int(input())
+                board[i][j] = int(input_list[j])
+                if board[i][j] == 0:
+                    board[i][j] = None
+                else:
+                    board[i][j] -= 1
+        return Sudoku(board)
+
+    @classmethod
+    # creates a new random Sudoku object of size board_size
+    def initializeRandomly(self, board_size: int):
+        board = self.generateTrivialBoard(board_size)
+        coords_to_keep: set[tuple[int, int]] = set()
+        while len(coords_to_keep) < 2 * board_size:  # magic number i think looks good
+            i: int = randint(0, board_size)
+            j: int = randint(0, board_size)
+            coords_to_keep.add((i, j))
+        for i in range(board_size):
+            for j in range(board_size):
+                if (i, j) not in coords_to_keep:
+                    board[i][j] = None  # deleting unwanted cells
         return Sudoku(board)
 
     # returns a new GraphColoring object with a reduction from the sudoku board
@@ -68,27 +90,31 @@ class Sudoku:
         for square_row in range(
             0, self.board_size, self.square_size
         ):  # iterating over squares
-            for square_column in range(self.board_size, self.square_size):
+            for square_column in range(0, self.board_size, self.square_size):
                 for row1 in range(
-                    0, square_row, square_row + self.square_size
+                    square_row, square_row + self.square_size
                 ):  # iterating over first element in the square
                     for column1 in range(
                         square_column, square_column + self.square_size
                     ):
                         for row2 in range(
-                            row1 + 1, square_row + self.square_size
+                            square_row, square_row + self.square_size
                         ):  # iterating over second element in the square
                             for column2 in range(
-                                column1 + 1, square_row + self.square_size
+                                square_column, square_column + self.square_size
                             ):
                                 id1: int = self.coordinateToId(row1, column1)
                                 id2: int = self.coordinateToId(row2, column2)
+                                if id1 == id2:  # doesn't matter
+                                    continue
                                 edges.append([id1, id2])
                                 # elements in the same square nums be unique
 
         for edge in edges:
-            edge = sorted(edge)  # making sure edges are sorted for uniqueness
-        edges = list(set(edges))  # getting rid of duplicate edges
+            edge.sort()  # making sure edges are sorted for uniqueness
+        edges = [
+            list(x) for x in dict.fromkeys(tuple(x) for x in edges)
+        ]  # getting rid of duplicate edges
 
         return GraphColoring(
             num_nodes=self.board_size**2,
@@ -115,3 +141,23 @@ class Sudoku:
     # takes an id of a node in the reduction graph and returns the coordinates in the sudoku board
     def idToCoordinate(self, id: int) -> tuple[int, int]:
         return id // self.board_size, id % self.board_size
+
+    @staticmethod
+    # returns a two dimensional list of ints with the trivial solution of a sudoku
+    def generateTrivialBoard(board_size: int) -> list[list[int]]:
+        board: list[list[int]] = [
+            [i for i in range(board_size)] for _ in range(board_size)
+        ]
+        square_size: int = int(sqrt(board_size))
+        for square_row in range(0, board_size, square_size):
+            # magically make the trivial solution, trust me bro
+            board[square_row] = [
+                (x + (square_row // square_size)) % board_size
+                for x in board[square_row]
+            ]
+            for row in range(square_row + 1, square_row + square_size):
+                board[row] = [
+                    (x + square_size * (row - square_row)) % board_size
+                    for x in board[square_row]
+                ]
+        return board
