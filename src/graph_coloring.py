@@ -10,7 +10,7 @@ class GraphColoring(Graph):
         pass
 
     # returns an array of numbers representing colors of a valid coloring, or None if none exists
-    def solve(self):
+    def solve(self, max_colors):
         pass
     
     def initializeFromInput(self):
