@@ -1,0 +1,20 @@
+import matplotlib.pyplot as plt
+
+class Sudoku_Visualizer:
+    def __init__(self):
+        self.fig, self.ax = plt.subplots()
+
+    """
+    visualizes a sudoku board. empty squares are noted by None
+    """
+    def visualize_sudoku(self, board):
+        plt.cla()
+        self.ax.set_box_aspect(1)
+        self.ax.axis('off')
+        for i in range(len(board)):
+            for j in range(len(board[i])):
+                if (board[i][j] is None):
+                    board[i][j] = ""
+        self.ax.table(cellText=board,cellLoc='center', bbox=[0.25, 0.25, 0.5, 0.5])
+        plt.show(block=False)
+
