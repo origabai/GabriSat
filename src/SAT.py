@@ -29,6 +29,7 @@ class SAT:
     def check_interpretation_satisfaction(self, interpretation : list[bool]):
         #checks wether a single clause is satisfied
         
+        #add new type to overcome pylance limitations with static typing
         Clause = NewType('Clause', self.Clause)
         def check_clause_satisfaction(clause : Clause, interpretation : list[bool]):
             #checks wether at least one variable satisfies the clause
@@ -41,7 +42,7 @@ class SAT:
         return all(clauses_satisfaction)
     
     #trivial solving of sats. iterates over all interpretations.
-    def trivial_solve(self) -> list[bool]:
+    def trivial_solve(self) -> list[bool] | None:
         
         #finally, check all interpretations
         for interpretation in product([False, True], repeat = self.num_variables):
