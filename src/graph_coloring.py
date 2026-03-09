@@ -7,6 +7,7 @@ class GraphColoring(Graph):
     def __init__(self, num_nodes: int, edges: list[list[int]], colors: list[int], max_colors: int):
         super().__init__(num_nodes, edges)
         self.colors = colors
+        self.max_colors = max_colors
     
     # generates a random graph, and random coloring
     def generate_random(self):
@@ -28,6 +29,8 @@ class GraphColoring(Graph):
     A[num_edges-1] B[num_edges-1]
 
     and colors in the following format:
+
+    max_colors
     C[0]
     C[1]
     ...
@@ -37,9 +40,10 @@ class GraphColoring(Graph):
     """
     def generate_from_input(self):
         super().generate_from_input()
+        self.max_colors = int(input("Input max colors: "))
         self.colors = []
         for i in range(self.num_nodes):
-            color = input(input("input color of node",i,"or -1 if unassigned: "))
+            color = int(input("input color of node "+str(i)+" or -1 if unassigned: "))
             if (color == -1):
                 self.colors.append(None)
             else:

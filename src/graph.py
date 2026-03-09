@@ -28,8 +28,8 @@ class Graph:
     A[num_edges-1] B[num_edges-1]
     """
     def generate_from_input(self):
-        self.num_nodes = input("Enter num of nodes: ")
-        num_edges = input("Enter num of edges: ")
+        self.num_nodes = int(input("Enter num of nodes: "))
+        num_edges = int(input("Enter num of edges: "))
         self.edges = []
         for i in range(num_edges):
             edge = input("Enter edge: ").split(" ")
