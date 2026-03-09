@@ -1,4 +1,4 @@
-from typing import Generator, NewType
+from typing import NewType
 from itertools import product
 
 """
