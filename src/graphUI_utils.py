@@ -1,7 +1,6 @@
 from dash import Dash, html, Input, Output, State, dcc
 import dash_cytoscape as cyto
-import os
-import signal
+import _thread
 
 """
 provides utils for graph_visualizer.py
@@ -257,5 +256,6 @@ class GraphUtils:
             
                 
         #and now - terminate the process!
-        os.kill(os.getpid(), signal.SIGINT)
+        _thread.interrupt_main()
+        #os.kill(os.getpid(), signal.SIGINT)
         return 0
