@@ -1,10 +1,17 @@
 from graph import Graph
 from SAT import SAT
+from SAT_reducible_problem import SATReducibleProblem
 
-class Hamiltonian_Cycle(Graph):
+class HamiltonianCycle(Graph, SATReducibleProblem):
     def __init__(self, num_nodes: int, edges: list[list[int]]):
         super().__init__(num_nodes,edges)
     
+    @classmethod
+    def generate(self, size = 2):
+        g = HamiltonianCycle(size, [])
+        g.generate_random()
+        return g
+
     # returns a hamiltonian cycle if exists, or None otherwise
     def solve(self):
         self.adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
