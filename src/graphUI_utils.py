@@ -192,7 +192,8 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour is None:
+            print(f"current is {selected_colour}")
+            if selected_colour[0] is None:
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
