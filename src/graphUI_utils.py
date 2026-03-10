@@ -192,7 +192,6 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            print(f"current is {selected_colour}")
             if selected_colour[0] is None:
                 return current_elements
             
@@ -209,14 +208,11 @@ class GraphUtils:
     
     def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
-        print("TRYING")
         if tapped_edge is None or not erase_mode['toggled']:
             return current_elements
-        print("TRYING AGAIN")
         # Extract the mathematical or topological data from the dictionary
         edge_src = tapped_edge.get('source', 'Unknown')
         edge_target = tapped_edge.get('target', 'Unknown')
-        print(edge_src, edge_target)
         #node_label = tapped_node.get('label', 'No Label')
         # Return formatted HTML to update the DOM
         return [element for element in current_elements if not(
