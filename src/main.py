@@ -10,13 +10,18 @@ def main():
     print(f"Current limit: {current_limit}")
 
     # 2. Set a new recursion limit
-    new_limit = 2000
+    new_limit = 30000
     sys.setrecursionlimit(new_limit)
 
     print(f"New limit: {sys.getrecursionlimit()}")
     # g = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [None,None,None,None,None,None], 3)
     # g = GraphColoring(4, [[0,1],[0,2],[1,2],[2,3]], [None,None,None,None], 3)
     # g = GraphColoring(3, [[0,1],[0,2],[1,2]], [None,None,None,None], 3)
+    # print(g.solve())
+    # n = 81
+    # g = GraphColoring(n, [[0, 1], [0,2], [1,2]], [None for _ in range(n)], n)
+    # # g.generate_random()
+    # print(g.edges)
     # print(g.solve())
     s = Sudoku.initializeRandomly(9)
     print(s.board)

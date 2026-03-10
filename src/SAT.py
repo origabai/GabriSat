@@ -6,9 +6,9 @@ SAT problem
 
 
 class Clause:
-    def __init__(self, pos_variables, neg_variables):
-        self.pos_variables = pos_variables
-        self.neg_variables = neg_variables
+    def __init__(self, pos_variables: set[int], neg_variables: set[int]):
+        self.pos_variables: set[int] = pos_variables
+        self.neg_variables: set[int] = neg_variables
 
 
 class SAT:
@@ -20,12 +20,12 @@ class SAT:
         pass
 
     def addClause(self, pos_variables, neg_variables):
-        self.clauses.append(Clause(pos_variables, neg_variables))
+        self.clauses.append(Clause(set(pos_variables), set(neg_variables)))
 
     # returns an array of booleans containing a satisfying solution, or None if impossible
     def solve(self) -> list[int] | None:
         # for clause in self.clauses:
-            # print(f"pos: {clause.pos_variables} | neg: {clause.neg_variables}")
+        # print(f"pos: {clause.pos_variables} | neg: {clause.neg_variables}")
         # TODO: add better solver
         return self.backtrack_solve()
 
@@ -67,15 +67,15 @@ class SAT:
         singelton_clauses: set[tuple[int, bool]] = set()
         # all clauses containing a single element
         for clause_ind, clause in enumerate(self.clauses):
-            pos = clause.pos_variables
-            neg = clause.neg_variables
+            pos: set[int] = clause.pos_variables
+            neg: set[int] = clause.neg_variables
             if len(pos) + len(neg) == 0:  # empty clause
                 unsatisfied.remove(clause_ind)
             elif len(pos) + len(neg) == 1:  # singelton_clause
                 if len(pos) == 1:
-                    singelton_clauses.add((pos[0], True))
+                    singelton_clauses.add((next(iter(pos)), True)) # next(iter(.)) is the python way to get an arbitrary element
                 else:
-                    singelton_clauses.add((neg[0], False))
+                    singelton_clauses.add((next(iter(neg)), False))
         return self.recursive_backtrack_solve(
             interpretation, 0, unsatisfied, singelton_clauses
         )
@@ -104,7 +104,16 @@ class SAT:
             # unsatisfied_copy = unsatisfied.copy()
             # singelton_clauses_copy = singelton_clauses.copy()
             literal, value = singelton_clauses.pop()  # try an arbitrary singleton
-            assert(interpretation[literal] == None)
+            if interpretation[literal] == (not value):  # already a contradiction
+                singelton_clauses.add((literal, value))  # put it back
+                return None
+            if interpretation[literal] == value:  # already solved
+                solution: list[bool] | None = self.recursive_backtrack_solve(  # recurse
+                    interpretation, ind, unsatisfied, singelton_clauses
+                )
+                singelton_clauses.add((literal, value))  # put it back
+                return solution
+
             check: bool = self.put_in_literal(
                 interpretation,
                 unsatisfied,
@@ -142,8 +151,8 @@ class SAT:
             # assert(unsatisfied == unsatisfied_copy)
             # assert(singelton_clauses == singelton_clauses_copy)
             singelton_clauses.add((literal, value))  # put it back
-            # if solution is None:
-            #     interpretation[literal] = None
+            if solution is None:
+                interpretation[literal] = None
             return solution  # might be None, but it's the best thing because we had to satisfy the singleton
 
         # no singletons so putting values in ind
@@ -172,6 +181,7 @@ class SAT:
                 # interpretation = interpretation_copy.copy()
                 # unsatisfied = unsatisfied_copy.copy()
                 # singelton_clauses = singelton_clauses_copy.copy()
+                interpretation[ind] = None
                 continue
             solution: list[bool] | None = self.recursive_backtrack_solve(
                 interpretation, ind + 1, unsatisfied, singelton_clauses
@@ -191,6 +201,7 @@ class SAT:
             # singelton_clauses = singelton_clauses_copy.copy()
             if solution is not None:  # found solution
                 return solution
+            interpretation[ind] = None
         interpretation[ind] = None
         return None  # no solution found
 
@@ -215,7 +226,7 @@ class SAT:
         # unsatisfied_clauses is a list containing the indexes of the clauses that i now doesn't satisfies
         for clause_ind in unsatisfied:
             clause: Clause = self.clauses[clause_ind]
-            if literal in clause.pos_variables: # assuming value = True
+            if literal in clause.pos_variables:  # assuming value = True
                 satisfied_clauses.append(clause_ind)
             if literal in clause.neg_variables:
                 unsatisfied_clauses.append(clause_ind)
@@ -228,8 +239,8 @@ class SAT:
             unsatisfied.remove(clause_ind)
         for loop_ind, clause_ind in enumerate(unsatisfied_clauses):
             clause: Clause = self.clauses[clause_ind]
-            variables: list[int]
-            opposite_variables: list[int]
+            variables: set[int]
+            opposite_variables: set[int]
             variables, opposite_variables = (  # assuming value = True
                 clause.neg_variables,
                 clause.pos_variables,
@@ -264,10 +275,10 @@ class SAT:
                 new_literal: int  # the literal in the singelton
                 new_value: bool  # the value of the literal in the singelton
                 if len(variables) == 1:  # new literal has the same value as literal
-                    new_literal = variables[0]
+                    new_literal = next(iter(variables))
                     new_value = not value
                 else:  # new literal has the opposite value from literal
-                    new_literal = opposite_variables[0]
+                    new_literal = next(iter(opposite_variables))
                     new_value = value
                 if (
                     new_literal,
@@ -312,10 +323,10 @@ class SAT:
             singelton_clauses.remove(singelton)  # removing added singeltons
         for clause_ind in unsatisfied_clauses:
             clause: Clause = self.clauses[clause_ind]
-            variables: list[int] = clause.neg_variables  # assuming value = True
+            variables: set[int] = clause.neg_variables  # assuming value = True
             if not value:  # literal is actually in pos_variables
                 variables = clause.pos_variables
-            variables.append(literal)
+            variables.add(literal)
             # variable is a list and not a set, if large is significantly slower! easy fix
         for clause_ind in satisfied_clauses:
             unsatisfied.add(clause_ind)
