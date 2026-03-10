@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-class Sudoku_Visualizer:
+class SudokuVisualizer:
     def __init__(self):
         self.fig, self.ax = plt.subplots()
 
