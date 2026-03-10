@@ -1,6 +1,7 @@
 from math import sqrt
 from graph_coloring import GraphColoring
 from random import randint
+from SAT_reducible_problem import SATReducibleProblem
 
 """
 Sudoku class
@@ -9,7 +10,7 @@ or None if no color is set. N must be s square number
 """
 
 
-class Sudoku:
+class Sudoku(SATReducibleProblem):
     def __init__(self, board: list[list[int | None]]) -> None:
         self.board = board
         self.board_size: int = len(board)
@@ -61,6 +62,10 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
                 if (i, j) not in coords_to_keep:
                     board[i][j] = None  # deleting unwanted cells
         return Sudoku(board)
+
+    @classmethod
+    def generate(self, size = 2):
+        return self.initializeRandomly(size)
 
     # returns a new GraphColoring object with a reduction from the sudoku board
     def reduceToGraphColoring(self) -> GraphColoring:

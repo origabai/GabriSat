@@ -1,14 +1,21 @@
 from graph import Graph
 from SAT import SAT
 from random import randint
+from SAT_reducible_problem import SATReducibleProblem
 
-class GraphColoring(Graph):
+class GraphColoring(Graph, SATReducibleProblem):
     # colors is an array representing the initial colors, or None if no color is set
     def __init__(self, num_nodes: int, edges: list[list[int]], colors: list[int], max_colors: int):
         super().__init__(num_nodes, edges)
         self.colors = colors
         self.max_colors = max_colors
     
+    @classmethod
+    def generate(self, size = 2):
+        g = GraphColoring(size, 0, [], size // 2) # max colors is a random constant fraction
+        g.generate_interesting_graph()
+        return g
+
     # generates a random graph, and random coloring
     def generate_random(self):
         super().generate_random()
