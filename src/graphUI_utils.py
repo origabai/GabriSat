@@ -148,7 +148,7 @@ class GraphUtils:
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]
         #finds next node to add
-        next_id = min(set(range(1,len(current_nodes)+2))-set(current_nodes))
+        next_id = min(set(range(0,len(current_nodes)+2))-set(current_nodes))
         # Construct the new node dictionary and append it to the state
         new_node = {'data': {'id': str(next_id), 'label': str(next_id), 'color' : "grey"}}
         current_elements.append(new_node)
