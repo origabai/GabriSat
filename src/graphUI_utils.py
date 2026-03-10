@@ -230,8 +230,9 @@ class GraphUtils:
     def end_visualization(self, n_clicks, elements):
         if n_clicks == 0:
             return 0
-        #add nodes and edges
-            
+        
+        
+        #counts the edges and vertices of the graph
         nodes = set([])
         self.vis_object.edges = []
         for element in elements:
@@ -243,6 +244,7 @@ class GraphUtils:
         missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
             
+        #then, removes non existant vertices to comply with graph_coloring problem
         for node in missing_list:
             for edge in self.vis_object.edges:
                 for index in [0,1]:
@@ -254,7 +256,6 @@ class GraphUtils:
             
             
                 
-            #now, we need to prettify the graph - convert it to standard form:
-                
+        #and now - terminate the process!
         os.kill(os.getpid(), signal.SIGINT)
         return 0
