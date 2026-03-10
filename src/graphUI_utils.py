@@ -7,6 +7,55 @@ import signal
 provides utils for graph_visualizer.py
 """
 class GraphUtils:
+    
+    def __init__(self, app : Dash, vis_object):
+        self.vis_object = vis_object
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('btn-add-node', 'n_clicks'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.add_node)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('btn-add-edge', 'n_clicks'),
+            State('input-edge-source', 'value'),
+            State('input-edge-target', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.add_edge)
+        
+        app.callback(
+            Output('erase_toggled', 'data'),
+            Output('btn-erase', 'style'),
+            Input('btn-erase', 'n_clicks')
+        )(self.switch_erasing_mode)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('interactive-graph', 'tapNodeData'),
+            State('interactive-graph', 'elements'),
+            State('multi-colour-selector', 'value'),
+            State('erase_toggled', 'data'),
+            prevent_initial_call=True
+        )(self.process_node_click)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('interactive-graph', 'tapEdgeData'),
+            State('interactive-graph', 'elements'),
+            State('erase_toggled', 'data'),
+            prevent_initial_call=True
+        )(self.erase_clicked_edge)
+        
+        app.callback(
+            Output('btn-end', 'children'),
+            Input('btn-end', 'n_clicks'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.end_visualization)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -95,22 +144,20 @@ class GraphUtils:
                 ]
             )
         ])
-        
-        
-    @staticmethod
-    def add_node(n_clicks, current_elements):
+    
+    def add_node(self, n_clicks, current_elements):
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]
         #finds next node to add
         next_id = min(set(range(1,len(current_nodes)+2))-set(current_nodes))
         # Construct the new node dictionary and append it to the state
-        new_node = {'data': {'id': str(next_id), 'label': str(next_id)}}
+        new_node = {'data': {'id': str(next_id), 'label': str(next_id), 'color' : "grey"}}
         current_elements.append(new_node)
         
         return current_elements
         
-    @staticmethod
-    def add_edge(n_clicks, source_id, target_id, current_elements):
+        
+    def add_edge(self, n_clicks, source_id, target_id, current_elements):
         if not source_id or not target_id:
             return current_elements # Do nothing if source/target are empty
         
@@ -121,76 +168,93 @@ class GraphUtils:
         
         return current_elements
         
-    @staticmethod
-    def switch_erasing_mode(n_clicks):
+        
+    def switch_erasing_mode(self, n_clicks):
         if n_clicks%2 == 0:
             return {'toggled' : False}, {'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
         else:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
-    @staticmethod
-    def process_node_click(tapped_node, current_elements, selected_colour ,erase_mode):
-            # Base case: The app just loaded, and no node has been clicked yet.
-            if tapped_node is None:
+        
+    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode):
+        # Base case: The app just loaded, and no node has been clicked yet.
+        if tapped_node is None:
+            return current_elements
+        
+        if erase_mode['toggled']:
+            
+            # Extract the mathematical or topological data from the dictionary
+            node_id = tapped_node.get('id', 'Unknown')
+            #node_label = tapped_node.get('label', 'No Label')
+            # Return formatted HTML to update the DOM
+            return [element for element in current_elements if not(
+                    element['data']['id'] == node_id or
+                    ('source' in element['data'] and element['data']['source'] == node_id) or
+                    ('target' in element['data'] and element['data']['target'] == node_id))
+                    ]   
+        else:
+            if selected_colour is None:
                 return current_elements
             
-            if erase_mode['toggled']:
-                
-                # Extract the mathematical or topological data from the dictionary
-                node_id = tapped_node.get('id', 'Unknown')
-                #node_label = tapped_node.get('label', 'No Label')
-                # Return formatted HTML to update the DOM
-                return [element for element in current_elements if not(
-                        element['data']['id'] == node_id or
-                        ('source' in element['data'] and element['data']['source'] == node_id) or
-                        ('target' in element['data'] and element['data']['target'] == node_id))
-                        ]   
-            else:
-                if selected_colour is None:
-                    return current_elements
-                
-                # Extract the mathematical or topological data from the dictionary
-                node_id = str(tapped_node.get('id', 'Unknown'))
-                
-                elements = [element for element in current_elements if element['data']['id'] != node_id]
-                elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
-                #node_label = tapped_node.get('label', 'No Label')
-                # Return formatted HTML to update the DOM
-                return elements 
+            # Extract the mathematical or topological data from the dictionary
+            node_id = str(tapped_node.get('id', 'Unknown'))
+            
+            elements = [element for element in current_elements if element['data']['id'] != node_id]
+            elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
+            #node_label = tapped_node.get('label', 'No Label')
+            # Return formatted HTML to update the DOM
+            return elements 
     
-    @staticmethod
-    def end_visualization(n_clicks, elements, vis_object):
-            if n_clicks == 0:
-                return
-            print(f"I CAN ACCESS SELF!, {vis_object.num_nodes}")
-            print(vis_object.colors)
+    
+    
+    def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
+        # Base case: The app just loaded, and no node has been clicked yet.
+        print("TRYING")
+        if tapped_edge is None or not erase_mode['toggled']:
+            return current_elements
+        print("TRYING AGAIN")
+        # Extract the mathematical or topological data from the dictionary
+        edge_src = tapped_edge.get('source', 'Unknown')
+        edge_target = tapped_edge.get('target', 'Unknown')
+        print(edge_src, edge_target)
+        #node_label = tapped_node.get('label', 'No Label')
+        # Return formatted HTML to update the DOM
+        return [element for element in current_elements if not(
+            (('source' in element['data'] and element['data']['source'] == edge_src) and
+            ('target' in element['data'] and element['data']['target'] == edge_target)) or
+            ('source' in element['data'] and element['data']['source'] == edge_target) and
+            ('target' in element['data'] and element['data']['target'] == edge_src))    
+            ] 
+    
+    
+    def end_visualization(self, n_clicks, elements):
+        if n_clicks == 0:
+            return 0
+        #add nodes and edges
             
-            #add nodes and edges
-                
-            nodes = set([])
-            vis_object.edges = []
-            for element in elements:
-                if 'source' not in element['data']:
-                    nodes.add(int(element['data']['id']))
-                    vis_object.color_storage_for_termination.append([int(element['data']['id']), vis_object.color_to_num(element['data']['color'])])
-                else:
-                    vis_object.edges.append([int(element['data']['source']), int(element['data']['target'])])
-            missing_nodes = set(range(max(nodes))) - nodes
+        nodes = set([])
+        self.vis_object.edges = []
+        for element in elements:
+            if 'source' not in element['data']:
+                nodes.add(int(element['data']['id']))
+                self.vis_object.color_storage_for_termination.append([int(element['data']['id']), self.vis_object.color_to_num(element['data']['color'])])
+            else:
+                self.vis_object.edges.append([int(element['data']['source']), int(element['data']['target'])])
+        missing_nodes = set(range(max(nodes))) - nodes
+        missing_list = sorted(list(missing_nodes), reverse=True)
             
+        for node in missing_list:
+            for edge in self.vis_object.edges:
+                for index in [0,1]:
+                    if int(edge[index]) > node:
+                        edge[index] -= 1
+            for color_node in self.vis_object.color_storage_for_termination:
+                if color_node[0] > node:
+                    color_node[0] -= 1
             
-            
-            for node in missing_nodes:
-                for edge in vis_object.edges:
-                    for index in [0,1]:
-                        if int(edge[index]) > node:
-                            edge[index] -= 1
-                for color_node in vis_object.color_storage_for_termination:
-                    if color_node[0] > node:
-                        color_node[0] -= 1
-                
             
                 
             #now, we need to prettify the graph - convert it to standard form:
                 
-                
-            os.kill(os.getpid(), signal.SIGINT)
+        os.kill(os.getpid(), signal.SIGINT)
+        return 0
