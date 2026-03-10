@@ -12,12 +12,13 @@ def main():
     
     print("STARTING VISUAL EPICNESS")
     
-    graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
+    graph = GraphColoring(8, [[0, 1], [0, 2], [1, 2], [2, 3], [2, 5], [5, 4], [3, 4], [1, 3], [1, 6], [0, 6], [0, 7], [6, 7]], [2,1,0,2,1,2,None,None], 3)
     # print(g.solve())
     solution = None
     while True:
         vis = Visualizer(graph, solution)
         graph = vis.show()
+        print(graph.edges)
         solution = graph.solve()
     vis = Visualizer(graph, solution)
     vis.show()

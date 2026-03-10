@@ -244,6 +244,7 @@ class GraphUtils:
         missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
             
+        self.vis_object.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
         for node in missing_list:
             for edge in self.vis_object.edges:
