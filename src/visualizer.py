@@ -26,7 +26,7 @@ class Visualizer:
         if color is None:
             return "grey"
         
-        COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "purple", "magenta", "lime", "cyan"]
+        COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         return COLORS[color % len(COLORS)]
     
     #show result
@@ -39,36 +39,74 @@ class Visualizer:
         
         net.show('visual.html', notebook = False)
         '''
+        initial_elements = []
+        for node in range(self.num_nodes):
+            initial_elements.append({'data' : {'id': str(node), 'label' : str(node), 'color': self.colors[node]}})
         
+        for edge in self.edges:
+            initial_elements.append({'data' : {'source': str(edge[0]), 'target': str(edge[1])}})
+        
+        print(initial_elements)
         #TODO make inital data equal to graph
+        '''
         initial_elements = [
             {'data': {'id': '1', 'label': 'Node A', 'color': 'blue'}},
             {'data': {'id': '2', 'label': 'Node B', 'color': 'red'}},
             {'data': {'source': '1', 'target': '2'}}
         ]
+        '''
         app = Dash(__name__)
         app.layout = html.Div([
             html.H3("Dynamic Graph Editor"),
             
             dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
+            dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
             
             # Control Panel for Adding Nodes
             html.Div([
                 #dcc.Input(id='input-node-id', type='text', placeholder='New Node ID (e.g., C)'),
                 #dcc.Input(id='input-node-label', type='text', placeholder='Node Label'),
-                html.Button('Add Node', id='btn-add-node', n_clicks=0)
+                html.Button('Add Node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
             # Control Panel for Adding Edges
             html.Div([
                 dcc.Input(id='input-edge-source', type='text', placeholder='Source Node ID'),
                 dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
-                html.Button('Add Edge', id='btn-add-edge', n_clicks=0)
+                html.Button('Add Edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '20px'}),
 
             html.Div([
                 html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
             ], style={'marginBottom': '20px'}),
+            
+            html.Div([
+                html.Button('End visualization', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+            ], style={'marginBottom': '20px'}),
+            
+            html.Div([
+                html.Label("Change node colour"),
+                dcc.Dropdown(
+                    id='multi-colour-selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': 'None (none selected)', 'value': None},
+                        {'label': 'grey (no colour)', 'value': 'grey'},
+                        {'label': 'red (0)', 'value': 'red'},
+                        {'label': 'green (1)', 'value': 'green'},
+                        {'label': 'blue (2)', 'value': 'blue'},
+                        {'label': 'yellow (3)', 'value': 'yellow'},
+                        {'label': 'purple (4)', 'value': 'purple'},
+                        {'label': 'pink (5)', 'value': 'pink'},
+                        {'label': 'magenta (6)', 'value': 'magenta'},
+                        {'label': 'lime (7)', 'value': 'lime'},
+                        {'label': 'cyan (8)', 'value': 'cyan'},
+                    ],
+                    value=[None], # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
+                )
+            ]),
 
             # The Cytoscape Canvas
             cyto.Cytoscape(
@@ -132,26 +170,41 @@ class Visualizer:
                 return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
         @app.callback(
-            Output('interactive-graph', 'elements'),
+            Output('interactive-graph', 'elements', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
+            State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
             prevent_initial_call=True
         )
-        def erase_clicked_node(tapped_node, current_elements, erase_mode):
+        def process_click(tapped_node, current_elements, selected_colour ,erase_mode):
             # Base case: The app just loaded, and no node has been clicked yet.
-            if tapped_node is None or not erase_mode['toggled']:
+            if tapped_node is None:
                 return current_elements
             
-            # Extract the mathematical or topological data from the dictionary
-            node_id = tapped_node.get('id', 'Unknown')
-            #node_label = tapped_node.get('label', 'No Label')
-            # Return formatted HTML to update the DOM
-            return [element for element in current_elements if not(
-                    element['data']['id'] == node_id or
-                    ('source' in element['data'] and element['data']['source'] == node_id) or
-                    ('target' in element['data'] and element['data']['target'] == node_id))
-                    ]   
+            if erase_mode['toggled']:
+                
+                # Extract the mathematical or topological data from the dictionary
+                node_id = tapped_node.get('id', 'Unknown')
+                #node_label = tapped_node.get('label', 'No Label')
+                # Return formatted HTML to update the DOM
+                return [element for element in current_elements if not(
+                        element['data']['id'] == node_id or
+                        ('source' in element['data'] and element['data']['source'] == node_id) or
+                        ('target' in element['data'] and element['data']['target'] == node_id))
+                        ]   
+            else:
+                if selected_colour is None:
+                    return current_elements
+                
+                # Extract the mathematical or topological data from the dictionary
+                node_id = str(tapped_node.get('id', 'Unknown'))
+                
+                elements = [element for element in current_elements if element['data']['id'] != node_id]
+                elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
+                #node_label = tapped_node.get('label', 'No Label')
+                # Return formatted HTML to update the DOM
+                return elements  
         
         @app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
@@ -162,10 +215,8 @@ class Visualizer:
         )
         def erase_clicked_edge(tapped_edge, current_elements, erase_mode):
             # Base case: The app just loaded, and no node has been clicked yet.
-            print("TRYING")
             if tapped_edge is None or not erase_mode['toggled']:
                 return current_elements
-            print("TRYING AGAIN")
             # Extract the mathematical or topological data from the dictionary
             edge_src = tapped_edge.get('source', 'Unknown')
             edge_target = tapped_edge.get('target', 'Unknown')
