@@ -3,7 +3,6 @@ import webbrowser
 from graphUI_utils import GraphUtils
 import logging
 
-
 from dash import Dash, Input, Output, State
 
 '''

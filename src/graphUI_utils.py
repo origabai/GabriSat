@@ -148,7 +148,7 @@ class GraphUtils:
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]
         #finds next node to add
-        next_id = min(set(range(1,len(current_nodes)+2))-set(current_nodes))
+        next_id = min(set(range(0,len(current_nodes)+2))-set(current_nodes))
         # Construct the new node dictionary and append it to the state
         new_node = {'data': {'id': str(next_id), 'label': str(next_id), 'color' : "grey"}}
         current_elements.append(new_node)
@@ -192,7 +192,7 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour is None:
+            if selected_colour[0] is None:
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
@@ -208,14 +208,11 @@ class GraphUtils:
     
     def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
-        print("TRYING")
         if tapped_edge is None or not erase_mode['toggled']:
             return current_elements
-        print("TRYING AGAIN")
         # Extract the mathematical or topological data from the dictionary
         edge_src = tapped_edge.get('source', 'Unknown')
         edge_target = tapped_edge.get('target', 'Unknown')
-        print(edge_src, edge_target)
         #node_label = tapped_node.get('label', 'No Label')
         # Return formatted HTML to update the DOM
         return [element for element in current_elements if not(
@@ -243,6 +240,7 @@ class GraphUtils:
         missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
             
+        self.vis_object.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
         for node in missing_list:
             for edge in self.vis_object.edges:

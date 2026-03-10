@@ -14,10 +14,10 @@ class TrivialSATSolver(AbstractSATSolver):
     
     #checks wether a single clause is satisfied
     def check_clause_satisfaction(self, clause : SATClause, interpretation : list[bool]) -> bool:
-            #checks wether at least one variable satisfies the clause
-            variable_satisfaction = [interpretation[i] for i in clause.pos_variables]
-            variable_satisfaction.extend([not interpretation[i] for i in clause.neg_variables])
-            return any(variable_satisfaction)
+        #checks wether at least one variable satisfies the clause
+        variable_satisfaction = [interpretation[i] for i in clause.pos_variables]
+        variable_satisfaction.extend([not interpretation[i] for i in clause.neg_variables])
+        return any(variable_satisfaction)
         
     #checks wether all clauses satisfied
     def check_interpretation_satisfaction(self, interpretation : list[bool]) -> bool:
@@ -30,7 +30,7 @@ class TrivialSATSolver(AbstractSATSolver):
         #finally, check all interpretations
         for interpretation in product([False, True], repeat = self.num_variables):
             if self.check_interpretation_satisfaction(interpretation):
-                return interpretation
+                return list(interpretation)
         #if none found return None
         return None
 
