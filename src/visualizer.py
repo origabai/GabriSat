@@ -1,6 +1,8 @@
 from graph_coloring import GraphColoring
 from pyvis.network import Network
 import webbrowser
+import os
+import signal
 
 
 from dash import Dash, html, Input, Output, State, dcc
@@ -231,11 +233,38 @@ class Visualizer:
                     
                     ]   
             
-        
+        @app.callback(
+            Input('btn-end', 'n_clicks'),
+            State('interactive-graph', 'elements'),
+        )
+        def end_visualization(n_clicks, elements):
+            if n_clicks == 0:
+                pass
+            else:
+                print(f"I CAN ACCESS SELF!, {self.num_nodes}")
+                print(self.colors)
+                
+                #add nodes and edges
+                
+                nodes = 0
+                self.edges = []
+                for element in elements:
+                    if 'source' not in element['data']:
+                        nodes = max(nodes, int(element['data']['id']) + 1)
+                    else:
+                        self.edges.append([element['data']['source'], element['data']['target']])
+                self.num_nodes = nodes
+                
+                
+                os.kill(os.getpid(), signal.SIGINT)
         
         
         print("hi?")
         webbrowser.open('http://localhost:8050')
-        app.run(debug=True)
+        try:
+            app.run()
+        except KeyboardInterrupt:
+            pass
+        print("PROGRAM TERMINATED SUCCESSFULLY!")
         print("bi?")
 
