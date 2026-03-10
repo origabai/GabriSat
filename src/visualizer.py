@@ -1,6 +1,7 @@
 from graph_coloring import GraphColoring
 import webbrowser
 from graphUI_utils import GraphUtils
+import logging
 
 
 from dash import Dash, Input, Output, State
@@ -49,6 +50,7 @@ class Visualizer:
     def show(self) -> None:
         initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors)
         
+        logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
         app.layout = GraphUtils.default_layout(initial_elements)
         helper = GraphUtils(app, self)
