@@ -1,33 +1,64 @@
 from graph_coloring import GraphColoring
-from pyvis.network import Network
+import webbrowser
+from graphUI_utils import GraphUtils
 
+
+from dash import Dash, Input, Output, State
+
+'''
+a class that shows a graph, allowing it to be edited visually.
+
+main method is .show() - which actually visualizes the graph.
+.show() returns the graph coloring problem which corresponds to what the user has edited
+in the editing window.
+
+'''
 class Visualizer:
     def __init__(self, graph : GraphColoring, solution = None):
         self.edges = graph.edges
         self.num_nodes = graph.num_nodes
-        
+        self.max_colors = graph.max_colors
+        self.color_storage_for_termination = []
+        self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         #remembering colours
         if solution:
-            numerical_colors = solution
+            self.numerical_colors = solution
         else:
-            numerical_colors = graph.colors
+            self.numerical_colors = graph.colors
             
         #deciding visualization colours
-        self.colors = [self.color_gen(color) for color in numerical_colors]
+        self.colors = [self.color_gen(color) for color in self.numerical_colors]
         
     #to pass the test with flying colors
     def color_gen(self, color : int | None) -> str:
         if color is None:
             return "grey"
         
-        COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "purple", "magenta", "lime", "cyan"]
-        return COLORS[color % len(COLORS)]
+        return self.COLORS[color % len(self.COLORS)]
     
+    #takes string returns color
+    def color_to_num(self, color : str) -> int:
+        if color == "grey":
+            return None
+        else:
+            return self.COLORS.index(color)
+        
+        
+        
     #show result
     def show(self) -> None:
-        net = Network()
-        labels = [str(i) for i in range(self.num_nodes)]
-        net.add_nodes(list(range(self.num_nodes)), color = self.colors, label = labels)
-        net.add_edges(self.edges)
+        initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors)
         
-        net.show('visual.html', notebook = False)
+        app = Dash(__name__)
+        app.layout = GraphUtils.default_layout(initial_elements)
+        helper = GraphUtils(app, self)
+        #app.layout = helper.default_layout(initial_elements)
+
+        webbrowser.open('http://localhost:8050')
+
+        app.run()
+        self.color_storage_for_termination.sort(key = lambda tup : tup[0])
+        color_array = [element[1] for element in self.color_storage_for_termination]
+        print(self.edges)
+        return GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
+
