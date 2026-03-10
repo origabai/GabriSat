@@ -1,14 +1,15 @@
 from graph import Graph
-from SAT import SAT
+from SAT import DEFAULT_SOLVER
 from SAT_reducible_problem import SATReducibleProblem
 
 class HamiltonianCycle(Graph, SATReducibleProblem):
-    def __init__(self, num_nodes: int, edges: list[list[int]]):
-        super().__init__(num_nodes,edges)
+    def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = DEFAULT_SOLVER):
+        Graph.__init__(self,num_nodes,edges)
+        SATReducibleProblem.__init__(self,satsolver)
     
     @classmethod
-    def generate(self, size = 2):
-        g = HamiltonianCycle(size, [])
+    def generate(self, size = 2, solver = DEFAULT_SOLVER):
+        g = HamiltonianCycle(size, [], satsolver=solver)
         g.generate_random()
         return g
 
@@ -18,7 +19,7 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
         for e in self.edges:
             self.adj[e[0]][e[1]] = True
             self.adj[e[1]][e[0]] = True
-        s = SAT(self.num_nodes * self.num_nodes)
+        s = self.solver(self.num_nodes * self.num_nodes)
         # ensure it is a permutation
         for i in range(self.num_nodes):
             s.addClause([self.num_nodes*i + j for j in range(self.num_nodes)],[])
