@@ -45,7 +45,7 @@ def main():
     elif (action == "3"):
         visualize_sudoku()
     else:
-        print("מה")
+        print("Not a valid option")
 
 
 
