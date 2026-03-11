@@ -41,6 +41,7 @@ class GraphUtils:
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
             State('color_num_selector', 'value'),
+            State('end-task-selector', 'value'),
             prevent_initial_call=True
         )(self.process_node_click)
         
@@ -75,6 +76,17 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(self.handle_color_num_change)
+        
+        app.callback(
+            Output('label_1', 'style'),
+            Output('label_2', 'style'),
+            Output('multi-colour-selector', 'style'),
+            Output('color_num_selector', 'style'),
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('end-task-selector', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.handle_mode_change)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -91,11 +103,9 @@ class GraphUtils:
         for node in range(nodes):
             initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': colors[node]}})
         
-        #print("SPECIAL EDGES:", special_edges)
         #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in edges:
             if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
-                #print("adding edge")
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'ForestGreen'}})
             else:
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
@@ -103,14 +113,24 @@ class GraphUtils:
         return initial_data
         
     
-    @staticmethod
-    def default_layout(initial_elements, found_solution):
+    def default_layout(self, initial_elements, found_solution):
         #this part determines success message
         message = "Everything good, proceed!"
         message_style = {'color' : 'green'}
         if not found_solution:
             message = "No solution found!"
             message_style = {'color' : 'red'}
+        
+        #changes default label and selector style for vanishing elements depending on starting mode
+        if self.vis_object.special_edges is not None:
+            default_type = "HAMPATH"
+            default_label_style = {'display': 'none'}
+            default_selector_style = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
+        else: 
+            default_type = "COLOR"
+            default_label_style = {'display': 'block'}
+            default_selector_style = {'display': 'block', 'width': '300px', 'marginTop': '5px'}
+        
         
         return html.Div([
             html.H3("Visual graph editor"),
@@ -121,7 +141,7 @@ class GraphUtils:
             
             # Control Panel for Adding Nodes
             html.Div([
-                html.Button('Add node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
+                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
             # Control Panel for Adding Edges
@@ -147,14 +167,15 @@ class GraphUtils:
                         {'label': 'hampath', 'value': "HAMPATH"},
                         {'label': 'end simulation', 'value': "END"},
                     ],
-                    value="COLOR", # The default selected array
+                    
+                    value=default_type, # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Label("colors in coloring"),
+                html.Label("colors in coloring", id = 'label_1', style=default_label_style),
                 dcc.Dropdown(
                     id='color_num_selector',
                     options=[
@@ -170,9 +191,9 @@ class GraphUtils:
                     ],
                     value='3', # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
+                    style=default_selector_style
                 ),
-                html.Label("Change node color"),
+                html.Label("Change node color", id = 'label_2', style = default_label_style),
                 dcc.Dropdown(
                     id='multi-colour-selector',
                     options=[
@@ -191,7 +212,7 @@ class GraphUtils:
                     ],
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
+                    style=default_selector_style
                 ),
                 
             ]),
@@ -242,17 +263,52 @@ class GraphUtils:
         
     
     
+    
     def handle_mode_change(self, new_mode, current_elements):
-        return current_elements
+        #changing to hampath - we need to clear all colors of the graph's nodes.
+        if new_mode == "HAMPATH":
+            if current_elements is not None and current_elements != []:
+                new_elements = []
+                for element in current_elements:
+                    if element['data']['color'] == "ForestGreen":
+                        new_elements.append(element)
+                    else:
+                        new_element = element
+                        element['data']['color'] = "grey"
+                        new_elements.append(new_element)
+            else:
+                new_elements = []
+            #returns cleared out nodes and hides color parts
+            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, new_elements
+
+        elif new_mode == "COLOR":
+            #when switching to color we need to clear out all coloured edges
+            if current_elements is not None and current_elements != []:
+                new_elements = []
+                for element in current_elements:
+                    if element['data']['color'] == "ForestGreen":
+                        new_element = element
+                        element['data']['color'] = "grey"
+                        new_elements.append(new_element)
+                    else:
+                        new_elements.append(element)
+            else:
+                new_elements = []
+            #unhides the color stuff from the html page
+            return  {'display': 'block'}, {'display': 'block'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, current_elements
+
+        else:
+            #this is the mode for finishing simulation
+            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, current_elements
     
-    
+    #checks if an element is of a colour alligning with the selected one.
     def check_element_compliance(self, element, color):
         try:
             return self.vis_object.color_to_num(element['data']['color']) < int(color) 
         except:
             return True
         
-            
+        
     #handles colour number change
     def handle_color_num_change(self, value, current_elements):
         #when no graph does trivial stuff to avoid iteration error
@@ -272,7 +328,7 @@ class GraphUtils:
         #also changes the settings of the options
         return ColourSelectorOptions[:int(value)+2], new_elements
         
-    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
+    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num, current_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return current_elements
@@ -288,11 +344,12 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour[0] is None or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
+            trivial_conditions = current_mode != "COLOR" or selected_colour[0] is None 
+            if trivial_conditions or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
-            node_id = str(tapped_node.get('id', 'Unknmown'))
+            node_id = str(tapped_node.get('id', 'Unknown'))
             
             elements = [element for element in current_elements if element['data']['id'] != node_id]
             elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
@@ -347,7 +404,6 @@ class GraphUtils:
         missing_list = sorted(list(missing_nodes), reverse=True)
             
             
-        #print("task is ffr:", problem)
         self.vis_object.task = problem
         self.vis_object.max_colors = int(max_colors[0])
         self.vis_object.num_nodes = len(nodes)
