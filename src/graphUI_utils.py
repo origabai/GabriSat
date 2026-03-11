@@ -53,6 +53,8 @@ class GraphUtils:
             Output('btn-end', 'children'),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
+            State('color_num_selector', 'value'),
+            State('end-task-selector', 'value'),
             prevent_initial_call=True
         )(self.end_visualization)
     '''
@@ -64,14 +66,21 @@ class GraphUtils:
     returns the standard layout of the html file given the default elements
     '''
     @staticmethod
-    def generate_initial_data(nodes, edges, colors):
+    def generate_initial_data(nodes, edges, colors, special_edges):
         initial_data = []
         
+        #generates nodes in initial_data
         for node in range(nodes):
             initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': colors[node]}})
         
+        #print("SPECIAL EDGES:", special_edges)
+        #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in edges:
-            initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1])}})
+            if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
+                #print("adding edge")
+                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'green'}})
+            else:
+                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
         
         return initial_data
         
@@ -103,7 +112,20 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Button('End visualization', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+                html.Button('End simulation', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Label("select-end-task"),
+                dcc.Dropdown(
+                    id='end-task-selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': 'coloring', 'value': "COLOR"},
+                        {'label': 'hampath', 'value': "HAMPATH"},
+                        {'label': 'end simulation', 'value': "END"},
+                    ],
+                    value="COLOR", # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
+                ),
             ], style={'marginBottom': '20px'}),
             
             html.Div([
@@ -127,6 +149,24 @@ class GraphUtils:
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
+                ),
+                html.Label("colors in coloring"),
+                dcc.Dropdown(
+                    id='color_num_selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': '1', 'value': '1'},
+                        {'label': '2', 'value': '2'},
+                        {'label': '3', 'value': '3'},
+                        {'label': '4', 'value': '4'},
+                        {'label': '5', 'value': '5'},
+                        {'label': '6', 'value': '6'},
+                        {'label': '7', 'value': '7'},
+                        {'label': '8', 'value': '8'},
+                    ],
+                    value=['3'], # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
                 )
             ]),
 
@@ -139,7 +179,7 @@ class GraphUtils:
                 stylesheet=[
                     # Basic styling to make labels visible
                     {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
-                    {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none'}}
+                    {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
                 ]
             )
         ])
@@ -161,8 +201,8 @@ class GraphUtils:
             return current_elements # Do nothing if source/target are empty
         
         # Construct the new edge dictionary and append it to the state
-        new_edge = {'data': {'source': source_id, 'target': target_id}}
-        if {'data': {'source': target_id, 'target': source_id}} not in current_elements and new_edge not in current_elements:
+        new_edge = {'data': {'source': source_id, 'target': target_id, 'color' : 'grey'}}
+        if {'data': {'source': target_id, 'target': source_id, 'color' : 'grey'}} and {'data': {'source': target_id, 'target': source_id, 'color' : 'green'}} not in current_elements and new_edge not in current_elements:
             current_elements.append(new_edge)
         
         return current_elements
@@ -196,7 +236,7 @@ class GraphUtils:
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
-            node_id = str(tapped_node.get('id', 'Unknown'))
+            node_id = str(tapped_node.get('id', 'Unknmown'))
             
             elements = [element for element in current_elements if element['data']['id'] != node_id]
             elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
@@ -223,7 +263,7 @@ class GraphUtils:
             ] 
     
     
-    def end_visualization(self, n_clicks, elements):
+    def end_visualization(self, n_clicks, elements, max_colors, problem):
         if n_clicks == 0:
             return 0
         
@@ -240,6 +280,10 @@ class GraphUtils:
         missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
             
+            
+        #print("task is ffr:", problem)
+        self.vis_object.task = problem
+        self.vis_object.max_colors = int(max_colors[0])
         self.vis_object.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
         for node in missing_list:
