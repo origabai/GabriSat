@@ -5,6 +5,7 @@ from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
+from pynput.keyboard import Controller, Key 
 from constants import (
     DEFAULT_SOLVER,
     TrivialSATSolver,
@@ -41,9 +42,9 @@ def graph_vis():
     solution = None
     Ham_solution = None
     found_solution = True
+    keyboard = Controller()
     webopen('http://localhost:8050')
     while True:
-        #create image
         vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
         #initialize solutions to none
         solution = None
