@@ -82,6 +82,7 @@ def visualize_sudoku():
         sud = Sudoku.initializeFromInput()
     else:
         print("Invalid option >:(")
+        return
     
     # make the cells in the right colors
     cellColors = copy.deepcopy(sud.board)
