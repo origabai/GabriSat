@@ -19,15 +19,15 @@ from webbrowser import open as webopen
 def benchmark_times():
     print("Starting time benchmark")
     print(
-        "Average time to 3-color a 6 vertex graph:",
-        test_time(GraphColoring.generate(), 6),
+        "Average time to 10-color a 20 vertex graph:",
+        test_time(GraphColoring.generate(), 20),
     )
     print(
-        "Average time to find a hamiltonian cycle on a 4 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 4),
+        "Average time to find a hamiltonian cycle on a 7 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 7),
     )
     print(
-        "Average time to solve a 4x4 sudoku(expert level):",
+        "Average time to solve a 4x4 sudoku(very hard):",
         test_time(Sudoku.generate(), 4),
     )
 
@@ -75,14 +75,34 @@ def graph_vis():
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
+    action = input("Would you like to generate a random sudoku(1), or input one yourself(2)?")
     sud = Sudoku.initializeRandomly(4)
-    vis.visualize_sudoku(copy.deepcopy(sud.board))
+    if (action == "1"):
+        sud = Sudoku.initializeRandomly(4)
+    elif (action == "2"):
+        sud = Sudoku.initializeFromInput()
+        if sud is None:
+            return
+    else:
+        print("Invalid option >:(")
+        return
+    
+    # make the cells in the right colors
+    cellColors = copy.deepcopy(sud.board)
+    for i in range(len(sud.board)):
+        for j in range(len(sud.board[i])):
+            if (sud.board[i][j] is None):
+                cellColors[i][j] = "blue"
+            else:
+                cellColors[i][j] = "black"
+    
+    vis.visualize_sudoku(sud.board, cellColors)
     input("Press enter to calculate solution")
     sol = sud.solve()
     if sol is None:
         print("No solution")
     else:
-        vis.visualize_sudoku(sol)
+        vis.visualize_sudoku(sol, cellColors)
         input("Press enter to exit")
 
 
