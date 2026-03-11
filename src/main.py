@@ -6,6 +6,7 @@ from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
 from webbrowser import open as webopen
 
+
 def benchmark_times():
     print("Starting time benchmark")
     print("Average time to 3-color a 6 vertex graph:",test_time(GraphColoring.generate(), 6))
@@ -17,7 +18,7 @@ def benchmark_times():
 def graph_vis():
     #bootstrap
     print("STARTING VISUAL EPICNESS")
-    color_graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
+    color_graph = GraphColoring(0, [], [], 3)
     solution = None
     Ham_solution = None
     webopen('http://localhost:8050')
