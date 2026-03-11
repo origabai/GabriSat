@@ -126,10 +126,14 @@ class GraphUtils:
             default_type = "HAMPATH"
             default_label_style = {'display': 'none'}
             default_selector_style = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
+            default_colour_num = 3
+            default_options = ColourSelectorOptions[:default_colour_num]
         else: 
             default_type = "COLOR"
             default_label_style = {'display': 'block'}
             default_selector_style = {'display': 'block', 'width': '300px', 'marginTop': '5px'}
+            default_colour_num = self.vis_object.max_colors
+            default_options = ColourSelectorOptions[:default_colour_num]
         
         
         return html.Div([
@@ -189,32 +193,18 @@ class GraphUtils:
                         {'label': '7', 'value': '7'},
                         {'label': '8', 'value': '8'},
                     ],
-                    value='3', # The default selected array
+                    value=str(default_colour_num), # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style=default_selector_style
                 ),
                 html.Label("Change node color", id = 'label_2', style = default_label_style),
                 dcc.Dropdown(
                     id='multi-colour-selector',
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': 'None (none selected)', 'value': None},
-                        {'label': 'grey (no colour)', 'value': 'grey'},
-                        {'label': 'red (0)', 'value': 'red'},
-                        {'label': 'green (1)', 'value': 'green'},
-                        {'label': 'blue (2)', 'value': 'blue'},
-                        #{'label': 'yellow (3)', 'value': 'yellow'},
-                        #{'label': 'purple (4)', 'value': 'purple'},
-                        #{'label': 'pink (5)', 'value': 'pink'},
-                        #{'label': 'magenta (6)', 'value': 'magenta'},
-                        #{'label': 'lime (7)', 'value': 'lime'},
-                        #{'label': 'cyan (8)', 'value': 'cyan'},
-                    ],
+                    options = default_options,
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style=default_selector_style
                 ),
-                
             ]),
 
             # The Cytoscape Canvas
