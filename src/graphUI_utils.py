@@ -86,9 +86,17 @@ class GraphUtils:
         
     
     @staticmethod
-    def default_layout(initial_elements):
+    def default_layout(initial_elements, found_solution):
+        #this parte determines success message
+        message = "everything good, proceed :3"
+        message_style = {'color' : 'green'}
+        if not found_solution:
+            message = "NO SOLUTION FOUND >:D"
+            message_style = {'color' : 'red'}
+        
         return html.Div([
             html.H3("Dynamic Graph Editor"),
+            html.H3(f"{message}", style = message_style),
             
             dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
             dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),

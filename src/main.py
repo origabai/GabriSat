@@ -5,7 +5,7 @@ from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
 from webbrowser import open as webopen
-
+from selenium import webdriver
 
 def benchmark_times():
     print("Starting time benchmark")
@@ -21,29 +21,30 @@ def graph_vis():
     color_graph = GraphColoring(0, [], [], 3)
     solution = None
     Ham_solution = None
+    found_solution = True
     webopen('http://localhost:8050')
-    #driver = webdriver.Brave()
-    #driver.get('http://localhost:8050')
     while True:
         #create image
-        vis = Visualizer(color_graph, solution, Ham_solution)
-        #driver.refresh()
-        webopen('http://localhost:8050')
+        vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
         #initialize solutions to none
         solution = None
+        found_solution = True
         Ham_solution = None
         color_graph = vis.show()
-        #print("TASK IS:", vis.task)
         #depending on the task, solve and update the solution
         match vis.task:
             case 'COLOR':
                 #solve coloring problem
                 solution = color_graph.solve()
+                if solution is None:
+                    found_solution = False
                 continue
             case "HAMPATH":
                 #solve hampath problem
                 ham_graph = HamiltonianCycle(color_graph.num_nodes,color_graph.edges)
                 Ham_solution = ham_graph.solve()
+                if Ham_solution is None:
+                    found_solution = False
                 continue
             case "END":
                 #end simulation
