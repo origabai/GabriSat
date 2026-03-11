@@ -3,7 +3,7 @@ import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
-from constants import RandomGraphMinSize, RandomGraphMaxSize
+from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 """
 provides utils for graph_visualizer.py
 """
@@ -69,11 +69,12 @@ class GraphUtils:
         )(self.generate_random_graph)
         
         app.callback(
+            Output('multi-colour-selector', 'options'),
             Output('interactive-graph', 'elements', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
-        )(self.handle_colour_num_change)
+        )(self.handle_color_num_change)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -246,10 +247,13 @@ class GraphUtils:
         except:
             return True
         
-    def handle_colour_num_change(self, value, current_elements):
-        if value == '5':
-            print("this is SPARTA!!!!")
+    #handles colour number change
+    def handle_color_num_change(self, value, current_elements):
+        #when no graph does trivial stuff to avoid iteration error
+        if current_elements is None or current_elements == []:
+            return ColourSelectorOptions[:int(value)+2], []
         
+        #changes up the values of all nodes
         new_elements = []
         for element in current_elements:
             if self.check_element_compliance(element, value):
@@ -259,7 +263,8 @@ class GraphUtils:
                 element['data']['color'] = "grey"
                 new_elements.append(new_element)
                 
-        return new_elements
+        #also changes the settings of the options
+        return ColourSelectorOptions[:int(value)+2], new_elements
         
     def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
         # Base case: The app just loaded, and no node has been clicked yet.
