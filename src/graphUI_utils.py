@@ -3,7 +3,7 @@ import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
-
+from constants import RandomGraphMinSize, RandomGraphMaxSize
 """
 provides utils for graph_visualizer.py
 """
@@ -63,7 +63,6 @@ class GraphUtils:
         app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
-            State('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(self.generate_random_graph)
@@ -263,13 +262,15 @@ class GraphUtils:
             # Return formatted HTML to update the DOM
             return elements 
     
-    
-    def generate_random_graph(self, n_clicks, max_colors, current_elements):
-        print("are you alive?")
+    '''
+    generates random graph
+    '''
+    def generate_random_graph(self, n_clicks, current_elements):
+        #handles automatic activation at creation
         if n_clicks == 0:
             return current_elements
-        new_graph = GraphColoring.generate(size = randint(5, 11))
-        print(new_graph.num_nodes, new_graph.edges)
+        #generates and updates new graph
+        new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
         return GraphUtils.generate_initial_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
     
     
