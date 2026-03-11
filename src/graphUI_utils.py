@@ -87,11 +87,11 @@ class GraphUtils:
     
     @staticmethod
     def default_layout(initial_elements, found_solution):
-        #this parte determines success message
-        message = "everything good, proceed :3"
+        #this part determines success message
+        message = "everything good, proceed!"
         message_style = {'color' : 'green'}
         if not found_solution:
-            message = "NO SOLUTION FOUND >:D"
+            message = "no solution found!"
             message_style = {'color' : 'red'}
         
         return html.Div([
