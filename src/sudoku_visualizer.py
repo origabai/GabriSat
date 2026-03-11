@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 
 
@@ -9,7 +10,8 @@ class SudokuVisualizer:
     visualizes a sudoku board. empty squares are noted by None
     """
 
-    def visualize_sudoku(self, board):
+    def visualize_sudoku(self, board2, colors = None):
+        board = copy.deepcopy(board2)
         plt.cla()
         # make axes the same scale and make them disappear
         self.ax.set_box_aspect(1)
@@ -22,5 +24,10 @@ class SudokuVisualizer:
                 else:
                     board[i][j] += 1  # from 0 indexed to 1 indexed
         # plot the board
-        self.ax.table(cellText=board, cellLoc="center", bbox=[0.25, 0.25, 0.5, 0.5])
+        table = self.ax.table(cellText=board, cellLoc="center", bbox=[0.25, 0.25, 0.5, 0.5])
+        # set the correct colors
+        if (colors is not None):
+            for i in range(len(board)):
+                for j in range(len(board[i])):
+                    table[(i,j)].get_text().set_color(colors[i][j])
         plt.show(block=False)
