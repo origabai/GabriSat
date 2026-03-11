@@ -1,3 +1,4 @@
+import copy
 from graph_coloring import GraphColoring
 from sudoku import Sudoku
 from visualizer import Visualizer
@@ -52,14 +53,15 @@ def graph_vis():
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
-    # sud = Sudoku.initializeRandomly(1)
-    sud = Sudoku([[None]])
-    vis.visualize_sudoku(sud.board)
+    sud = Sudoku.initializeRandomly(4)
+    vis.visualize_sudoku(copy.deepcopy(sud.board))
     input("Press enter to calculate solution")
-    # vis.visualize_sudoku(sud.solve())
     sol = sud.solve()
-    vis.visualize_sudoku(sol)
-    input("Press enter to exit")
+    if sol is None:
+        print("No solution")
+    else:
+        vis.visualize_sudoku(sol)
+        input("Press enter to exit")
 
 def main():
     print("WELCOME TO VERY EPIC SAT SOLVER")

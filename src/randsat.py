@@ -4,9 +4,9 @@ from SAT import DEFAULT_SOLVER
 """
 generates a random SAT of type solver, with num_vars and num_clauses
 """
-def generate_random(self, num_vars: int, num_clauses: int, solver = DEFAULT_SOLVER):
+def generate_random(num_vars: int, num_clauses: int, solver = DEFAULT_SOLVER):
     s = solver(num_vars)
-    forced_solution = [randint(0,1) for i in range(vars)]
+    forced_solution = [randint(0,1) for i in range(num_vars)]
     # probability of 0.5 to force solvability
     force_solvable: bool = (randint(0,1) == 0)
     for j in range(num_clauses):
