@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, isqrt
 from graph_coloring import GraphColoring
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
@@ -34,6 +34,9 @@ class Sudoku(SATReducibleProblem):
         board_size = int(
             input("Please input the size of the board (must be a square number): ")
         )
+        if (isqrt(board_size)**2 != board_size):
+            print("I SAID MUST BE A SQUARE NUMBER")
+            return None
         board = [[0 for _ in range(board_size)] for _ in range(board_size)]
         print(
             f"Please now input the board in {board_size} separate lines, each containing {board_size} numbers\n\
