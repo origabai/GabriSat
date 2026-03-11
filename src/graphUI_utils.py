@@ -103,11 +103,9 @@ class GraphUtils:
         for node in range(nodes):
             initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': colors[node]}})
         
-        #print("SPECIAL EDGES:", special_edges)
         #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in edges:
             if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
-                #print("adding edge")
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'ForestGreen'}})
             else:
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
@@ -115,14 +113,24 @@ class GraphUtils:
         return initial_data
         
     
-    @staticmethod
-    def default_layout(initial_elements, found_solution):
+    def default_layout(self, initial_elements, found_solution):
         #this part determines success message
         message = "Everything good, proceed!"
         message_style = {'color' : 'green'}
         if not found_solution:
             message = "No solution found!"
             message_style = {'color' : 'red'}
+        
+        #changes default label and selector style for vanishing elements depending on starting mode
+        if self.vis_object.special_edges is not None:
+            default_type = "HAMPATH"
+            default_label_style = {'display': 'none'}
+            default_selector_style = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
+        else: 
+            default_type = "COLOR"
+            default_label_style = {'display': 'block'}
+            default_selector_style = {'display': 'block', 'width': '300px', 'marginTop': '5px'}
+        
         
         return html.Div([
             html.H3("Visual graph editor"),
@@ -159,14 +167,15 @@ class GraphUtils:
                         {'label': 'hampath', 'value': "HAMPATH"},
                         {'label': 'end simulation', 'value': "END"},
                     ],
-                    value="COLOR", # The default selected array
+                    
+                    value=default_type, # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Label("colors in coloring", id = 'label_1', style={'display': 'yes'}),
+                html.Label("colors in coloring", id = 'label_1', style=default_label_style),
                 dcc.Dropdown(
                     id='color_num_selector',
                     options=[
@@ -182,9 +191,9 @@ class GraphUtils:
                     ],
                     value='3', # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'display': 'yes', 'width': '300px', 'marginTop': '5px'}
+                    style=default_selector_style
                 ),
-                html.Label("Change node color", id = 'label_2', style = {'display': "yes"}),
+                html.Label("Change node color", id = 'label_2', style = default_label_style),
                 dcc.Dropdown(
                     id='multi-colour-selector',
                     options=[
@@ -203,7 +212,7 @@ class GraphUtils:
                     ],
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'display': 'yes', 'width': '300px', 'marginTop': '5px'}
+                    style=default_selector_style
                 ),
                 
             ]),
@@ -289,9 +298,10 @@ class GraphUtils:
             return  {'display': 'block'}, {'display': 'block'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, current_elements
 
         else:
-            print("returning...")
+            #this is the mode for finishing simulation
             return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, current_elements
     
+    #checks if an element is of a colour alligning with the selected one.
     def check_element_compliance(self, element, color):
         try:
             return self.vis_object.color_to_num(element['data']['color']) < int(color) 
@@ -394,7 +404,6 @@ class GraphUtils:
         missing_list = sorted(list(missing_nodes), reverse=True)
             
             
-        #print("task is ffr:", problem)
         self.vis_object.task = problem
         self.vis_object.max_colors = int(max_colors[0])
         self.vis_object.num_nodes = len(nodes)
