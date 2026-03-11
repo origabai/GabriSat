@@ -182,12 +182,12 @@ class GraphUtils:
                         {'label': 'red (0)', 'value': 'red'},
                         {'label': 'green (1)', 'value': 'green'},
                         {'label': 'blue (2)', 'value': 'blue'},
-                        {'label': 'yellow (3)', 'value': 'yellow'},
-                        {'label': 'purple (4)', 'value': 'purple'},
-                        {'label': 'pink (5)', 'value': 'pink'},
-                        {'label': 'magenta (6)', 'value': 'magenta'},
-                        {'label': 'lime (7)', 'value': 'lime'},
-                        {'label': 'cyan (8)', 'value': 'cyan'},
+                        #{'label': 'yellow (3)', 'value': 'yellow'},
+                        #{'label': 'purple (4)', 'value': 'purple'},
+                        #{'label': 'pink (5)', 'value': 'pink'},
+                        #{'label': 'magenta (6)', 'value': 'magenta'},
+                        #{'label': 'lime (7)', 'value': 'lime'},
+                        #{'label': 'cyan (8)', 'value': 'cyan'},
                     ],
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
@@ -241,12 +241,18 @@ class GraphUtils:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
     
+    
+    def handle_mode_change(self, new_mode, current_elements):
+        return current_elements
+    
+    
     def check_element_compliance(self, element, color):
         try:
             return self.vis_object.color_to_num(element['data']['color']) < int(color) 
         except:
             return True
         
+            
     #handles colour number change
     def handle_color_num_change(self, value, current_elements):
         #when no graph does trivial stuff to avoid iteration error
@@ -282,7 +288,7 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour[0] is None or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1:
+            if selected_colour[0] is None or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
