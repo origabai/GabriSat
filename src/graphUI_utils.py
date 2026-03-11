@@ -1,7 +1,9 @@
 from dash import Dash, html, Input, Output, State, dcc
 import dash_cytoscape as cyto
 import _thread
-
+from random import randint
+from graph_coloring import GraphColoring
+from constants import RandomGraphMinSize, RandomGraphMaxSize
 """
 provides utils for graph_visualizer.py
 """
@@ -57,6 +59,13 @@ class GraphUtils:
             State('end-task-selector', 'value'),
             prevent_initial_call=True
         )(self.end_visualization)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('btn-random', 'n_clicks'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.generate_random_graph)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -66,7 +75,7 @@ class GraphUtils:
     returns the standard layout of the html file given the default elements
     '''
     @staticmethod
-    def generate_initial_data(nodes, edges, colors, special_edges):
+    def generate_initial_data(nodes, edges, colors, special_edges = None):
         initial_data = []
         
         #generates nodes in initial_data
@@ -103,8 +112,6 @@ class GraphUtils:
             
             # Control Panel for Adding Nodes
             html.Div([
-                #dcc.Input(id='input-node-id', type='text', placeholder='New Node ID (e.g., C)'),
-                #dcc.Input(id='input-node-label', type='text', placeholder='Node Label'),
                 html.Button('Add node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
@@ -112,11 +119,12 @@ class GraphUtils:
             html.Div([
                 dcc.Input(id='input-edge-source', type='text', placeholder='Source Node ID'),
                 dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
-                html.Button('Add Edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
+                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '20px'}),
 
             html.Div([
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
             ], style={'marginBottom': '20px'}),
             
             html.Div([
@@ -137,6 +145,24 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
+                html.Label("colors in coloring"),
+                dcc.Dropdown(
+                    id='color_num_selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': '1', 'value': '1'},
+                        {'label': '2', 'value': '2'},
+                        {'label': '3', 'value': '3'},
+                        {'label': '4', 'value': '4'},
+                        {'label': '5', 'value': '5'},
+                        {'label': '6', 'value': '6'},
+                        {'label': '7', 'value': '7'},
+                        {'label': '8', 'value': '8'},
+                    ],
+                    value=['3'], # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
+                ),
                 html.Label("Change node color"),
                 dcc.Dropdown(
                     id='multi-colour-selector',
@@ -158,24 +184,7 @@ class GraphUtils:
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
-                html.Label("colors in coloring"),
-                dcc.Dropdown(
-                    id='color_num_selector',
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': '1', 'value': '1'},
-                        {'label': '2', 'value': '2'},
-                        {'label': '3', 'value': '3'},
-                        {'label': '4', 'value': '4'},
-                        {'label': '5', 'value': '5'},
-                        {'label': '6', 'value': '6'},
-                        {'label': '7', 'value': '7'},
-                        {'label': '8', 'value': '8'},
-                    ],
-                    value=['3'], # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
-                )
+                
             ]),
 
             # The Cytoscape Canvas
@@ -252,6 +261,16 @@ class GraphUtils:
             # Return formatted HTML to update the DOM
             return elements 
     
+    '''
+    generates random graph
+    '''
+    def generate_random_graph(self, n_clicks, current_elements):
+        #handles automatic activation at creation
+        if n_clicks == 0:
+            return current_elements
+        #generates and updates new graph
+        new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
+        return GraphUtils.generate_initial_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
     
     
     def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
@@ -306,6 +325,7 @@ class GraphUtils:
             
                 
         #and now - terminate the process!
+        self.vis_object.correct_end = True
         _thread.interrupt_main()
         #os.kill(os.getpid(), signal.SIGINT)
-        return 0
+        return "you can now refresh!"

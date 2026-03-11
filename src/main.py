@@ -42,19 +42,16 @@ def graph_vis():
     Ham_solution = None
     found_solution = True
     webopen('http://localhost:8050')
-    #driver = webdriver.Brave()
-    #driver.get('http://localhost:8050')
     while True:
         #create image
         vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
-        #driver.refresh()
-        webopen('http://localhost:8050')
         #initialize solutions to none
         solution = None
         found_solution = True
         Ham_solution = None
-        color_graph = vis.show()
-        #print("TASK IS:", vis.task)
+        correct_end, color_graph = vis.show()
+        if not correct_end:
+            break
         #depending on the task, solve and update the solution
         match vis.task:
             case "COLOR":

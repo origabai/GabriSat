@@ -6,3 +6,6 @@ DEFAULT_SOLVER = TrivialBacktrackingSolver
 TrivialSATSolver
 SAT_backtracking
 TrivialBacktrackingSolver
+
+RandomGraphMinSize = 5
+RandomGraphMaxSize = 13
