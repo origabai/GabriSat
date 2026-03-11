@@ -2,12 +2,12 @@ from math import sqrt
 from graph_coloring import GraphColoring
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
-from SAT import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER
 
 """
 Sudoku class
 the board is an N x N list of ints, representing the colors(0-indexed)
-or None if no color is set. N must be s square number
+or None if no color is set. N must be a square number
 """
 
 
@@ -55,7 +55,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     def initializeRandomly(self, board_size: int, satsolver = DEFAULT_SOLVER):
         board = self.generateTrivialBoard(board_size)
         coords_to_keep: set[tuple[int, int]] = set()
-        while len(coords_to_keep) < 2 * board_size:  # magic number i think looks good
+        while len(coords_to_keep) < board_size ** 1.67:  # magic number i think looks good
             i: int = randint(0, board_size)
             j: int = randint(0, board_size)
             coords_to_keep.add((i, j))
