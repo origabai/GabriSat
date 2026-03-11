@@ -14,9 +14,11 @@ def benchmark_times():
 def graph_vis():
     print("STARTING VISUAL EPICNESS")
     graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
-    vis = Visualizer(graph)
-    graph = vis.show()
-    solution = graph.solve()
+    solution = None
+    while True:
+        vis = Visualizer(graph)
+        graph = vis.show()
+        solution = graph.solve()
     vis = Visualizer(graph, solution)
     vis.show()
 
