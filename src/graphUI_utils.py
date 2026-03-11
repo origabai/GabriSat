@@ -3,6 +3,7 @@ import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
+from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 """
 provides utils for graph_visualizer.py
@@ -54,7 +55,9 @@ class GraphUtils:
         )(self.erase_clicked_edge)
         
         app.callback(
-            Output('btn-end', 'children'),
+            Output('success_message', 'children', allow_duplicate=True),
+            Output('success_message', 'style', allow_duplicate=True),
+            Output('interactive-graph', 'elements', allow_duplicate=True),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('color_num_selector', 'value'),
@@ -138,7 +141,7 @@ class GraphUtils:
         
         return html.Div([
             html.H3("Visual graph editor"),
-            html.H3(f"{message}", style = message_style),
+            html.H3(f"{message}", id='success_message' ,style = message_style),
             
             dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
             dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
@@ -380,7 +383,6 @@ class GraphUtils:
         if n_clicks == 0:
             return 0
         
-        
         #counts the edges and vertices of the graph
         nodes = set([])
         self.vis_object.edges = []
@@ -390,7 +392,10 @@ class GraphUtils:
                 self.vis_object.color_storage_for_termination.append([int(element['data']['id']), self.vis_object.color_to_num(element['data']['color'])])
             else:
                 self.vis_object.edges.append([int(element['data']['source']), int(element['data']['target'])])
-        missing_nodes = set(range(max(nodes))) - nodes
+        if nodes == set([]):
+            missing_nodes = set([])
+        else:
+            missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
             
             
@@ -407,10 +412,44 @@ class GraphUtils:
                 if color_node[0] > node:
                     color_node[0] -= 1
             
-            
+        self.vis_object.color_storage_for_termination.sort(key = lambda tup : tup[0])
+        color_array = [element[1] for element in self.vis_object.color_storage_for_termination]
+        self.vis_object.graph = GraphColoring(self.vis_object.num_nodes, self.vis_object.edges, color_array, self.vis_object.max_colors)
+        found_solution = True
+        end_flag = False
+        solution = [None] * self.vis_object.num_nodes
+        Ham_solution = None
+        match self.vis_object.task:
+            case "COLOR":
+                # solve coloring problem
+                solution = self.vis_object.graph.solve()
+                if solution is None:
+                    solution = [None] * self.vis_object.num_nodes
+                    found_solution = False
                 
+            case "HAMPATH":
+                # solve hampath problem
+                ham_graph = HamiltonianCycle(self.vis_object.graph.num_nodes, self.vis_object.graph.edges)
+                Ham_solution = ham_graph.solve()
+                if Ham_solution is None:
+                    found_solution = False
+                #continue
+            case "END":
+                # end simulation
+                end_flag = True   
+        
         #and now - terminate the process!
-        self.vis_object.correct_end = True
-        _thread.interrupt_main()
+        if end_flag:
+            self.vis_object.correct_end = True
+            _thread.interrupt_main()
+            return "The program finished running. ", {'color' : 'blue'}, GraphUtils.generate_initial_data(0, [], [], [])
+        else:
+            #print(solution)
+            next_colors = [self.vis_object.color_gen(color) for color in solution]
+            special_edges = self.vis_object.generate_edges(Ham_solution)
+            if found_solution:
+                return "Everything good, proceed!", {'color' : 'green'}, GraphUtils.generate_initial_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
+            else:
+                return "No solution found!", {'color' : 'red'}, GraphUtils.generate_initial_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
         #os.kill(os.getpid(), signal.SIGINT)
-        return "you can now refresh!"
+        return "...this is an error..."

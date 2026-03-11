@@ -24,10 +24,9 @@ class Visualizer:
         self.found_solution = found_solution
         
         self.special_edges = None
-        if Ham_solution is not None:
-            self.special_edges = [[Ham_solution[-1],Ham_solution[0]]]
-            for i in range(len(Ham_solution)-1):
-                self.special_edges.append([Ham_solution[i],Ham_solution[i+1]])
+        
+        
+        self.special_edges = self.generate_edges(Ham_solution)
         
         self.task = "COLOR"
         self.color_storage_for_termination = []
@@ -54,7 +53,14 @@ class Visualizer:
             return None
         else:
             return self.COLORS.index(color)
-        
+    
+    def generate_edges(self, Ham_solution):
+            special = []
+            if Ham_solution is not None:
+                special = [[Ham_solution[-1],Ham_solution[0]]]
+                for i in range(len(Ham_solution)-1):
+                    special.append([Ham_solution[i],Ham_solution[i+1]])
+            return special
         
         
     #show result
