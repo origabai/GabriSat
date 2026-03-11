@@ -40,6 +40,7 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
+            State('color_num_selector', 'value'),
             prevent_initial_call=True
         )(self.process_node_click)
         
@@ -159,7 +160,7 @@ class GraphUtils:
                         {'label': '7', 'value': '7'},
                         {'label': '8', 'value': '8'},
                     ],
-                    value=['3'], # The default selected array
+                    value='3', # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
@@ -232,11 +233,10 @@ class GraphUtils:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
         
-    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode):
+    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return current_elements
-        
         if erase_mode['toggled']:
             
             # Extract the mathematical or topological data from the dictionary
@@ -249,7 +249,7 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour[0] is None:
+            if selected_colour[0] is None or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1:
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
