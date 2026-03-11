@@ -47,14 +47,11 @@ def graph_vis():
     while True:
         #create image
         vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
-        #driver.refresh()
-        webopen('http://localhost:8050')
         #initialize solutions to none
         solution = None
         found_solution = True
         Ham_solution = None
         color_graph = vis.show()
-        #print("TASK IS:", vis.task)
         #depending on the task, solve and update the solution
         match vis.task:
             case "COLOR":
