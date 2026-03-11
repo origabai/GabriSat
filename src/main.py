@@ -80,6 +80,8 @@ def visualize_sudoku():
         sud = Sudoku.initializeRandomly(4)
     elif (action == "2"):
         sud = Sudoku.initializeFromInput()
+        if sud is None:
+            return
     else:
         print("Invalid option >:(")
         return
