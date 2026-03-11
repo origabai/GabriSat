@@ -67,6 +67,13 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(self.generate_random_graph)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('color_num_selector', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.handle_colour_num_change)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -88,7 +95,7 @@ class GraphUtils:
         for edge in edges:
             if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
                 #print("adding edge")
-                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'green'}})
+                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'ForestGreen'}})
             else:
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
         
@@ -220,7 +227,7 @@ class GraphUtils:
         
         # Construct the new edge dictionary and append it to the state
         new_edge = {'data': {'source': source_id, 'target': target_id, 'color' : 'grey'}}
-        if {'data': {'source': target_id, 'target': source_id, 'color' : 'grey'}} and {'data': {'source': target_id, 'target': source_id, 'color' : 'green'}} not in current_elements and new_edge not in current_elements:
+        if {'data': {'source': target_id, 'target': source_id, 'color' : 'grey'}} and {'data': {'source': target_id, 'target': source_id, 'color' : 'ForestGreen'}} not in current_elements and new_edge not in current_elements:
             current_elements.append(new_edge)
         
         return current_elements
@@ -232,6 +239,27 @@ class GraphUtils:
         else:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
+    
+    def check_element_compliance(self, element, color):
+        try:
+            return self.vis_object.color_to_num(element['data']['color']) < int(color) 
+        except:
+            return True
+        
+    def handle_colour_num_change(self, value, current_elements):
+        if value == '5':
+            print("this is SPARTA!!!!")
+        
+        new_elements = []
+        for element in current_elements:
+            if self.check_element_compliance(element, value):
+                new_elements.append(element)
+            else:
+                new_element = element
+                element['data']['color'] = "grey"
+                new_elements.append(new_element)
+                
+        return new_elements
         
     def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
         # Base case: The app just loaded, and no node has been clicked yet.
