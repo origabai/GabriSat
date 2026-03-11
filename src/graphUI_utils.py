@@ -104,8 +104,19 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Button('Commence coloring', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Button('Commence HamPath', id='btn-ham', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+                html.Button('End simulation', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Label("select-end-task"),
+                dcc.Dropdown(
+                    id='end-task-selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': 'coloring', 'value': "COLOR"},
+                        {'label': 'hampath', 'value': "HAMPATH"},
+                    ],
+                    value=["COLOR"], # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
+                ),
             ], style={'marginBottom': '20px'}),
             
             html.Div([
