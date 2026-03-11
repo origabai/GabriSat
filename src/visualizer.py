@@ -18,6 +18,7 @@ class Visualizer:
         self.edges = graph.edges
         self.num_nodes = graph.num_nodes
         self.max_colors = graph.max_colors
+        self.task = "COLOR"
         self.color_storage_for_termination = []
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         #remembering colours
