@@ -1,6 +1,8 @@
 from dash import Dash, html, Input, Output, State, dcc
 import dash_cytoscape as cyto
 import _thread
+from random import randint
+from graph_coloring import GraphColoring
 
 """
 provides utils for graph_visualizer.py
@@ -57,6 +59,14 @@ class GraphUtils:
             State('end-task-selector', 'value'),
             prevent_initial_call=True
         )(self.end_visualization)
+        
+        app.callback(
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('btn-random', 'n_clicks'),
+            State('color_num_selector', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.generate_random_graph)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -66,7 +76,7 @@ class GraphUtils:
     returns the standard layout of the html file given the default elements
     '''
     @staticmethod
-    def generate_initial_data(nodes, edges, colors, special_edges):
+    def generate_initial_data(nodes, edges, colors, special_edges = None):
         initial_data = []
         
         #generates nodes in initial_data
@@ -116,7 +126,8 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
 
             html.Div([
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
             ], style={'marginBottom': '20px'}),
             
             html.Div([
@@ -253,6 +264,14 @@ class GraphUtils:
             return elements 
     
     
+    def generate_random_graph(self, n_clicks, max_colors, current_elements):
+        print("are you alive?")
+        if n_clicks == 0:
+            return current_elements
+        new_graph = GraphColoring.generate(size = randint(5, 11))
+        print(new_graph.num_nodes, new_graph.edges)
+        return GraphUtils.generate_initial_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
+    
     
     def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
@@ -306,6 +325,7 @@ class GraphUtils:
             
                 
         #and now - terminate the process!
+        self.vis_object.correct_end = True
         _thread.interrupt_main()
         #os.kill(os.getpid(), signal.SIGINT)
-        return 0
+        return "you can now refresh!"
