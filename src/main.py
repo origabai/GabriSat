@@ -5,6 +5,7 @@ from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
+from sys import setrecursionlimit
 
 from webbrowser import open as webopen
 
@@ -12,15 +13,15 @@ from webbrowser import open as webopen
 def benchmark_times():
     print("Starting time benchmark")
     print(
-        "Average time to 3-color a 6 vertex graph:",
-        test_time(GraphColoring, 6),
+        "Average time to 19-color a 38 vertex graph:",
+        test_time(GraphColoring, 38),
     )
     print(
-        "Average time to find a hamiltonian cycle on a 4 vertex graph:",
-        test_time(HamiltonianCycle, 4),
+        "Average time to find a hamiltonian cycle on a 23 vertex graph:",
+        test_time(HamiltonianCycle, 23),
     )
     print(
-        "Average time to solve a 9x9 sudoku(expert level):",
+        "Average time to solve a 9x9 sudoku:",
         test_time(Sudoku, 9),
     )
 
@@ -87,6 +88,7 @@ def visualize_sudoku():
 
 
 def main():
+    setrecursionlimit(3000)
     print("WELCOME TO VERY EPIC SAT SOLVER")
     print("What would you like to do?")
     print("1 - Benchmark solving times")
