@@ -112,8 +112,6 @@ class GraphUtils:
             
             # Control Panel for Adding Nodes
             html.Div([
-                #dcc.Input(id='input-node-id', type='text', placeholder='New Node ID (e.g., C)'),
-                #dcc.Input(id='input-node-label', type='text', placeholder='Node Label'),
                 html.Button('Add node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
@@ -121,7 +119,7 @@ class GraphUtils:
             html.Div([
                 dcc.Input(id='input-edge-source', type='text', placeholder='Source Node ID'),
                 dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
-                html.Button('Add Edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
+                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '20px'}),
 
             html.Div([
@@ -147,6 +145,24 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
+                html.Label("colors in coloring"),
+                dcc.Dropdown(
+                    id='color_num_selector',
+                    options=[
+                        # 'label' is what the user sees, 'value' is what Python receives
+                        {'label': '1', 'value': '1'},
+                        {'label': '2', 'value': '2'},
+                        {'label': '3', 'value': '3'},
+                        {'label': '4', 'value': '4'},
+                        {'label': '5', 'value': '5'},
+                        {'label': '6', 'value': '6'},
+                        {'label': '7', 'value': '7'},
+                        {'label': '8', 'value': '8'},
+                    ],
+                    value=['3'], # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px', 'marginTop': '5px'}
+                ),
                 html.Label("Change node color"),
                 dcc.Dropdown(
                     id='multi-colour-selector',
@@ -168,24 +184,7 @@ class GraphUtils:
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
-                html.Label("colors in coloring"),
-                dcc.Dropdown(
-                    id='color_num_selector',
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': '1', 'value': '1'},
-                        {'label': '2', 'value': '2'},
-                        {'label': '3', 'value': '3'},
-                        {'label': '4', 'value': '4'},
-                        {'label': '5', 'value': '5'},
-                        {'label': '6', 'value': '6'},
-                        {'label': '7', 'value': '7'},
-                        {'label': '8', 'value': '8'},
-                    ],
-                    value=['3'], # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
-                )
+                
             ]),
 
             # The Cytoscape Canvas

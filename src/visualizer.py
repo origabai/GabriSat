@@ -14,19 +14,6 @@ in the editing window.
 
 '''
 
-'''
-def generate_random_graph(self, n_clicks, max_colors):
-        if n_clicks == 0:
-            return 
-        random_select = choice(["random", "colors"])
-        new_graph = self.vis_object.graph.max_colors = max_colors
-        match random_select:
-            case "random":
-                new_graph = self.vis_object.graph.generate_random()
-            case "colors":
-                new_graph = self.vis_object.graph.generate_interesting_graph()
-        return 
-'''
 class Visualizer:
     def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None, found_solution = True):
         self.graph = graph
