@@ -15,7 +15,6 @@ from SAT import AbstractSATSolver
 
 from webbrowser import open as webopen
 
-
 def benchmark_times():
     print("Starting time benchmark")
     print(
@@ -38,37 +37,38 @@ def benchmark_times():
 def graph_vis():
     # bootstrap
     print("STARTING VISUAL EPICNESS")
-    color_graph = GraphColoring(
-        6,
-        [[0, 1], [0, 2], [1, 2], [2, 3], [2, 5], [5, 4], [3, 4]],
-        [1, 2, 6, 7, None, None],
-        3,
-    )
+    color_graph = GraphColoring(0, [], [], 3)
     solution = None
     Ham_solution = None
-    webopen("http://localhost:8050")
-    # driver = webdriver.Brave()
-    # driver.get('http://localhost:8050')
+    found_solution = True
+    webopen('http://localhost:8050')
+    #driver = webdriver.Brave()
+    #driver.get('http://localhost:8050')
     while True:
-        # create image
-        vis = Visualizer(color_graph, solution, Ham_solution)
-        # driver.refresh()
-        webopen("http://localhost:8050")
-        # initialize solutions to none
+        #create image
+        vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
+        #driver.refresh()
+        webopen('http://localhost:8050')
+        #initialize solutions to none
         solution = None
+        found_solution = True
         Ham_solution = None
         color_graph = vis.show()
-        # print("TASK IS:", vis.task)
-        # depending on the task, solve and update the solution
+        #print("TASK IS:", vis.task)
+        #depending on the task, solve and update the solution
         match vis.task:
             case "COLOR":
                 # solve coloring problem
                 solution = color_graph.solve()
+                if solution is None:
+                    found_solution = False
                 continue
             case "HAMPATH":
                 # solve hampath problem
                 ham_graph = HamiltonianCycle(color_graph.num_nodes, color_graph.edges)
                 Ham_solution = ham_graph.solve()
+                if Ham_solution is None:
+                    found_solution = False
                 continue
             case "END":
                 # end simulation

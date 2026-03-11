@@ -14,10 +14,11 @@ in the editing window.
 
 '''
 class Visualizer:
-    def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None):
+    def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None, found_solution = True):
         self.edges = graph.edges
         self.num_nodes = graph.num_nodes
         self.max_colors = graph.max_colors
+        self.found_solution = found_solution
         
         self.special_edges = None
         if Ham_solution is not None:
@@ -59,7 +60,7 @@ class Visualizer:
         
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
-        app.layout = GraphUtils.default_layout(initial_elements)
+        app.layout = GraphUtils.default_layout(initial_elements, self.found_solution)
         helper = GraphUtils(app, self)
         #app.layout = helper.default_layout(initial_elements)
 
