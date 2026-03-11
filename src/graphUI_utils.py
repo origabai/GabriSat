@@ -88,10 +88,10 @@ class GraphUtils:
     @staticmethod
     def default_layout(initial_elements, found_solution):
         #this part determines success message
-        message = "everything good, proceed!"
+        message = "Everything good, proceed!"
         message_style = {'color' : 'green'}
         if not found_solution:
-            message = "no solution found!"
+            message = "No solution found!"
             message_style = {'color' : 'red'}
         
         return html.Div([
@@ -121,7 +121,7 @@ class GraphUtils:
             
             html.Div([
                 html.Button('Do task', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Label("select task:"),
+                html.Label("  Select task:"),
                 dcc.Dropdown(
                     id='end-task-selector',
                     options=[
