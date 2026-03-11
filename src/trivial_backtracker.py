@@ -1,4 +1,4 @@
-from abstract_SAT_solver import AbstractSATSolver
+from SAT import AbstractSATSolver
 
 class TrivialBacktrackingSolver(AbstractSATSolver):
     def __init__(self, num_variables):

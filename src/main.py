@@ -5,49 +5,75 @@ from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
+from constants import (
+    DEFAULT_SOLVER,
+    TrivialSATSolver,
+    TrivialBacktrackingSolver,
+    SAT_backtracking,
+)
+from SAT import AbstractSATSolver
+
 from webbrowser import open as webopen
+
 
 def benchmark_times():
     print("Starting time benchmark")
-    print("Average time to 3-color a 6 vertex graph:",test_time(GraphColoring.generate(), 6))
-    print("Average time to find a hamiltonian cycle on a 4 vertex graph:",test_time(HamiltonianCycle.generate(), 4))
-    print("Average time to solve a 1x1 sudoku(expert level):",test_time(Sudoku.generate(), 1))
+    print(
+        "Average time to 3-color a 6 vertex graph:",
+        test_time(GraphColoring.generate(), 6),
+    )
+    print(
+        "Average time to find a hamiltonian cycle on a 4 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 4),
+    )
+    print(
+        "Average time to solve a 4x4 sudoku(expert level):",
+        test_time(Sudoku.generate(), 4),
+    )
 
 
-'''runs loop for displaying output'''
+"""runs loop for displaying output"""
+
+
 def graph_vis():
-    #bootstrap
+    # bootstrap
     print("STARTING VISUAL EPICNESS")
-    color_graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
+    color_graph = GraphColoring(
+        6,
+        [[0, 1], [0, 2], [1, 2], [2, 3], [2, 5], [5, 4], [3, 4]],
+        [1, 2, 6, 7, None, None],
+        3,
+    )
     solution = None
     Ham_solution = None
-    webopen('http://localhost:8050')
-    #driver = webdriver.Brave()
-    #driver.get('http://localhost:8050')
+    webopen("http://localhost:8050")
+    # driver = webdriver.Brave()
+    # driver.get('http://localhost:8050')
     while True:
-        #create image
+        # create image
         vis = Visualizer(color_graph, solution, Ham_solution)
-        #driver.refresh()
-        webopen('http://localhost:8050')
-        #initialize solutions to none
+        # driver.refresh()
+        webopen("http://localhost:8050")
+        # initialize solutions to none
         solution = None
         Ham_solution = None
         color_graph = vis.show()
-        #print("TASK IS:", vis.task)
-        #depending on the task, solve and update the solution
+        # print("TASK IS:", vis.task)
+        # depending on the task, solve and update the solution
         match vis.task:
-            case 'COLOR':
-                #solve coloring problem
+            case "COLOR":
+                # solve coloring problem
                 solution = color_graph.solve()
                 continue
             case "HAMPATH":
-                #solve hampath problem
-                ham_graph = HamiltonianCycle(color_graph.num_nodes,color_graph.edges)
+                # solve hampath problem
+                ham_graph = HamiltonianCycle(color_graph.num_nodes, color_graph.edges)
                 Ham_solution = ham_graph.solve()
                 continue
             case "END":
-                #end simulation
+                # end simulation
                 break
+
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
@@ -61,6 +87,31 @@ def visualize_sudoku():
         vis.visualize_sudoku(sol)
         input("Press enter to exit")
 
+
+# compares the results of different SAT solvers and prints the results
+# solvers is a list of classes of SAT solvers, num_vars is an int representing
+# the desired amount of sat variables to generate randomly, num_clauses is an int
+# representing the desired amount of sat clauses to generate randomly
+def compare_SATs(
+    solvers=[TrivialBacktrackingSolver, SAT_backtracking],
+    num_vars: int = 20,
+    num_clauses: int = 10,
+) -> None:
+    random_sat: AbstractSATSolver = AbstractSATSolver.generate_random(  # generating SAT
+        num_vars, num_clauses, DEFAULT_SOLVER
+    )
+    for clause in random_sat.clauses:  # generating clauses for the SAT
+        print(f"pos: {clause.pos_variables} | neg: {clause.neg_variables}")
+    sats = [solver(num_vars) for solver in solvers]
+    for sat in sats:  # copying the SAT for the different solvers
+        for clause in random_sat.clauses:
+            sat.addClause(clause.pos_variables.copy(), clause.neg_variables.copy())
+    sols = [sat.solve() for sat in sats]  # solving with each solver
+    for i in range(len(sats)):  # printing the results
+        print(f"{type(sats[i])} got the following solution:")
+        print(sols[i])
+
+
 def main():
     print("WELCOME TO VERY EPIC SAT SOLVER")
     print("What would you like to do?")
@@ -68,15 +119,14 @@ def main():
     print("2 - View graph visualizer")
     print("3 - View sudoku solution")
     action = input("")
-    if (action == "1"):
+    if action == "1":
         benchmark_times()
-    elif (action == "2"):
+    elif action == "2":
         graph_vis()
-    elif (action == "3"):
+    elif action == "3":
         visualize_sudoku()
     else:
         print("Not a valid option")
-
 
 
 if __name__ == "__main__":
