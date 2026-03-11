@@ -3,7 +3,7 @@ import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
-from constants import RandomGraphMinSize, RandomGraphMaxSize
+from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 """
 provides utils for graph_visualizer.py
 """
@@ -40,6 +40,7 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
+            State('color_num_selector', 'value'),
             prevent_initial_call=True
         )(self.process_node_click)
         
@@ -66,6 +67,14 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(self.generate_random_graph)
+        
+        app.callback(
+            Output('multi-colour-selector', 'options'),
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('color_num_selector', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.handle_color_num_change)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -87,7 +96,7 @@ class GraphUtils:
         for edge in edges:
             if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
                 #print("adding edge")
-                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'green'}})
+                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'ForestGreen'}})
             else:
                 initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
         
@@ -159,7 +168,7 @@ class GraphUtils:
                         {'label': '7', 'value': '7'},
                         {'label': '8', 'value': '8'},
                     ],
-                    value=['3'], # The default selected array
+                    value='3', # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                     style={'width': '300px', 'marginTop': '5px'}
                 ),
@@ -219,7 +228,7 @@ class GraphUtils:
         
         # Construct the new edge dictionary and append it to the state
         new_edge = {'data': {'source': source_id, 'target': target_id, 'color' : 'grey'}}
-        if {'data': {'source': target_id, 'target': source_id, 'color' : 'grey'}} and {'data': {'source': target_id, 'target': source_id, 'color' : 'green'}} not in current_elements and new_edge not in current_elements:
+        if {'data': {'source': target_id, 'target': source_id, 'color' : 'grey'}} and {'data': {'source': target_id, 'target': source_id, 'color' : 'ForestGreen'}} not in current_elements and new_edge not in current_elements:
             current_elements.append(new_edge)
         
         return current_elements
@@ -231,12 +240,36 @@ class GraphUtils:
         else:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
+    
+    def check_element_compliance(self, element, color):
+        try:
+            return self.vis_object.color_to_num(element['data']['color']) < int(color) 
+        except:
+            return True
         
-    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode):
+    #handles colour number change
+    def handle_color_num_change(self, value, current_elements):
+        #when no graph does trivial stuff to avoid iteration error
+        if current_elements is None or current_elements == []:
+            return ColourSelectorOptions[:int(value)+2], []
+        
+        #changes up the values of all nodes
+        new_elements = []
+        for element in current_elements:
+            if self.check_element_compliance(element, value):
+                new_elements.append(element)
+            else:
+                new_element = element
+                element['data']['color'] = "grey"
+                new_elements.append(new_element)
+                
+        #also changes the settings of the options
+        return ColourSelectorOptions[:int(value)+2], new_elements
+        
+    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return current_elements
-        
         if erase_mode['toggled']:
             
             # Extract the mathematical or topological data from the dictionary
@@ -249,7 +282,7 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour[0] is None:
+            if selected_colour[0] is None or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1:
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
