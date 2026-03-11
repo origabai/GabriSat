@@ -69,10 +69,12 @@ class GraphUtils:
     def generate_initial_data(nodes, edges, colors, special_edges):
         initial_data = []
         
+        #generates nodes in initial_data
         for node in range(nodes):
             initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': colors[node]}})
         
         #print("SPECIAL EDGES:", special_edges)
+        #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in edges:
             if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
                 #print("adding edge")

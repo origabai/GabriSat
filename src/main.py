@@ -12,7 +12,10 @@ def benchmark_times():
     print("Average time to find a hamiltonian cycle on a 4 vertex graph:",test_time(HamiltonianCycle.generate(), 4))
     print("Average time to solve a 1x1 sudoku(expert level):",test_time(Sudoku.generate(), 1))
 
+
+'''runs loop for displaying output'''
 def graph_vis():
+    #bootstrap
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
     solution = None
@@ -21,25 +24,28 @@ def graph_vis():
     #driver = webdriver.Brave()
     #driver.get('http://localhost:8050')
     while True:
+        #create image
         vis = Visualizer(color_graph, solution, Ham_solution)
         #driver.refresh()
         webopen('http://localhost:8050')
+        #initialize solutions to none
         solution = None
         Ham_solution = None
         color_graph = vis.show()
         #print("TASK IS:", vis.task)
+        #depending on the task, solve and update the solution
         match vis.task:
             case 'COLOR':
+                #solve coloring problem
                 solution = color_graph.solve()
-                #print("solving?")
-                #print(color_graph.edges)
                 continue
             case "HAMPATH":
+                #solve hampath problem
                 ham_graph = HamiltonianCycle(color_graph.num_nodes,color_graph.edges)
                 Ham_solution = ham_graph.solve()
-                #print("SOLUTION:", Ham_solution)
                 continue
             case "END":
+                #end simulation
                 break
 
 def visualize_sudoku():
