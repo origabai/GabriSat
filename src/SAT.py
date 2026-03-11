@@ -9,6 +9,10 @@ class SATClause:
     def __init__(self, pos_variables: set[int], neg_variables: set[int]):
         self.pos_variables: set[int] = pos_variables
         self.neg_variables: set[int] = neg_variables
+    def __eq__(self, value): # equality of SATClauses
+        if not isinstance(value, SATClause): # different type
+            return False
+        return self.pos_variables == value.pos_variables and self.neg_variables == value.neg_variables
 
 
 class AbstractSATSolver:

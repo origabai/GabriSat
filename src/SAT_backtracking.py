@@ -6,8 +6,14 @@ SAT solver with backtracking
 
 
 class SAT_backtracking(AbstractSATSolver):
+    clauses_copy: SATClause = []
+
     def __init__(self, num_variables):
         super().__init__(num_variables)
+
+    def addClause(self, pos_variables: list[int], neg_variables: list[int]):
+        self.clauses.append(SATClause(set(pos_variables), set(neg_variables)))
+        self.clauses_copy.append(SATClause(set(pos_variables), set(neg_variables)))
 
     # returns an array of booleans containing a satisfying solution, or None if impossible
     def solve(self) -> list[int] | None:
@@ -34,9 +40,10 @@ class SAT_backtracking(AbstractSATSolver):
                     )  # next(iter(.)) is the python way to get an arbitrary element
                 else:
                     singelton_clauses.add((next(iter(neg)), False))
-        return self.recursive_backtrack_solve(
+        solution: list[bool] | None = self.recursive_backtrack_solve(
             interpretation, 0, unsatisfied, singelton_clauses
         )
+        return solution
 
     # the recursive function that backtrack_solve calls. interpretation is the current interpretation
     # containing True, False or None, with None indicating not selected yet. ind is the index up to
@@ -52,11 +59,13 @@ class SAT_backtracking(AbstractSATSolver):
         singelton_clauses: set[tuple[int, bool]],
     ) -> list[bool] | None:
         if ind == self.num_variables:  # base case
+            # if not self.check_interpretation_satisfaction(interpretation):
+            #     return None
             return interpretation
 
         if len(singelton_clauses) > 0:  # there are singelton clauses
             satisfied_clauses: list[int] = []  # needed for undo_literal
-            unsatisfied_clauses: list[int] = []  # needed for undo_literal
+            clause_changes: list[tuple[set[int], int]] = []  # needed for undo_literal
             new_singeltons: list[tuple[int, bool]] = []  # needed for undo_literal
             literal, value = singelton_clauses.pop()  # try an arbitrary singleton
             if interpretation[literal] == (not value):  # already a contradiction
@@ -76,7 +85,7 @@ class SAT_backtracking(AbstractSATSolver):
                 literal,
                 value,
                 satisfied_clauses,
-                unsatisfied_clauses,
+                clause_changes,
                 new_singeltons,
             )
             if not check:  # there is already a contradiction
@@ -93,7 +102,7 @@ class SAT_backtracking(AbstractSATSolver):
                 literal,
                 value,
                 satisfied_clauses,
-                unsatisfied_clauses,
+                clause_changes,
                 new_singeltons,
             )
             singelton_clauses.add((literal, value))  # put it back
@@ -106,10 +115,10 @@ class SAT_backtracking(AbstractSATSolver):
             return self.recursive_backtrack_solve(
                 interpretation, ind + 1, unsatisfied, singelton_clauses
             )
-        
+
         for value in [True, False]:
             satisfied_clauses: list[int] = []  # needed for undo_literal
-            unsatisfied_clauses: list[int] = []  # needed for undo_literal
+            clause_changes: list[tuple[set[int], int]] = []  # needed for undo_literal
             new_singeltons: list[tuple[int, bool]] = []  # needed for undo_literal
             check: bool = self.put_in_literal(
                 interpretation,
@@ -118,7 +127,7 @@ class SAT_backtracking(AbstractSATSolver):
                 ind,
                 value,
                 satisfied_clauses,
-                unsatisfied_clauses,
+                clause_changes,
                 new_singeltons,
             )
             if not check:  # there is already a contradiction
@@ -134,7 +143,7 @@ class SAT_backtracking(AbstractSATSolver):
                 ind,
                 value,
                 satisfied_clauses,
-                unsatisfied_clauses,
+                clause_changes,
                 new_singeltons,
             )
             if solution is not None:  # found solution
@@ -155,10 +164,10 @@ class SAT_backtracking(AbstractSATSolver):
         literal: int,
         value: bool,
         satisfied_clauses: list[int],
-        unsatisfied_clauses: list[int],
+        clause_changes: list[tuple[set[int], int]],
         new_singeltons: list[tuple[int, bool]],
     ) -> bool:
-        tmp_unsatisfied_clauses: list[int] = []
+        unsatisfied_clauses: list[int] = []
         # the full unsatisfied_clauses, we put it one by one in the real one as soon as we change things based on them
         interpretation[literal] = value
         # satisfied_clauses is a list containing the indexes of the clauses that i now satisfies
@@ -168,15 +177,15 @@ class SAT_backtracking(AbstractSATSolver):
             if literal in clause.pos_variables:  # assuming value = True
                 satisfied_clauses.append(clause_ind)
             if literal in clause.neg_variables:
-                tmp_unsatisfied_clauses.append(clause_ind)
+                unsatisfied_clauses.append(clause_ind)
         if not value:  # if value is False we have the wrong order
-            satisfied_clauses, tmp_unsatisfied_clauses = (  # swap
-                tmp_unsatisfied_clauses,
+            satisfied_clauses, unsatisfied_clauses = (  # swap
+                unsatisfied_clauses,
                 satisfied_clauses,
             )
         for clause_ind in satisfied_clauses:
-            unsatisfied.remove(clause_ind)
-        for clause_ind in tmp_unsatisfied_clauses:
+            unsatisfied.remove(clause_ind)  # ~
+        for clause_ind in unsatisfied_clauses:
             clause: SATClause = self.clauses[clause_ind]
             variables: set[int]
             opposite_variables: set[int]
@@ -189,8 +198,8 @@ class SAT_backtracking(AbstractSATSolver):
                     opposite_variables,
                     variables,
                 )  # swap
-            variables.remove(literal)
-            unsatisfied_clauses.append(clause_ind)
+            variables.remove(literal)  # ~
+            clause_changes.append((variables, literal))
             if (
                 len(variables) + len(opposite_variables) == 0
             ):  # clause now empty, a contradiction
@@ -201,7 +210,7 @@ class SAT_backtracking(AbstractSATSolver):
                     literal,
                     value,
                     satisfied_clauses,
-                    unsatisfied_clauses,
+                    clause_changes,
                     new_singeltons,
                 )
                 interpretation[literal] = None  #!
@@ -217,22 +226,6 @@ class SAT_backtracking(AbstractSATSolver):
                 else:  # new literal has the opposite value from literal
                     new_literal = next(iter(opposite_variables))
                     new_value = value
-                if (
-                    new_literal,
-                    not new_value,
-                ) in singelton_clauses:  # we have a contradiction
-                    self.undo_literal(
-                        interpretation,
-                        unsatisfied,
-                        singelton_clauses,
-                        literal,
-                        value,
-                        satisfied_clauses,
-                        unsatisfied_clauses,
-                        new_singeltons,
-                    )
-                    interpretation[literal] = None  #!
-                    return False
                 # checking if already inside, critical for undo_literal
                 if interpretation[new_literal] == new_value:  # already solved
                     pass
@@ -245,15 +238,31 @@ class SAT_backtracking(AbstractSATSolver):
                         literal,
                         value,
                         satisfied_clauses,
-                        unsatisfied_clauses,
+                        clause_changes,
                         new_singeltons,
                     )
-                    interpretation[literal] = None  #!
+                    interpretation[literal] = None
                     return False
                 elif (new_literal, new_value) not in singelton_clauses:
                     singelton_clauses.add((new_literal, new_value))
                     # saving the change for undo_literal
                     new_singeltons.append((new_literal, new_value))
+                    if (
+                        new_literal,
+                        not new_value,
+                    ) in singelton_clauses:  # we have a contradiction
+                        self.undo_literal(
+                            interpretation,
+                            unsatisfied,
+                            singelton_clauses,
+                            literal,
+                            value,
+                            satisfied_clauses,
+                            clause_changes,
+                            new_singeltons,
+                        )
+                        interpretation[literal] = None  #!
+                        return False
         return True  # no contradictions found
 
     # undoes everything adding a literal does, useful during backtracking
@@ -267,19 +276,15 @@ class SAT_backtracking(AbstractSATSolver):
         literal: int,
         value: bool,
         satisfied_clauses: list[int],
-        unsatisfied_clauses: list[int],
+        clause_changes: list[tuple[set[int], int]],
         new_singeltons: list[tuple[int, bool]],
     ) -> None:
         for singelton in new_singeltons:
             singelton_clauses.remove(singelton)  # removing added singeltons
-        for clause_ind in unsatisfied_clauses:
-            clause: SATClause = self.clauses[clause_ind]
-            variables: set[int] = clause.neg_variables  # assuming value = True
-            if not value:  # literal is actually in pos_variables
-                variables = clause.pos_variables
+        for variables, clause_ind in clause_changes:
             variables.add(literal)
         for clause_ind in satisfied_clauses:
             unsatisfied.add(clause_ind)
         satisfied_clauses.clear()
-        unsatisfied_clauses.clear()
+        clause_changes.clear()
         new_singeltons.clear()
