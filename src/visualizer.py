@@ -14,10 +14,17 @@ in the editing window.
 
 '''
 class Visualizer:
-    def __init__(self, graph : GraphColoring, solution = None):
+    def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None):
         self.edges = graph.edges
         self.num_nodes = graph.num_nodes
         self.max_colors = graph.max_colors
+        
+        self.special_edges = None
+        if Ham_solution is not None:
+            self.special_edges = [[Ham_solution[-1],Ham_solution[0]]]
+            for i in range(len(Ham_solution)-1):
+                self.special_edges.append([Ham_solution[i],Ham_solution[i+1]])
+        
         self.task = "COLOR"
         self.color_storage_for_termination = []
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
@@ -48,7 +55,7 @@ class Visualizer:
         
     #show result
     def show(self) -> None:
-        initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors)
+        initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors, self.special_edges)
         
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
@@ -56,11 +63,11 @@ class Visualizer:
         helper = GraphUtils(app, self)
         #app.layout = helper.default_layout(initial_elements)
 
-        webbrowser.open('http://localhost:8050')
+
 
         app.run()
         self.color_storage_for_termination.sort(key = lambda tup : tup[0])
         color_array = [element[1] for element in self.color_storage_for_termination]
-        print(self.edges)
+        #print(self.edges)
         return GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
 

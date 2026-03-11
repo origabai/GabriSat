@@ -4,6 +4,7 @@ from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
+from webbrowser import open as webopen
 
 def benchmark_times():
     print("Starting time benchmark")
@@ -13,14 +14,33 @@ def benchmark_times():
 
 def graph_vis():
     print("STARTING VISUAL EPICNESS")
-    graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
+    color_graph = GraphColoring(6, [[0,1],[0,2],[1,2],[2,3],[2,5],[5,4],[3,4]], [1,2,6,7,None,None], 3)
     solution = None
+    Ham_solution = None
+    webopen('http://localhost:8050')
+    #driver = webdriver.Brave()
+    #driver.get('http://localhost:8050')
     while True:
-        vis = Visualizer(graph)
-        graph = vis.show()
-        solution = graph.solve()
-    vis = Visualizer(graph, solution)
-    vis.show()
+        vis = Visualizer(color_graph, solution, Ham_solution)
+        #driver.refresh()
+        webopen('http://localhost:8050')
+        solution = None
+        Ham_solution = None
+        color_graph = vis.show()
+        #print("TASK IS:", vis.task)
+        match vis.task:
+            case 'COLOR':
+                solution = color_graph.solve()
+                #print("solving?")
+                #print(color_graph.edges)
+                continue
+            case "HAMPATH":
+                ham_graph = HamiltonianCycle(color_graph.num_nodes,color_graph.edges)
+                Ham_solution = ham_graph.solve()
+                #print("SOLUTION:", Ham_solution)
+                continue
+            case "END":
+                break
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
