@@ -1,5 +1,5 @@
 from graph import Graph
-from SAT_trivial import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER
 from SAT_reducible_problem import SATReducibleProblem
 
 class HamiltonianCycle(Graph, SATReducibleProblem):

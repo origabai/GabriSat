@@ -1,3 +1,6 @@
 from SAT_trivial import TrivialSATSolver
+from SAT_backtracking import SAT_backtracking
 
-DEFAULT_SOLVER = TrivialSATSolver
+DEFAULT_SOLVER = SAT_backtracking
+TrivialSATSolver
+SAT_backtracking

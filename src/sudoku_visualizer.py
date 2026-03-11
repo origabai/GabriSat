@@ -8,6 +8,9 @@ class SudokuVisualizer:
     visualizes a sudoku board. empty squares are noted by None
     """
     def visualize_sudoku(self, board):
+        if board is None:
+            print("no solution")
+            return
         plt.cla()
         # make axes the same scale ane make them disappear
         self.ax.set_box_aspect(1)

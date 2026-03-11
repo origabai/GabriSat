@@ -13,3 +13,4 @@ class SATReducibleProblem:
     # should return a solution to the problem, or None otherwise
     def solve(self):
         pass
+

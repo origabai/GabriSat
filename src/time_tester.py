@@ -1,5 +1,5 @@
 from SAT_reducible_problem import SATReducibleProblem
-from SAT_trivial import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER
 from time import time
 
 # run problem of size problem_size for some number of trials, and average the execution times
