@@ -95,7 +95,7 @@ class GraphUtils:
             message_style = {'color' : 'red'}
         
         return html.Div([
-            html.H3("Dynamic Graph Editor"),
+            html.H3("Visual graph editor"),
             html.H3(f"{message}", style = message_style),
             
             dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
@@ -105,7 +105,7 @@ class GraphUtils:
             html.Div([
                 #dcc.Input(id='input-node-id', type='text', placeholder='New Node ID (e.g., C)'),
                 #dcc.Input(id='input-node-label', type='text', placeholder='Node Label'),
-                html.Button('Add Node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
+                html.Button('Add node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
             # Control Panel for Adding Edges
@@ -120,8 +120,8 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Button('End simulation', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Label("select-end-task"),
+                html.Button('Do task', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Label("select task:"),
                 dcc.Dropdown(
                     id='end-task-selector',
                     options=[
@@ -137,7 +137,7 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Label("Change node colour"),
+                html.Label("Change node color"),
                 dcc.Dropdown(
                     id='multi-colour-selector',
                     options=[
