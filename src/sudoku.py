@@ -2,7 +2,7 @@ from math import sqrt
 from graph_coloring import GraphColoring
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
-from SAT import DEFAULT_SOLVER
+from SAT_trivial import DEFAULT_SOLVER
 
 """
 Sudoku class

@@ -1,4 +1,4 @@
-from SAT import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER
 
 # a general template for a sat reducible problem. all problems should inherit from this class.
 class SATReducibleProblem:

@@ -1,5 +1,5 @@
 from graph import Graph
-from SAT import DEFAULT_SOLVER
+from SAT_trivial import DEFAULT_SOLVER
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
 
