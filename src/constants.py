@@ -2,7 +2,7 @@ from SAT_trivial import TrivialSATSolver
 from SAT_backtracking import SAT_backtracking
 from trivial_backtracker import TrivialBacktrackingSolver
 
-DEFAULT_SOLVER = TrivialBacktrackingSolver
+DEFAULT_SOLVER = SAT_backtracking
 TrivialSATSolver
 SAT_backtracking
 TrivialBacktrackingSolver
