@@ -41,6 +41,7 @@ class GraphUtils:
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
             State('color_num_selector', 'value'),
+            State('end-task-selector', 'value'),
             prevent_initial_call=True
         )(self.process_node_click)
         
@@ -75,6 +76,17 @@ class GraphUtils:
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(self.handle_color_num_change)
+        
+        app.callback(
+            Output('label_1', 'style'),
+            Output('label_2', 'style'),
+            Output('multi-colour-selector', 'style'),
+            Output('color_num_selector', 'style'),
+            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Input('end-task-selector', 'value'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(self.handle_mode_change)
     '''
     provides utils for graph_visualizer.py
     '''
@@ -121,7 +133,7 @@ class GraphUtils:
             
             # Control Panel for Adding Nodes
             html.Div([
-                html.Button('Add node', id='btn-add-node', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
+                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], style={'marginBottom': '10px'}),
             
             # Control Panel for Adding Edges
@@ -154,7 +166,7 @@ class GraphUtils:
             ], style={'marginBottom': '20px'}),
             
             html.Div([
-                html.Label("colors in coloring"),
+                html.Label("colors in coloring", id = 'label_1', style={'display': 'yes'}),
                 dcc.Dropdown(
                     id='color_num_selector',
                     options=[
@@ -170,9 +182,9 @@ class GraphUtils:
                     ],
                     value='3', # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
+                    style={'display': 'yes', 'width': '300px', 'marginTop': '5px'}
                 ),
-                html.Label("Change node color"),
+                html.Label("Change node color", id = 'label_2', style = {'display': "yes"}),
                 dcc.Dropdown(
                     id='multi-colour-selector',
                     options=[
@@ -191,7 +203,7 @@ class GraphUtils:
                     ],
                     value=[None], # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
+                    style={'display': 'yes', 'width': '300px', 'marginTop': '5px'}
                 ),
                 
             ]),
@@ -242,9 +254,43 @@ class GraphUtils:
         
     
     
-    def handle_mode_change(self, new_mode, current_elements):
-        return current_elements
     
+    def handle_mode_change(self, new_mode, current_elements):
+        #changing to hampath - we need to clear all colors of the graph's nodes.
+        if new_mode == "HAMPATH":
+            if current_elements is not None and current_elements != []:
+                new_elements = []
+                for element in current_elements:
+                    if element['data']['color'] == "ForestGreen":
+                        new_elements.append(element)
+                    else:
+                        new_element = element
+                        element['data']['color'] = "grey"
+                        new_elements.append(new_element)
+            else:
+                new_elements = []
+            #returns cleared out nodes and hides color parts
+            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, new_elements
+
+        elif new_mode == "COLOR":
+            #when switching to color we need to clear out all coloured edges
+            if current_elements is not None and current_elements != []:
+                new_elements = []
+                for element in current_elements:
+                    if element['data']['color'] == "ForestGreen":
+                        new_element = element
+                        element['data']['color'] = "grey"
+                        new_elements.append(new_element)
+                    else:
+                        new_elements.append(element)
+            else:
+                new_elements = []
+            #unhides the color stuff from the html page
+            return  {'display': 'block'}, {'display': 'block'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, current_elements
+
+        else:
+            print("returning...")
+            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, current_elements
     
     def check_element_compliance(self, element, color):
         try:
@@ -252,7 +298,7 @@ class GraphUtils:
         except:
             return True
         
-            
+        
     #handles colour number change
     def handle_color_num_change(self, value, current_elements):
         #when no graph does trivial stuff to avoid iteration error
@@ -272,7 +318,7 @@ class GraphUtils:
         #also changes the settings of the options
         return ColourSelectorOptions[:int(value)+2], new_elements
         
-    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num):
+    def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num, current_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return current_elements
@@ -288,11 +334,12 @@ class GraphUtils:
                     ('target' in element['data'] and element['data']['target'] == node_id))
                     ]   
         else:
-            if selected_colour[0] is None or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
+            trivial_conditions = current_mode != "COLOR" or selected_colour[0] is None 
+            if trivial_conditions or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
                 return current_elements
             
             # Extract the mathematical or topological data from the dictionary
-            node_id = str(tapped_node.get('id', 'Unknmown'))
+            node_id = str(tapped_node.get('id', 'Unknown'))
             
             elements = [element for element in current_elements if element['data']['id'] != node_id]
             elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
