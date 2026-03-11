@@ -1,4 +1,4 @@
-from constants import TrivialBacktrackingSolver, TrivialSATSolver, SAT_backtracking, DEFAULT_SOLVER
+from constants import TrivialBacktrackingSolver, SAT_backtracking, DEFAULT_SOLVER
 from SAT import AbstractSATSolver
 from graph_coloring import GraphColoring
 import copy
@@ -50,7 +50,7 @@ def compare_solvers_on_graph_coloring(
 ) -> None:
     for i in range(num_of_tests):
         random_graph: GraphColoring = GraphColoring.generate(  # generating SAT
-            num_of_nodes, max_colors, DEFAULT_SOLVER
+            num_of_nodes, DEFAULT_SOLVER, max_colors
         )
         print(f"edges: {random_graph.edges}")
         print(f"colors: {random_graph.colors}")

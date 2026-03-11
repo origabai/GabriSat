@@ -5,13 +5,6 @@ from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
-from constants import (
-    DEFAULT_SOLVER,
-    TrivialSATSolver,
-    TrivialBacktrackingSolver,
-    SAT_backtracking,
-)
-from SAT import AbstractSATSolver
 
 from webbrowser import open as webopen
 
@@ -20,15 +13,15 @@ def benchmark_times():
     print("Starting time benchmark")
     print(
         "Average time to 3-color a 6 vertex graph:",
-        test_time(GraphColoring.generate(), 6),
+        test_time(GraphColoring, 6),
     )
     print(
         "Average time to find a hamiltonian cycle on a 4 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 4),
+        test_time(HamiltonianCycle, 4),
     )
     print(
-        "Average time to solve a 4x4 sudoku(expert level):",
-        test_time(Sudoku.generate(), 4),
+        "Average time to solve a 9x9 sudoku(expert level):",
+        test_time(Sudoku, 9),
     )
 
 

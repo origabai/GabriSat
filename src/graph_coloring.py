@@ -21,10 +21,12 @@ class GraphColoring(Graph, SATReducibleProblem):
 
     @classmethod
     def generate(
-        self, num_of_nodes: int = 2, max_colors: int = 2, solver=DEFAULT_SOLVER
+        self, num_of_nodes: int = 2, solver=DEFAULT_SOLVER, max_colors: int = None
     ):
+        if max_colors is None:
+            max_colors = num_of_nodes // 2
         g = GraphColoring(
-            num_of_nodes, 0, [], max_colors, satsolver=solver
+            num_of_nodes, [], [], max_colors, satsolver=solver
         )  # max colors is a random constant fraction
         g.generate_interesting_graph()
         return g
