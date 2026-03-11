@@ -216,43 +216,43 @@ class SAT_backtracking(AbstractSATSolver):
                 else:  # new literal has the opposite value from literal
                     new_literal = next(iter(opposite_variables))
                     new_value = value
-                # if ( ~
-                #     new_literal,
-                #     not new_value,
-                # ) in singelton_clauses:  # we have a contradiction
-                #     while len(unsatisfied_clauses) > loop_ind + 1:
-                #         # removing everything we didn't touch yet leaving only things in need of undoing
-                #         unsatisfied_clauses.pop()
-                #     self.undo_literal(
-                #         interpretation,
-                #         unsatisfied,
-                #         singelton_clauses,
-                #         literal,
-                #         value,
-                #         satisfied_clauses,
-                #         unsatisfied_clauses,
-                #         new_singeltons,
-                #     )
-                #     return False
+                if ( 
+                    new_literal,
+                    not new_value,
+                ) in singelton_clauses:  # we have a contradiction
+                    while len(unsatisfied_clauses) > loop_ind + 1:
+                        # removing everything we didn't touch yet leaving only things in need of undoing
+                        unsatisfied_clauses.pop()
+                    self.undo_literal(
+                        interpretation,
+                        unsatisfied,
+                        singelton_clauses,
+                        literal,
+                        value,
+                        satisfied_clauses,
+                        unsatisfied_clauses,
+                        new_singeltons,
+                    )
+                    return False
                 # checking if already inside, critical for undo_literal
-                # if interpretation[new_literal] == new_value: # already solved ~
-                #     pass
-                # elif interpretation[new_literal] == (not new_value): # already a contradiction
-                #     while len(unsatisfied_clauses) > loop_ind + 1:
-                #         # removing everything we didn't touch yet leaving only things in need of undoing
-                #         unsatisfied_clauses.pop()
-                #     self.undo_literal(
-                #         interpretation,
-                #         unsatisfied,
-                #         singelton_clauses,
-                #         literal,
-                #         value,
-                #         satisfied_clauses,
-                #         unsatisfied_clauses,
-                #         new_singeltons,
-                #     )
-                #     return False
-                if (new_literal, new_value) not in singelton_clauses: # elif
+                if interpretation[new_literal] == new_value: # already solved
+                    pass
+                elif interpretation[new_literal] == (not new_value): # already a contradiction
+                    while len(unsatisfied_clauses) > loop_ind + 1:
+                        # removing everything we didn't touch yet leaving only things in need of undoing
+                        unsatisfied_clauses.pop()
+                    self.undo_literal(
+                        interpretation,
+                        unsatisfied,
+                        singelton_clauses,
+                        literal,
+                        value,
+                        satisfied_clauses,
+                        unsatisfied_clauses,
+                        new_singeltons,
+                    )
+                    return False
+                elif (new_literal, new_value) not in singelton_clauses:
                     singelton_clauses.add((new_literal, new_value))
                     # saving the change for undo_literal
                     new_singeltons.append((new_literal, new_value))

@@ -6,7 +6,6 @@ from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
 from constants import DEFAULT_SOLVER, TrivialSATSolver
 from SAT import AbstractSATSolver, SATClause
-import copy
 
 
 def benchmark_times():
@@ -42,9 +41,10 @@ def graph_vis():
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
-    sud = Sudoku.initializeRandomly(9)
+    sud = Sudoku.initializeRandomly(4)
+    # sud = Sudoku.initializeFromInput()
     # sud = Sudoku([[None]])
-    vis.visualize_sudoku(copy.deepcopy(sud.board))
+    vis.visualize_sudoku(sud.board)
     input("Press enter to calculate solution")
     # vis.visualize_sudoku(sud.solve())
     sol = sud.solve()
@@ -75,21 +75,6 @@ def compare_SATs(
 
 
 def main():
-    # compare_SATs(DEFAULT_SOLVER, TrivialSATSolver, 15, 20)
-    # board = [[None for _ in range(4)] for _ in range(4)]
-    # board[0][0] = 0
-    # board[1][2] = 0
-    # board[0][1] = 1
-    # board[0][2] = 2
-    # board[0][3] = 3
-    # board[1][0] = 2
-    # board[3][0] = 3
-    # sud = Sudoku(board)
-    # print(sud.solve())
-    # sud = Sudoku.initializeRandomly(4)
-    # print(sud.board)
-    # print(sud.solve())
-    # return  ############################
     print("WELCOME TO VERY EPIC SAT SOLVER")
     print("What would you like to do?")
     print("1 - Benchmark solving times")
