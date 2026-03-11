@@ -36,21 +36,18 @@ def graph_vis():
     solution = None
     Ham_solution = None
     found_solution = True
-    webopen("http://localhost:8050")
-    # driver = webdriver.Brave()
-    # driver.get('http://localhost:8050')
+    webopen('http://localhost:8050')
     while True:
         # create image
         vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
-        # driver.refresh()
-        webopen("http://localhost:8050")
-        # initialize solutions to none
+        #initialize solutions to none
         solution = None
         found_solution = True
         Ham_solution = None
-        color_graph = vis.show()
-        # print("TASK IS:", vis.task)
-        # depending on the task, solve and update the solution
+        correct_end, color_graph = vis.show()
+        if not correct_end:
+            break
+        #depending on the task, solve and update the solution
         match vis.task:
             case "COLOR":
                 # solve coloring problem
@@ -72,15 +69,32 @@ def graph_vis():
 
 def visualize_sudoku():
     vis = SudokuVisualizer()
-    # sud = Sudoku.initializeRandomly(9)
-    sud = Sudoku.initializeFromInput()
-    vis.visualize_sudoku(copy.deepcopy(sud.board))
+    action = input("Would you like to generate a random sudoku(1), or input one yourself(2)?")
+    sud = Sudoku.initializeRandomly(4)
+    if (action == "1"):
+        sud = Sudoku.initializeRandomly(4)
+    elif (action == "2"):
+        sud = Sudoku.initializeFromInput()
+    else:
+        print("Invalid option >:(")
+        return
+    
+    # make the cells in the right colors
+    cellColors = copy.deepcopy(sud.board)
+    for i in range(len(sud.board)):
+        for j in range(len(sud.board[i])):
+            if (sud.board[i][j] is None):
+                cellColors[i][j] = "blue"
+            else:
+                cellColors[i][j] = "black"
+    
+    vis.visualize_sudoku(sud.board, cellColors)
     input("Press enter to calculate solution")
     sol = sud.solve()
     if sol is None:
         print("No solution")
     else:
-        vis.visualize_sudoku(sol)
+        vis.visualize_sudoku(sol, cellColors)
         input("Press enter to exit")
 
 

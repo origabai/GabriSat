@@ -13,11 +13,14 @@ main method is .show() - which actually visualizes the graph.
 in the editing window.
 
 '''
+
 class Visualizer:
     def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None, found_solution = True):
-        self.edges = graph.edges
-        self.num_nodes = graph.num_nodes
-        self.max_colors = graph.max_colors
+        self.graph = graph
+        self.correct_end = False
+        self.edges = self.graph.edges
+        self.num_nodes = self.graph.num_nodes
+        self.max_colors = self.graph.max_colors
         self.found_solution = found_solution
         
         self.special_edges = None
@@ -33,7 +36,7 @@ class Visualizer:
         if solution:
             self.numerical_colors = solution
         else:
-            self.numerical_colors = graph.colors
+            self.numerical_colors = self.graph.colors
             
         #deciding visualization colours
         self.colors = [self.color_gen(color) for color in self.numerical_colors]
@@ -55,13 +58,14 @@ class Visualizer:
         
         
     #show result
-    def show(self) -> None:
+    def show(self) -> tuple[bool, GraphColoring]:
         initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors, self.special_edges)
         
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
-        app.layout = GraphUtils.default_layout(initial_elements, self.found_solution)
         helper = GraphUtils(app, self)
+        app.layout = helper.default_layout(initial_elements, self.found_solution)
+        #helper = GraphUtils(app, self)
         #app.layout = helper.default_layout(initial_elements)
 
 
@@ -70,5 +74,5 @@ class Visualizer:
         self.color_storage_for_termination.sort(key = lambda tup : tup[0])
         color_array = [element[1] for element in self.color_storage_for_termination]
         #print(self.edges)
-        return GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
+        return self.correct_end, GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
 
