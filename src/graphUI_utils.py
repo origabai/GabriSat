@@ -5,6 +5,7 @@ from random import randint
 from graph_coloring import GraphColoring
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
+from graphUI_layout import GraphUILayout
 """
 provides utils for graph_visualizer.py
 """
@@ -12,84 +13,9 @@ class GraphUtils:
     
     def __init__(self, app : Dash, vis_object):
         self.vis_object = vis_object
+        self.app = app
         
-        app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('btn-add-node', 'n_clicks'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(self.add_node)
-        
-        app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('btn-add-edge', 'n_clicks'),
-            State('input-edge-source', 'value'),
-            State('input-edge-target', 'value'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(self.add_edge)
-        
-        app.callback(
-            Output('erase_toggled', 'data'),
-            Output('btn-erase', 'style'),
-            Input('btn-erase', 'n_clicks')
-        )(self.switch_erasing_mode)
-        
-        app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('interactive-graph', 'tapNodeData'),
-            State('interactive-graph', 'elements'),
-            State('multi-colour-selector', 'value'),
-            State('erase_toggled', 'data'),
-            State('color_num_selector', 'value'),
-            State('end-task-selector', 'value'),
-            prevent_initial_call=True
-        )(self.process_node_click)
-        
-        app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('interactive-graph', 'tapEdgeData'),
-            State('interactive-graph', 'elements'),
-            State('erase_toggled', 'data'),
-            prevent_initial_call=True
-        )(self.erase_clicked_edge)
-        
-        app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('btn-end', 'n_clicks'),
-            State('interactive-graph', 'elements'),
-            State('color_num_selector', 'value'),
-            State('end-task-selector', 'value'),
-            prevent_initial_call=True
-        )(self.end_visualization)
-        
-        app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('btn-random', 'n_clicks'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(self.generate_random_graph)
-        
-        app.callback(
-            Output('multi-colour-selector', 'options'),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('color_num_selector', 'value'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(self.handle_color_num_change)
-        
-        app.callback(
-            Output('label_1', 'style'),
-            Output('label_2', 'style'),
-            Output('multi-colour-selector', 'style'),
-            Output('color_num_selector', 'style'),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Input('end-task-selector', 'value'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(self.handle_mode_change)
+        self.layout = GraphUILayout(self).default_layout
     '''
     provides utils for graph_visualizer.py
     '''
@@ -115,115 +41,6 @@ class GraphUtils:
         
         return initial_data
         
-    
-    def default_layout(self, initial_elements, found_solution):
-        #this part determines success message
-        message = "Everything good, proceed!"
-        message_style = {'color' : 'green'}
-        if not found_solution:
-            message = "No solution found!"
-            message_style = {'color' : 'red'}
-        
-        #changes default label and selector style for vanishing elements depending on starting mode
-        if self.vis_object.special_edges is not None:
-            default_type = "HAMPATH"
-            default_label_style = {'display': 'none'}
-            default_selector_style = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
-            default_colour_num = 3
-            default_options = ColourSelectorOptions[:default_colour_num + 2]
-        else: 
-            default_type = "COLOR"
-            default_label_style = {'display': 'block'}
-            default_selector_style = {'display': 'block', 'width': '300px', 'marginTop': '5px'}
-            default_colour_num = self.vis_object.max_colors
-            default_options = ColourSelectorOptions[:default_colour_num + 2]
-        
-        
-        return html.Div([
-            html.H3("Visual graph editor"),
-            html.H3(f"{message}", id='success_message' ,style = message_style),
-            
-            dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
-            dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
-            
-            # Control Panel for Adding Nodes
-            html.Div([
-                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
-            ], style={'marginBottom': '10px'}),
-            
-            # Control Panel for Adding Edges
-            html.Div([
-                dcc.Input(id='input-edge-source', type='text', placeholder='Source Node ID'),
-                dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
-                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
-            ], style={'marginBottom': '20px'}),
-
-            html.Div([
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
-            ], style={'marginBottom': '20px'}),
-            
-            html.Div([
-                html.Button('Do task', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Label("  Select task:"),
-                dcc.Dropdown(
-                    id='end-task-selector',
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': 'coloring', 'value': "COLOR"},
-                        {'label': 'hampath', 'value': "HAMPATH"},
-                        {'label': 'end simulation', 'value': "END"},
-                    ],
-                    
-                    value=default_type, # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                    style={'width': '300px', 'marginTop': '5px'}
-                ),
-            ], style={'marginBottom': '20px'}),
-            
-            html.Div([
-                html.Label("colors in coloring", id = 'label_1', style=default_label_style),
-                dcc.Dropdown(
-                    id='color_num_selector',
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': '1', 'value': '1'},
-                        {'label': '2', 'value': '2'},
-                        {'label': '3', 'value': '3'},
-                        {'label': '4', 'value': '4'},
-                        {'label': '5', 'value': '5'},
-                        {'label': '6', 'value': '6'},
-                        {'label': '7', 'value': '7'},
-                        {'label': '8', 'value': '8'},
-                    ],
-                    value=str(default_colour_num), # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                    style=default_selector_style
-                ),
-                html.Label("Change node color", id = 'label_2', style = default_label_style),
-                dcc.Dropdown(
-                    id='multi-colour-selector',
-                    options = default_options,
-                    value=[None], # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                    style=default_selector_style
-                ),
-            ]),
-
-            # The Cytoscape Canvas
-            cyto.Cytoscape(
-                id='interactive-graph',
-                elements=initial_elements,
-                layout={'name': 'cose'}, # Force-directed physics layout
-                style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
-                stylesheet=[
-                    # Basic styling to make labels visible
-                    {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
-                    {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
-                ]
-            )
-        ])
-    
     def add_node(self, n_clicks, current_elements):
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]

@@ -70,7 +70,7 @@ class Visualizer:
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
         helper = GraphUtils(app, self)
-        app.layout = helper.default_layout(initial_elements, self.found_solution)
+        app.layout = helper.layout
         #helper = GraphUtils(app, self)
         #app.layout = helper.default_layout(initial_elements)
 

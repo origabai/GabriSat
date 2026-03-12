@@ -36,16 +36,12 @@ def benchmark_times():
 
 
 def graph_vis():
-    # bootstrap
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(0, [], [], 3)
-    solution = None
-    Ham_solution = None
-    found_solution = True
+    
     webopen('http://localhost:8050')
-    vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
+    vis = Visualizer(color_graph)
     correct_end, color_graph = vis.show()
-        #initialize solutions to none
 
 
 
