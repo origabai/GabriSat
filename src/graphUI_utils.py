@@ -127,13 +127,13 @@ class GraphUtils:
             default_label_style = {'display': 'none'}
             default_selector_style = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
             default_colour_num = 3
-            default_options = ColourSelectorOptions[:default_colour_num]
+            default_options = ColourSelectorOptions[:default_colour_num + 2]
         else: 
             default_type = "COLOR"
             default_label_style = {'display': 'block'}
             default_selector_style = {'display': 'block', 'width': '300px', 'marginTop': '5px'}
             default_colour_num = self.vis_object.max_colors
-            default_options = ColourSelectorOptions[:default_colour_num]
+            default_options = ColourSelectorOptions[:default_colour_num + 2]
         
         
         return html.Div([
