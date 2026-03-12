@@ -355,7 +355,7 @@ class GraphUtils:
         if n_clicks == 0:
             return current_elements
         #generates and updates new graph
-        new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
+        new_graph = GraphColoring.generate(num_of_nodes = randint(RandomGraphMinSize, RandomGraphMaxSize))
         return GraphUtils.generate_initial_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
     
     

@@ -70,9 +70,9 @@ def graph_vis():
 def visualize_sudoku():
     vis = SudokuVisualizer()
     action = input("Would you like to generate a random sudoku(1), or input one yourself(2)?")
-    sud = Sudoku.initializeRandomly(4)
+    sud = Sudoku.initializeRandomly(9)
     if (action == "1"):
-        sud = Sudoku.initializeRandomly(4)
+        sud = Sudoku.initializeRandomly(9)
     elif (action == "2"):
         sud = Sudoku.initializeFromInput()
         if sud is None:
