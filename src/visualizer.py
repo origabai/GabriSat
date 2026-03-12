@@ -15,29 +15,10 @@ in the editing window.
 '''
 
 class Visualizer:
-    def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None, found_solution = True):
+    def __init__(self, graph : GraphColoring, Ham_solution = None):
         self.graph = graph
         self.correct_end = False
-        self.edges = self.graph.edges
-        self.num_nodes = self.graph.num_nodes
-        self.max_colors = self.graph.max_colors
-        self.found_solution = found_solution
-        
-        self.special_edges = None
-        
-        
-        self.special_edges = self.generate_edges(Ham_solution)
-        
-        self.color_storage_for_termination = []
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
-        #remembering colours
-        if solution:
-            self.numerical_colors = solution
-        else:
-            self.numerical_colors = self.graph.colors
-            
-        #deciding visualization colours
-        self.colors = [self.color_gen(color) for color in self.numerical_colors]
         
     #to pass the test with flying colors
     def color_gen(self, color : int | None) -> str:
@@ -53,27 +34,29 @@ class Visualizer:
         else:
             return self.COLORS.index(color)
     
+    #generate coloured edges from hamiltonian solution
     def generate_edges(self, Ham_solution):
-            special = []
-            if Ham_solution is not None:
-                special = [[Ham_solution[-1],Ham_solution[0]]]
-                for i in range(len(Ham_solution)-1):
-                    special.append([Ham_solution[i],Ham_solution[i+1]])
-            return special
+        if Ham_solution is None or Ham_solution == []:
+            return []
+        
+        special = [[Ham_solution[-1],Ham_solution[0]]]
+        for i in range(len(Ham_solution)-1):
+            special.append([Ham_solution[i],Ham_solution[i+1]])
+            
+        return special
         
         
-    #show result
+    #start up dash - the visual interface
     def show(self) -> tuple[bool, GraphColoring]:
-        
-        
+        #set up logger
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
+        
+        #start the app
         app = Dash(__name__)
         helper = GraphUtils(app, self)
         app.layout = helper.layout
-
         app.run()
-        self.color_storage_for_termination.sort(key = lambda tup : tup[0])
-        color_array = [element[1] for element in self.color_storage_for_termination]
-        #print(self.edges)
-        return self.correct_end, GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
+        
+        #return the graph as it is at the end - and an indicator of success/failure.
+        return self.correct_end, self.graph
 

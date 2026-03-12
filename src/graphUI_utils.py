@@ -6,6 +6,9 @@ from graph_coloring import GraphColoring
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 from graphUI_layout import GraphUILayout
+from constants import CLEAR_LABEL, LABEL, CLEAR_SELECTOR, SELECTOR
+
+
 """
 provides utils for graph_visualizer.py
 """
@@ -27,12 +30,10 @@ class GraphUtils:
     generates initial graph element data. takes in solutions and nodes/edges.
     '''
     @staticmethod
-    def generate_initial_graph_data(nodes, edges, colors = None, special_edges = None):
+    def generate_initial_graph_data(nodes, edges, colors = None, special_edges = []):
         #handle zero input
         if colors is None:
             colors = ["grey"] * nodes
-        if special_edges is None:
-            special_edges = []
         
         initial_data = []
         
@@ -49,6 +50,7 @@ class GraphUtils:
         #exits
         return initial_data
         
+    
     def add_node(self, n_clicks, current_elements):
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]
@@ -60,7 +62,7 @@ class GraphUtils:
         
         return current_elements
         
-        
+    #TODO: replace with better add edge capabilities.
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
         if not source_id or not target_id:
             return current_elements # Do nothing if source/target are empty
@@ -80,72 +82,61 @@ class GraphUtils:
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
     
+    #returns true if an element is an edge
+    def is_edge(self, element):
+        return 'target' in element['data']
+    
+    
+    #returns true if an element is a node
+    def is_node(self, element):
+        return not self.is_edge(element)
+    
+    #util function - colors all elements to grey, depending on the criterion given passed as argument.
+    def color_to_grey(self, elements, criterion):
+        new_elements = []
+        for element in elements:
+            new_elements.append(element)
+            if criterion(element):
+                new_elements[-1]['data']['color'] = "grey"
+        return new_elements
     
     
     def handle_mode_change(self, new_mode, current_elements):
         #changing to hampath - we need to clear all colors of the graph's nodes.
         if new_mode == "HAMPATH":
-            if current_elements is not None and current_elements != []:
-                new_elements = []
-                for element in current_elements:
-                    if element['data']['color'] == "ForestGreen":
-                        new_elements.append(element)
-                    else:
-                        new_element = element
-                        element['data']['color'] = "grey"
-                        new_elements.append(new_element)
-            else:
-                new_elements = []
+            new_elements = self.color_to_grey(current_elements, self.is_node)
             #returns cleared out nodes and hides color parts
-            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, new_elements
-
+            return  CLEAR_LABEL, CLEAR_LABEL, CLEAR_SELECTOR, CLEAR_SELECTOR, new_elements
         elif new_mode == "COLOR":
             #when switching to color we need to clear out all coloured edges
-            if current_elements is not None and current_elements != []:
-                new_elements = []
-                for element in current_elements:
-                    if element['data']['color'] == "ForestGreen":
-                        new_element = element
-                        element['data']['color'] = "grey"
-                        new_elements.append(new_element)
-                    else:
-                        new_elements.append(element)
-            else:
-                new_elements = []
+            new_elements =self.color_to_grey(current_elements, self.is_edge) 
             #unhides the color stuff from the html page
-            return  {'display': 'block'}, {'display': 'block'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, {'display': 'block', 'width': '300px', 'marginTop': '5px'}, current_elements
-
+            return  LABEL, LABEL, SELECTOR, SELECTOR, new_elements
         else:
             #this is the mode for finishing simulation
-            return  {'display': 'none'}, {'display': 'none'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, {'display': 'none', 'width': '300px', 'marginTop': '5px'}, current_elements
+            return  CLEAR_LABEL, CLEAR_LABEL, CLEAR_SELECTOR, CLEAR_SELECTOR, current_elements
     
-    #checks if an element is of a colour alligning with the selected one.
-    def check_element_compliance(self, element, color):
-        try:
-            return self.vis_object.color_to_num(element['data']['color']) < int(color) 
-        except:
-            return True
+    
+    #checks if an element is of a colour alligning with the selected one - if larger, returns false.
+    def check_element_color_compliance(self, element, color):
+        if element['data']['color'] == "grey" or element['data']['color'] == "ForestGreen":
+            return False
         
-        
+        return 1 + self.vis_object.color_to_num(element['data']['color']) > int(color)
+    
+    
     #handles colour number change
     def handle_color_num_change(self, value, current_elements):
-        #when no graph does trivial stuff to avoid iteration error
-        if current_elements is None or current_elements == []:
-            return ColourSelectorOptions[:int(value)+2], []
-        
+        #options for colour selector - depending on colour.
+        next_options = ColourSelectorOptions[:int(value)+2]
         #changes up the values of all nodes
-        new_elements = []
-        for element in current_elements:
-            if self.check_element_compliance(element, value):
-                new_elements.append(element)
-            else:
-                new_element = element
-                element['data']['color'] = "grey"
-                new_elements.append(new_element)
-                
+        def compare_color(element):
+            return self.check_element_color_compliance(element, value)
+        new_elements = self.color_to_grey(current_elements, compare_color)
         #also changes the settings of the options
-        return ColourSelectorOptions[:int(value)+2], new_elements
+        return next_options, new_elements
         
+    
     def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num, current_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
@@ -210,13 +201,16 @@ class GraphUtils:
         
         #counts the edges and vertices of the graph
         nodes = set([])
-        self.vis_object.edges = []
+        
+        color_collection_array = []
+        
+        self.vis_object.graph.edges = []
         for element in elements:
             if 'source' not in element['data']:
                 nodes.add(int(element['data']['id']))
-                self.vis_object.color_storage_for_termination.append([int(element['data']['id']), self.vis_object.color_to_num(element['data']['color'])])
+                color_collection_array.append([int(element['data']['id']), self.vis_object.color_to_num(element['data']['color'])])
             else:
-                self.vis_object.edges.append([int(element['data']['source']), int(element['data']['target'])])
+                self.vis_object.graph.edges.append([int(element['data']['source']), int(element['data']['target'])])
         if nodes == set([]):
             missing_nodes = set([])
         else:
@@ -224,35 +218,31 @@ class GraphUtils:
         missing_list = sorted(list(missing_nodes), reverse=True)
             
             
-        self.vis_object.max_colors = int(max_colors[0])
-        self.vis_object.num_nodes = len(nodes)
+        self.vis_object.graph.max_colors = int(max_colors[0])
+        self.vis_object.graph.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
         for node in missing_list:
-            for edge in self.vis_object.edges:
+            for edge in self.vis_object.graph.edges:
                 for index in [0,1]:
                     if int(edge[index]) > node:
                         edge[index] -= 1
-            for color_node in self.vis_object.color_storage_for_termination:
+            for color_node in color_collection_array:
                 if color_node[0] > node:
                     color_node[0] -= 1
             
-        self.vis_object.color_storage_for_termination.sort(key = lambda tup : tup[0])
-        color_array = [element[1] for element in self.vis_object.color_storage_for_termination]
-        self.vis_object.graph = GraphColoring(self.vis_object.num_nodes, self.vis_object.edges, color_array, self.vis_object.max_colors)
-        self.vis_object.color_storage_for_termination = []
+        color_collection_array.sort(key = lambda tup : tup[0])
+        color_array = [element[1] for element in color_collection_array]
+        self.vis_object.graph = GraphColoring(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, color_array, self.vis_object.graph.max_colors)
         found_solution = True
         end_flag = False
-        solution = [None] * self.vis_object.num_nodes
+        solution = [None] * self.vis_object.graph.num_nodes
         Ham_solution = None
         match problem:
             case "COLOR":
                 # solve coloring problem
-                print(self.vis_object.graph.colors)
                 solution = self.vis_object.graph.solve()
-                print(solution)
-                print(self.vis_object.graph.colors)
                 if solution is None:
-                    solution = [None] * self.vis_object.num_nodes
+                    solution = [None] * self.vis_object.graph.num_nodes
                     found_solution = False
                 
             case "HAMPATH":
@@ -272,7 +262,6 @@ class GraphUtils:
             _thread.interrupt_main()
             return "The program finished running. ", {'color' : 'blue'}, GraphUtils.generate_initial_graph_data(0, [], [], [])
         else:
-            #print(solution)
             next_colors = [self.vis_object.color_gen(color) for color in solution]
             special_edges = self.vis_object.generate_edges(Ham_solution)
             if found_solution:
