@@ -10,22 +10,30 @@ from graphUI_layout import GraphUILayout
 provides utils for graph_visualizer.py
 """
 class GraphUtils:
+    '''
+    here are all of the functions that the graphUI uses.
+    '''
+    
     
     def __init__(self, app : Dash, vis_object):
+        '''
+        generates layout and initialized function input
+        '''
         self.vis_object = vis_object
         self.app = app
-        
         self.layout = GraphUILayout(self).default_layout
-    '''
-    provides utils for graph_visualizer.py
-    '''
-    
     
     '''
-    returns the standard layout of the html file given the default elements
+    generates initial graph element data. takes in solutions and nodes/edges.
     '''
     @staticmethod
-    def generate_initial_data(nodes, edges, colors, special_edges = None):
+    def generate_initial_graph_data(nodes, edges, colors = None, special_edges = None):
+        #handle zero input
+        if colors is None:
+            colors = ["grey"] * nodes
+        if special_edges is None:
+            special_edges = []
+        
         initial_data = []
         
         #generates nodes in initial_data
@@ -34,11 +42,11 @@ class GraphUtils:
         
         #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in edges:
-            if special_edges is not None and (edge in special_edges or [edge[1], edge[0]] in special_edges):
-                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'ForestGreen'}})
-            else:
-                initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
+            initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
+            if edge in special_edges or [edge[1], edge[0]] in special_edges:
+                initial_data[-1]['data']['color'] = 'ForestGreen'
         
+        #exits
         return initial_data
         
     def add_node(self, n_clicks, current_elements):
@@ -176,7 +184,7 @@ class GraphUtils:
             return current_elements
         #generates and updates new graph
         new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
-        return GraphUtils.generate_initial_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
+        return GraphUtils.generate_initial_graph_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
     
     
     def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
@@ -216,7 +224,6 @@ class GraphUtils:
         missing_list = sorted(list(missing_nodes), reverse=True)
             
             
-        self.vis_object.task = problem
         self.vis_object.max_colors = int(max_colors[0])
         self.vis_object.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
@@ -232,14 +239,18 @@ class GraphUtils:
         self.vis_object.color_storage_for_termination.sort(key = lambda tup : tup[0])
         color_array = [element[1] for element in self.vis_object.color_storage_for_termination]
         self.vis_object.graph = GraphColoring(self.vis_object.num_nodes, self.vis_object.edges, color_array, self.vis_object.max_colors)
+        self.vis_object.color_storage_for_termination = []
         found_solution = True
         end_flag = False
         solution = [None] * self.vis_object.num_nodes
         Ham_solution = None
-        match self.vis_object.task:
+        match problem:
             case "COLOR":
                 # solve coloring problem
+                print(self.vis_object.graph.colors)
                 solution = self.vis_object.graph.solve()
+                print(solution)
+                print(self.vis_object.graph.colors)
                 if solution is None:
                     solution = [None] * self.vis_object.num_nodes
                     found_solution = False
@@ -259,14 +270,14 @@ class GraphUtils:
         if end_flag:
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {'color' : 'blue'}, GraphUtils.generate_initial_data(0, [], [], [])
+            return "The program finished running. ", {'color' : 'blue'}, GraphUtils.generate_initial_graph_data(0, [], [], [])
         else:
             #print(solution)
             next_colors = [self.vis_object.color_gen(color) for color in solution]
             special_edges = self.vis_object.generate_edges(Ham_solution)
             if found_solution:
-                return "Everything good, proceed!", {'color' : 'green'}, GraphUtils.generate_initial_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
+                return "Everything good, proceed!", {'color' : 'green'}, GraphUtils.generate_initial_graph_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
             else:
-                return "No solution found!", {'color' : 'red'}, GraphUtils.generate_initial_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
+                return "No solution found!", {'color' : 'red'}, GraphUtils.generate_initial_graph_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
         #os.kill(os.getpid(), signal.SIGINT)
         return "...this is an error..."

@@ -7,7 +7,7 @@ from dash import Dash, Input, Output, State
 
 '''
 a class that shows a graph, allowing it to be edited visually.
-
+generate_initial_data
 main method is .show() - which actually visualizes the graph.
 .show() returns the graph coloring problem which corresponds to what the user has edited
 in the editing window.
@@ -28,7 +28,6 @@ class Visualizer:
         
         self.special_edges = self.generate_edges(Ham_solution)
         
-        self.task = "COLOR"
         self.color_storage_for_termination = []
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         #remembering colours
@@ -65,16 +64,12 @@ class Visualizer:
         
     #show result
     def show(self) -> tuple[bool, GraphColoring]:
-        initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors, self.special_edges)
+        
         
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         app = Dash(__name__)
         helper = GraphUtils(app, self)
         app.layout = helper.layout
-        #helper = GraphUtils(app, self)
-        #app.layout = helper.default_layout(initial_elements)
-
-
 
         app.run()
         self.color_storage_for_termination.sort(key = lambda tup : tup[0])
