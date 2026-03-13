@@ -364,10 +364,11 @@ class GraphUtils():
     '''
     def oxidize_graph(self, original_nodes, ham_edges):
         if original_nodes == []:
-            return set([])
+            return [], set([])
 
         #useful for algorithmics later
         original_nodes.sort()
+        
         #updating curreng graph parameters
         self.vis_object.graph.num_nodes = max(original_nodes) + 1
         self.vis_object.graph.edges = [[original_nodes[edge[0]], original_nodes[edge[1]]] for edge in self.vis_object.graph.edges]
