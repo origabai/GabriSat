@@ -36,41 +36,13 @@ def benchmark_times():
 
 
 def graph_vis():
-    # bootstrap
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(0, [], [], 3)
-    solution = None
-    Ham_solution = None
-    found_solution = True
-    keyboard = Controller()
+    
     webopen('http://localhost:8050')
-    while True:
-        vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
-        #initialize solutions to none
-        solution = None
-        found_solution = True
-        Ham_solution = None
-        correct_end, color_graph = vis.show()
-        if not correct_end:
-            break
-        #depending on the task, solve and update the solution
-        match vis.task:
-            case "COLOR":
-                # solve coloring problem
-                solution = color_graph.solve()
-                if solution is None:
-                    found_solution = False
-                continue
-            case "HAMPATH":
-                # solve hampath problem
-                ham_graph = HamiltonianCycle(color_graph.num_nodes, color_graph.edges)
-                Ham_solution = ham_graph.solve()
-                if Ham_solution is None:
-                    found_solution = False
-                continue
-            case "END":
-                # end simulation
-                break
+    vis = Visualizer(color_graph)
+    correct_end, color_graph = vis.show()
+
 
 
 def visualize_sudoku():
