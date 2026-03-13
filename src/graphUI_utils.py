@@ -29,20 +29,17 @@ class GraphUtils:
     '''
     generates initial graph element data. takes in solutions and nodes/edges.
     '''
-    @staticmethod
-    def generate_initial_graph_data(nodes, edges, colors = None, special_edges = []):
+    def generate_initial_graph_data(self, special_edges = []):
         #handle zero input
-        if colors is None:
-            colors = ["grey"] * nodes
+        graph = self.vis_object.graph
         
         initial_data = []
-        
         #generates nodes in initial_data
-        for node in range(nodes):
-            initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': colors[node]}})
+        for node in range(graph.num_nodes):
+            initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': self.vis_object.get_color_at_node(node)}})
         
         #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
-        for edge in edges:
+        for edge in graph.edges:
             initial_data.append({'data' : {'source': str(edge[0]), 'target': str(edge[1]), 'color' : 'grey'}})
             if edge in special_edges or [edge[1], edge[0]] in special_edges:
                 initial_data[-1]['data']['color'] = 'ForestGreen'
@@ -149,7 +146,6 @@ class GraphUtils:
 
     #recolors a node from elements
     def recolor_node(self, elements, color, node_id):
-        print("id is", node_id)
         elements = [element for element in elements if element['data']['id'] != node_id]
         elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : color}})
         return elements
@@ -179,8 +175,8 @@ class GraphUtils:
         if n_clicks == 0:
             return current_elements
         #generates and updates new graph
-        new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
-        return GraphUtils.generate_initial_graph_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
+        self.vis_object.graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
+        return self.generate_initial_graph_data()
     
     def is_edge_connecting(self, edge, id1, id2):
         if not self.is_edge(edge):
@@ -200,80 +196,112 @@ class GraphUtils:
         return current_elements
     
     
-    def end_visualization(self, n_clicks, elements, max_colors, problem):
-        if n_clicks == 0:
-            return 0
+    def parse_color_for_graph(self, element):
+        value = self.vis_object.color_to_num(element['data']['color'])
         
-        #counts the edges and vertices of the graph
-        nodes = set([])
+        if value == -1:
+            return None
+        return value
+    
+    def parse_current_graph_data(self, elements):
+        nodes = []
+        node_color_array = []
+        edges = []
         
-        color_collection_array = []
-        
-        self.vis_object.graph.edges = []
         for element in elements:
-            if 'source' not in element['data']:
-                nodes.add(int(element['data']['id']))
-                color_collection_array.append([int(element['data']['id']), self.vis_object.color_to_num(element['data']['color'])])
-            else:
-                self.vis_object.graph.edges.append([int(element['data']['source']), int(element['data']['target'])])
-        if nodes == set([]):
-            missing_nodes = set([])
-        else:
-            missing_nodes = set(range(max(nodes))) - nodes
-        missing_list = sorted(list(missing_nodes), reverse=True)
-
-        self.vis_object.graph.max_colors = int(max_colors[0])
-        self.vis_object.graph.num_nodes = len(nodes)
-        #then, removes non existant vertices to comply with graph_coloring problem
-        for node in missing_list:
-            for edge in self.vis_object.graph.edges:
-                for index in [0,1]:
-                    if int(edge[index]) > node:
-                        edge[index] -= 1
-            for color_node in color_collection_array:
-                if color_node[0] > node:
-                    color_node[0] -= 1
-            
-        color_collection_array.sort(key = lambda tup : tup[0])
-        color_array = [element[1] for element in color_collection_array]
-        for i in range(len(color_array)):
-            if color_array[i] == -1:
-                color_array[i] = None
-        self.vis_object.graph = GraphColoring(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, color_array, self.vis_object.graph.max_colors)
-        found_solution = True
-        end_flag = False
-        solution = [-1] * self.vis_object.graph.num_nodes
-        Ham_solution = None
-        match problem:
-            case "COLOR":
-                # solve coloring problem
-                solution = self.vis_object.graph.solve()
-                if solution is None:
-                    solution = [-1] * self.vis_object.graph.num_nodes
-                    found_solution = False
+            if self.is_node(element):
+                new_id = int(element['data']['id'])
+                nodes.append(new_id)
+                new_color = self.parse_color_for_graph(element)
+                node_color_array.append([new_id, new_color])
                 
-            case "HAMPATH":
-                # solve hampath problem
-                ham_graph = HamiltonianCycle(self.vis_object.graph.num_nodes, self.vis_object.graph.edges)
-                Ham_solution = ham_graph.solve()
-                if Ham_solution is None:
-                    found_solution = False
-                #continue
-            case "END":
-                # end simulation
-                end_flag = True   
+            elif self.is_edge(element):
+                edges.append([int(element['data']['source']), int(element['data']['target'])])
         
-        #and now - terminate the process!
-        if end_flag:
+        return nodes, edges, node_color_array
+    
+    def smart_index(self, array, index):
+        try:
+            return array.index(index)
+        except ValueError:
+            return -1
+    
+    def reduce_excess_nodes(self, nodes, edges, color_tuples):
+        #check for empty case
+        if nodes == []:
+            return [], [], []
+        
+        nodes.sort()
+        new_value = [self.smart_index(nodes, num) for num in range(max(nodes) + 1)]
+        
+        #reduce nodes
+        nodes = [new_value[node] for node in nodes]
+        
+        #reduce edges
+        edges = [[new_value[edge[0]], new_value[edge[1]]] for edge in edges]
+        
+        #reduce color tuples:
+        color_tuples = [[new_value[tup[0]], tup[1]] for tup in color_tuples]
+        
+        #return reduced
+        return nodes, edges, color_tuples
+    
+    def construct_new_graph(self, nodes, edges, color_tuples, max_colors):
+        color_tuples.sort(key = lambda tup : tup[0])
+        color_array = [element[1] for element in color_tuples]
+        return GraphColoring(len(nodes), edges, color_array, max_colors)
+    
+    def construct_graph_from_elements(self, elements, max_colors):
+        new_nodes, new_edges, new_color_tuples = self.parse_current_graph_data(elements)
+        new_nodes, new_edges, new_color_tuples = self.reduce_excess_nodes(new_nodes, new_edges, new_color_tuples)
+        return self.construct_new_graph(new_nodes, new_edges, new_color_tuples, max_colors)
+    
+    def generate_solved_colors(self):
+        solution = self.vis_object.graph.solve()
+        #new_colors = self.vis_object.generate_color_array(solution)
+        
+        
+        return solution is not None, solution
+    
+    def generate_solved_hampath(self):
+        ham_graph = HamiltonianCycle(self.vis_object.graph.num_nodes, self.vis_object.graph.edges)
+        ham_solution = ham_graph.solve()
+        
+        return ham_solution is not None, self.vis_object.generate_edges(ham_solution)
+        
+    def solve_problems(self, problem):
+        new_colors = [None] * self.vis_object.graph.num_nodes
+        hampath_edges = []
+        
+        if problem == "COLOR":
+            found_solution, new_colors = self.generate_solved_colors()
+        elif problem == "HAMPATH":
+            found_solution, hampath_edges = self.generate_solved_hampath()
+        else:
+            found_solution = False
+            
+        self.vis_object.graph.colors = new_colors
+        new_graph_data = self.generate_initial_graph_data(hampath_edges)
+        
+        return found_solution, new_graph_data
+    
+    def end_visualization(self, n_clicks, elements, max_colors, problem):
+        #prevent accidental press.
+        if n_clicks == 0:
+            print("i have no clue how to fix this, thats a bug.")
+            return "welcome to the editor!", {'color' : 'black'}, elements
+        
+        #handle end program:
+        if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {'color' : 'blue'}, GraphUtils.generate_initial_graph_data(0, [], [], [])
+            return "The program finished running. ", {'color' : 'blue'}, []
+            
+        #now, for the interesting case:
+        self.vis_object.graph = self.construct_graph_from_elements(elements, int(max_colors))
+        found_solution, new_graph_data = self.solve_problems(problem)
+        
+        if found_solution:
+            return "Everything good, proceed!", {'color' : 'green'}, new_graph_data
         else:
-            next_colors = [self.vis_object.color_gen(color) for color in solution]
-            special_edges = self.vis_object.generate_edges(Ham_solution)
-            if found_solution:
-                return "Everything good, proceed!", {'color' : 'green'}, GraphUtils.generate_initial_graph_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
-            else:
-                return "No solution found!", {'color' : 'red'}, GraphUtils.generate_initial_graph_data(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, next_colors, special_edges)
-        #os.kill(os.getpid(), signal.SIGINT)
-        return "...this is an error..."
+            return "No solution found!", {'color' : 'red'}, new_graph_data

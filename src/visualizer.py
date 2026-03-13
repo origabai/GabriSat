@@ -22,10 +22,18 @@ class Visualizer:
         
     #to pass the test with flying colors
     def color_gen(self, color : int | None) -> str:
-        if color is -1:
+        if color == -1 or color is None:
             return "grey"
         
         return self.COLORS[color % len(self.COLORS)]
+    
+    def get_color_at_node(self, node):
+        return self.color_gen(self.graph.colors[node])
+    
+    def generate_color_array(self, color_list : list[int]) -> list[str]:
+        if color_list is None:
+            color_list = self.graph.colors
+        return [self.color_gen(color) for color in color_list]
     
     #takes string returns color
     def color_to_num(self, color : str) -> int:
