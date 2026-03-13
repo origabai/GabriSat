@@ -12,7 +12,7 @@ from constants import CLEAR_LABEL, LABEL, CLEAR_SELECTOR, SELECTOR
 """
 provides utils for graph_visualizer.py
 """
-class GraphUtils:
+class GraphUtils():
     '''
     here are all of the functions that the graphUI uses.
     '''
@@ -29,6 +29,7 @@ class GraphUtils:
     '''
     generates initial graph element data. takes in solutions and nodes/edges.
     '''
+    
     def generate_initial_graph_data(self, special_edges = []):
         #handle zero input
         graph = self.vis_object.graph
@@ -258,10 +259,10 @@ class GraphUtils:
     
     def generate_solved_colors(self):
         solution = self.vis_object.graph.solve()
-        #new_colors = self.vis_object.generate_color_array(solution)
+        if solution is None:
+            solution = [None] * self.vis_object.graph.num_nodes
         
-        
-        return solution is not None, solution
+        return solution != [None] * self.vis_object.graph.num_nodes, solution
     
     def generate_solved_hampath(self):
         ham_graph = HamiltonianCycle(self.vis_object.graph.num_nodes, self.vis_object.graph.edges)
@@ -299,6 +300,7 @@ class GraphUtils:
             
         #now, for the interesting case:
         self.vis_object.graph = self.construct_graph_from_elements(elements, int(max_colors))
+        print(self.vis_object.graph.colors)
         found_solution, new_graph_data = self.solve_problems(problem)
         
         if found_solution:
