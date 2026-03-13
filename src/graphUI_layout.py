@@ -6,6 +6,16 @@ class GraphUILayout():
         self.helper_object = helper_object
         '''
         handles input/layout for functions in GraphUtils object.
+        In order to communicate with UI, a function has to have helper_object.app.callback
+        run on it.
+        
+        The init function handles this - all functions that either accept input are produce output
+        to the ui, are called here.
+        
+        the format is as such: 
+        "Input" determines a parameter that is passed to the function and calls it when changed
+        "State" determined a parameter that is passed to the function but it's update doesnt cause the function to run
+        "Output" is the element of UI that is changed by the function - it's return value is passed to the  corresponding field.
         '''
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
@@ -86,15 +96,18 @@ class GraphUILayout():
         )(helper_object.handle_mode_change)
         
         
-    
+    '''
+    this is default layout of the UI
+    '''
     default_layout = html.Div([
         html.H3("Visual graph editor"),
         html.H3("welcome to graphUI!", id='success_message' ,style = {'color' : 'black'}),
         
+        #storage for togglable button presses
         dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
         
-        # Control Panel for Adding Nodes
+        # add node button
         html.Div([
             html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
         ], style={'marginBottom': '10px'}),
@@ -105,11 +118,14 @@ class GraphUILayout():
             dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
             html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
         ], style={'marginBottom': '20px'}),
+        
+        # erase and random button
         html.Div([
             html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
         ], style={'marginBottom': '20px'}),
         
+        #do task selector and button
         html.Div([
             html.Button('Do task', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             html.Label("  Select task:"),
@@ -128,6 +144,7 @@ class GraphUILayout():
             ),
         ], style={'marginBottom': '20px'}),
         
+        #colors in colors control panel
         html.Div([
             html.Label("colors in coloring", id = 'label_1', style={'display': 'none'}),
             dcc.Dropdown(
@@ -160,7 +177,7 @@ class GraphUILayout():
                 style={'display' : 'none'}
             ),
         ]),
-        # The Cytoscape Canvas
+        # the canvas - for graph display
         cyto.Cytoscape(
             id='interactive-graph',
             elements=[],
