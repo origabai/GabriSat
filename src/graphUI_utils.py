@@ -27,14 +27,16 @@ class GraphUtils():
     generates initial graph element data. makes them accordingle to self.
     '''
     
-    def generate_initial_graph_data(self, special_edges = []):
+    def generate_initial_graph_data(self, special_edges = [], missing_nodes = []):
         #handle zero input
         graph = self.vis_object.graph
         
+        #print("MISSING NODES ARE: ", missing_nodes)
         initial_data = []
         #generates nodes in initial_data
         for node in range(graph.num_nodes):
-            initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': self.vis_object.get_color_at_node(node)}})
+            if node not in missing_nodes:
+                initial_data.append({'data' : {'id': str(node), 'label' : str(node), 'color': self.vis_object.get_color_at_node(node)}})
         
         #adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in graph.edges:
@@ -62,10 +64,13 @@ class GraphUtils():
     #TODO: replace with better add edge capabilities.
     '''
     currently handles edge addition. TEMPORARY!
+    TODO: add edge validity check
     '''
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
         if not source_id or not target_id:
             return current_elements # Do nothing if source/target are empty
+        
+        
         
         # Construct the new edge dictionary and append it to the state
         new_edge = {'data': {'source': source_id, 'target': target_id, 'color' : 'grey'}}
@@ -205,7 +210,7 @@ class GraphUtils():
             return current_elements
         #generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
-        return self.generate_initial_graph_data()
+        return self.generate_initial_graph_data(missing_nodes = [])
     
     '''
     function that checks wether edge is connecting between id1 and id2.
@@ -278,9 +283,10 @@ class GraphUtils():
     def reduce_excess_nodes(self, nodes, edges, color_tuples):
         #check for empty case
         if nodes == []:
-            return [], [], []
+            return [], [], [], []
         
         nodes.sort()
+        original_nodes = nodes
         new_value = [self.smart_index(nodes, num) for num in range(max(nodes) + 1)]
         
         #reduce nodes
@@ -293,7 +299,7 @@ class GraphUtils():
         color_tuples = [[new_value[tup[0]], tup[1]] for tup in color_tuples]
         
         #return reduced
-        return nodes, edges, color_tuples
+        return nodes, edges, color_tuples, original_nodes
     
     
     '''
@@ -306,11 +312,12 @@ class GraphUtils():
     
     '''
     constructs graph from elements in ui. reduces indices accordingly.
+    returns graph as well as original nodes for oxidation.
     '''
     def construct_graph_from_elements(self, elements, max_colors):
         new_nodes, new_edges, new_color_tuples = self.parse_current_graph_data(elements)
-        new_nodes, new_edges, new_color_tuples = self.reduce_excess_nodes(new_nodes, new_edges, new_color_tuples)
-        return self.construct_new_graph(new_nodes, new_edges, new_color_tuples, max_colors)
+        new_nodes, new_edges, new_color_tuples, original_nodes = self.reduce_excess_nodes(new_nodes, new_edges, new_color_tuples)
+        return original_nodes, self.construct_new_graph(new_nodes, new_edges, new_color_tuples, max_colors)
     
     
     '''
@@ -333,9 +340,9 @@ class GraphUtils():
         return ham_solution is not None, self.vis_object.generate_edges(ham_solution)
         
     '''
-    helper function. resolves the problem on self.vis_object.graph
+    helper function. resolves the problem on self.vis_object.graph. also raises back node indices
     '''
-    def solve_problems(self, problem):
+    def solve_problems(self, problem, original_nodes):
         new_colors = [None] * self.vis_object.graph.num_nodes
         hampath_edges = []
         
@@ -347,10 +354,33 @@ class GraphUtils():
             found_solution = False
             
         self.vis_object.graph.colors = new_colors
-        new_graph_data = self.generate_initial_graph_data(hampath_edges)
-        
+        #raise nodes back up after solving
+        hampath_edges, missing_nodes = self.oxidize_graph(original_nodes, hampath_edges)
+        new_graph_data = self.generate_initial_graph_data(hampath_edges, missing_nodes)
         return found_solution, new_graph_data
     
+    '''
+    does the inverse of the reduce graph function. returns an array of missing nodes. also reduces ham_edges
+    '''
+    def oxidize_graph(self, original_nodes, ham_edges):
+        if original_nodes == []:
+            return set([])
+
+        #useful for algorithmics later
+        original_nodes.sort()
+        #updating curreng graph parameters
+        self.vis_object.graph.num_nodes = max(original_nodes) + 1
+        self.vis_object.graph.edges = [[original_nodes[edge[0]], original_nodes[edge[1]]] for edge in self.vis_object.graph.edges]
+        ham_edges_reduced = [[original_nodes[edge[0]], original_nodes[edge[1]]] for edge in ham_edges]
+        
+        #updating graph colors
+        new_colors = [-1] * (max(original_nodes) + 1)
+        for ind in range(len(self.vis_object.graph.colors)):
+            new_colors[original_nodes[ind]] = self.vis_object.graph.colors[ind]
+        self.vis_object.graph.colors = new_colors
+        
+        #return set of missing nodes
+        return ham_edges_reduced, set(range(0, max(original_nodes))) - set(original_nodes)
     
     '''
     processes press of "do action" button. takes in state input and returns output message and new graph components.
@@ -358,9 +388,10 @@ class GraphUtils():
     '''
     def do_task(self, n_clicks, elements, max_colors, problem):
         #prevent accidental press.
+        
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "welcome to the editor!", {'color' : 'black'}, elements
+            return "this is unusual...", {'color' : 'yellow'}, elements
         
         #handle end program:
         if problem == "END":
@@ -369,8 +400,8 @@ class GraphUtils():
             return "The program finished running. ", {'color' : 'blue'}, []
             
         #now, for the interesting case:
-        self.vis_object.graph = self.construct_graph_from_elements(elements, int(max_colors))
-        found_solution, new_graph_data = self.solve_problems(problem)
+        original_nodes, self.vis_object.graph = self.construct_graph_from_elements(elements, int(max_colors))
+        found_solution, new_graph_data = self.solve_problems(problem, original_nodes)
         
         if found_solution:
             return "Everything good, proceed!", {'color' : 'green'}, new_graph_data
