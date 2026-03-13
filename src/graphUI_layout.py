@@ -57,7 +57,7 @@ class GraphUILayout():
             State('color_num_selector', 'value'),
             State('end-task-selector', 'value'),
             prevent_initial_call=True
-        )(helper_object.end_visualization)
+        )(helper_object.do_task)
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),

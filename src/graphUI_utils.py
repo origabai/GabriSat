@@ -12,22 +12,19 @@ from constants import CLEAR_LABEL, LABEL, CLEAR_SELECTOR, SELECTOR
 """
 provides utils for graph_visualizer.py
 """
+
 class GraphUtils():
     '''
     here are all of the functions that the graphUI uses.
     '''
     
-    
     def __init__(self, app : Dash, vis_object):
-        '''
-        generates layout and initialized function input
-        '''
         self.vis_object = vis_object
         self.app = app
         self.layout = GraphUILayout(self).default_layout
     
     '''
-    generates initial graph element data. takes in solutions and nodes/edges.
+    generates initial graph element data. makes them accordingle to self.
     '''
     
     def generate_initial_graph_data(self, special_edges = []):
@@ -48,7 +45,9 @@ class GraphUtils():
         #exits
         return initial_data
         
-    
+    '''
+    handles press of "add node" button.
+    '''
     def add_node(self, n_clicks, current_elements):
         #finds existing nodes
         current_nodes = [int(element['data']['id']) for element in current_elements if 'target' not in element['data']]
@@ -61,6 +60,9 @@ class GraphUtils():
         return current_elements
         
     #TODO: replace with better add edge capabilities.
+    '''
+    currently handles edge addition. TEMPORARY!
+    '''
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
         if not source_id or not target_id:
             return current_elements # Do nothing if source/target are empty
@@ -72,7 +74,9 @@ class GraphUtils():
         
         return current_elements
         
-        
+    '''
+    handles press of erase button.
+    '''
     def switch_erasing_mode(self, n_clicks):
         if n_clicks%2 == 0:
             return {'toggled' : False}, {'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
@@ -80,11 +84,16 @@ class GraphUtils():
             return {'toggled' : True}, {'backgroundColor': 'red', 'color': 'black', 'padding': '10px'}
         
     
-    #returns true if an element is an edge
+    '''
+    checks wether an element is an edge.
+    '''
     def is_edge(self, element):
         return 'target' in element['data']
     
-    #checks if an element is adjacent to a node
+    '''
+    checks wether an element is adjacent to a certain node.
+    returns true if this is the node itself or an adjacent edge.
+    '''
     def is_adjacent_to(self, edge, node_id):
         if edge['data']['id'] == node_id:
             return True
@@ -93,10 +102,16 @@ class GraphUtils():
         return node_id in [edge['data']['target'], edge['data']['source']]
     
     #returns true if an element is a node
+    '''
+    checks if a ui element is a node.
+    '''
     def is_node(self, element):
         return not self.is_edge(element)
     
-    #util function - colors all elements to grey, depending on the criterion given passed as argument.
+    
+    '''
+    colors all element grey, with respect to variable criterion function
+    '''
     def color_to_grey(self, elements, criterion):
         new_elements = []
         for element in elements:
@@ -105,7 +120,9 @@ class GraphUtils():
                 new_elements[-1]['data']['color'] = "grey"
         return new_elements
     
-    
+    '''
+    handles change of mode.
+    '''
     def handle_mode_change(self, new_mode, current_elements):
         #changing to hampath - we need to clear all colors of the graph's nodes.
         if new_mode == "HAMPATH":
@@ -123,6 +140,9 @@ class GraphUtils():
     
     
     #checks if an element is of a colour alligning with the selected one - if larger, returns false.
+    '''
+    checks if an element's color is alligned with the current restrictions.
+    '''
     def check_element_color_compliance(self, element, color):
         if element['data']['color'] == "grey" or element['data']['color'] == "ForestGreen":
             return False
@@ -130,7 +150,9 @@ class GraphUtils():
         return 1 + self.vis_object.color_to_num(element['data']['color']) > int(color)
     
     
-    #handles colour number change
+    '''
+    handles change of color number
+    '''
     def handle_color_num_change(self, value, current_elements):
         #options for colour selector - depending on colour.
         next_options = ColourSelectorOptions[:int(value)+2]
@@ -141,17 +163,23 @@ class GraphUtils():
         #also changes the settings of the options
         return next_options, new_elements
         
-        
+    '''
+    removes edges adjacent to a node (and the node itself)
+    '''
     def remove_adjacent_edges(self, tapped_node_id, elements):
         return [element for element in elements if not self.is_adjacent_to(element, tapped_node_id)]
 
-    #recolors a node from elements
+    '''
+    recolors node
+    '''
     def recolor_node(self, elements, color, node_id):
         elements = [element for element in elements if element['data']['id'] != node_id]
         elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : color}})
         return elements
         
-    
+    '''
+    processes node click. currently can remove a node, or color it.
+    '''
     def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num, current_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
@@ -169,7 +197,7 @@ class GraphUtils():
             return self.recolor_node(current_elements, selected_colour, tapped_node['id'])
     
     '''
-    generates random graph
+    generates random graph - returns elements accordingly and updates graph in self.
     '''
     def generate_random_graph(self, n_clicks, current_elements):
         #handles automatic activation at creation
@@ -179,6 +207,9 @@ class GraphUtils():
         self.vis_object.graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
         return self.generate_initial_graph_data()
     
+    '''
+    function that checks wether edge is connecting between id1 and id2.
+    '''
     def is_edge_connecting(self, edge, id1, id2):
         if not self.is_edge(edge):
             return False
@@ -189,6 +220,9 @@ class GraphUtils():
     def erase_edge(self, elements, id1, id2):
         return [element for element in elements if not self.is_edge_connecting(element, id1, id2)]
     
+    '''
+    function that is responsible for edge clicks. currently removes it if needed.
+    '''
     def process_edge_click(self, tapped_edge, current_elements, erase_mode):
         # remove edge if necessary
         if tapped_edge is not None and erase_mode['toggled']:
@@ -196,7 +230,9 @@ class GraphUtils():
         #base case - dont respond if un-needed
         return current_elements
     
-    
+    '''
+    takes a UI graph elemnt and returns it's color in graph readable format.
+    '''
     def parse_color_for_graph(self, element):
         value = self.vis_object.color_to_num(element['data']['color'])
         
@@ -204,6 +240,10 @@ class GraphUtils():
             return None
         return value
     
+    
+    '''
+    goes over graph data in UI and returns it in parsed form for later use
+    '''
     def parse_current_graph_data(self, elements):
         nodes = []
         node_color_array = []
@@ -221,12 +261,20 @@ class GraphUtils():
         
         return nodes, edges, node_color_array
     
+    
+    '''
+    useful for searching fro color - if not present returns -1.
+    '''
     def smart_index(self, array, index):
         try:
             return array.index(index)
         except ValueError:
             return -1
     
+    
+    '''
+    reduces elements and indices to match current graph standard.
+    '''
     def reduce_excess_nodes(self, nodes, edges, color_tuples):
         #check for empty case
         if nodes == []:
@@ -247,16 +295,27 @@ class GraphUtils():
         #return reduced
         return nodes, edges, color_tuples
     
+    
+    '''
+    constructs a graph from parsed elements
+    '''
     def construct_new_graph(self, nodes, edges, color_tuples, max_colors):
         color_tuples.sort(key = lambda tup : tup[0])
         color_array = [element[1] for element in color_tuples]
         return GraphColoring(len(nodes), edges, color_array, max_colors)
     
+    '''
+    constructs graph from elements in ui. reduces indices accordingly.
+    '''
     def construct_graph_from_elements(self, elements, max_colors):
         new_nodes, new_edges, new_color_tuples = self.parse_current_graph_data(elements)
         new_nodes, new_edges, new_color_tuples = self.reduce_excess_nodes(new_nodes, new_edges, new_color_tuples)
         return self.construct_new_graph(new_nodes, new_edges, new_color_tuples, max_colors)
     
+    
+    '''
+    solves color problem on self.vis_object_graph
+    '''
     def generate_solved_colors(self):
         solution = self.vis_object.graph.solve()
         if solution is None:
@@ -264,12 +323,18 @@ class GraphUtils():
         
         return solution != [None] * self.vis_object.graph.num_nodes, solution
     
+    '''
+    generates hamiltonian path of self.vis_object.graph
+    '''
     def generate_solved_hampath(self):
         ham_graph = HamiltonianCycle(self.vis_object.graph.num_nodes, self.vis_object.graph.edges)
         ham_solution = ham_graph.solve()
         
         return ham_solution is not None, self.vis_object.generate_edges(ham_solution)
         
+    '''
+    helper function. resolves the problem on self.vis_object.graph
+    '''
     def solve_problems(self, problem):
         new_colors = [None] * self.vis_object.graph.num_nodes
         hampath_edges = []
@@ -286,7 +351,12 @@ class GraphUtils():
         
         return found_solution, new_graph_data
     
-    def end_visualization(self, n_clicks, elements, max_colors, problem):
+    
+    '''
+    processes press of "do action" button. takes in state input and returns output message and new graph components.
+    besides that, updates the graph with reduced elements.
+    '''
+    def do_task(self, n_clicks, elements, max_colors, problem):
         #prevent accidental press.
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
@@ -300,7 +370,6 @@ class GraphUtils():
             
         #now, for the interesting case:
         self.vis_object.graph = self.construct_graph_from_elements(elements, int(max_colors))
-        print(self.vis_object.graph.colors)
         found_solution, new_graph_data = self.solve_problems(problem)
         
         if found_solution:
