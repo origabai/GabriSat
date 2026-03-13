@@ -46,7 +46,7 @@ class GraphUILayout():
             State('interactive-graph', 'elements'),
             State('erase_toggled', 'data'),
             prevent_initial_call=True
-        )(helper_object.erase_clicked_edge)
+        )(helper_object.process_edge_click)
         
         helper_object.app.callback(
             Output('success_message', 'children', allow_duplicate=True),
@@ -155,7 +155,7 @@ class GraphUILayout():
                     {'label': 'red (0)', 'value': 'red'},
                     {'label': 'green (1)', 'value': 'green'},
                     {'label': 'blue (2)', 'value': 'blue'}],
-                value=[None], # The default selected array
+                value=None, # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
                 style={'display' : 'none'}
             ),

@@ -86,6 +86,13 @@ class GraphUtils:
     def is_edge(self, element):
         return 'target' in element['data']
     
+    #checks if an element is adjacent to a node
+    def is_adjacent_to(self, edge, node_id):
+        if edge['data']['id'] == node_id:
+            return True
+        if not self.is_edge(edge):
+            return False
+        return node_id in [edge['data']['target'], edge['data']['source']]
     
     #returns true if an element is a node
     def is_node(self, element):
@@ -136,35 +143,33 @@ class GraphUtils:
         #also changes the settings of the options
         return next_options, new_elements
         
+        
+    def remove_adjacent_edges(self, tapped_node_id, elements):
+        return [element for element in elements if not self.is_adjacent_to(element, tapped_node_id)]
+
+    #recolors a node from elements
+    def recolor_node(self, elements, color, node_id):
+        print("id is", node_id)
+        elements = [element for element in elements if element['data']['id'] != node_id]
+        elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : color}})
+        return elements
+        
     
     def process_node_click(self, tapped_node, current_elements, selected_colour ,erase_mode, max_num, current_mode):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return current_elements
+        
+        #if erasing:
         if erase_mode['toggled']:
-            
-            # Extract the mathematical or topological data from the dictionary
-            node_id = tapped_node.get('id', 'Unknown')
-            #node_label = tapped_node.get('label', 'No Label')
-            # Return formatted HTML to update the DOM
-            return [element for element in current_elements if not(
-                    element['data']['id'] == node_id or
-                    ('source' in element['data'] and element['data']['source'] == node_id) or
-                    ('target' in element['data'] and element['data']['target'] == node_id))
-                    ]   
+            return self.remove_adjacent_edges(tapped_node['id'], current_elements) 
         else:
-            trivial_conditions = current_mode != "COLOR" or selected_colour[0] is None 
-            if trivial_conditions or (selected_colour != "grey" and self.vis_object.color_to_num(selected_colour) > int(max_num) - 1):
+            #check need to color depending on selected color
+            trivial_conditions = current_mode != "COLOR" or selected_colour is None
+            if trivial_conditions or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1:
                 return current_elements
-            
-            # Extract the mathematical or topological data from the dictionary
-            node_id = str(tapped_node.get('id', 'Unknown'))
-            
-            elements = [element for element in current_elements if element['data']['id'] != node_id]
-            elements.append({'data' : {'id' : node_id, 'label' : node_id, 'color' : selected_colour}})
-            #node_label = tapped_node.get('label', 'No Label')
-            # Return formatted HTML to update the DOM
-            return elements 
+            #now, recolor when needed:
+            return self.recolor_node(current_elements, selected_colour, tapped_node['id'])
     
     '''
     generates random graph
@@ -177,22 +182,22 @@ class GraphUtils:
         new_graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
         return GraphUtils.generate_initial_graph_data(new_graph.num_nodes, new_graph.edges, new_graph.num_nodes*["grey"])
     
+    def is_edge_connecting(self, edge, id1, id2):
+        if not self.is_edge(edge):
+            return False
+        else:
+            edge_bounds = set([edge['data']['source'], edge['data']['target']])
+            return edge_bounds == set([id1, id2])
     
-    def erase_clicked_edge(self, tapped_edge, current_elements, erase_mode):
-        # Base case: The app just loaded, and no node has been clicked yet.
-        if tapped_edge is None or not erase_mode['toggled']:
-            return current_elements
-        # Extract the mathematical or topological data from the dictionary
-        edge_src = tapped_edge.get('source', 'Unknown')
-        edge_target = tapped_edge.get('target', 'Unknown')
-        #node_label = tapped_node.get('label', 'No Label')
-        # Return formatted HTML to update the DOM
-        return [element for element in current_elements if not(
-            (('source' in element['data'] and element['data']['source'] == edge_src) and
-            ('target' in element['data'] and element['data']['target'] == edge_target)) or
-            ('source' in element['data'] and element['data']['source'] == edge_target) and
-            ('target' in element['data'] and element['data']['target'] == edge_src))    
-            ] 
+    def erase_edge(self, elements, id1, id2):
+        return [element for element in elements if not self.is_edge_connecting(element, id1, id2)]
+    
+    def process_edge_click(self, tapped_edge, current_elements, erase_mode):
+        # remove edge if necessary
+        if tapped_edge is not None and erase_mode['toggled']:
+            return self.erase_edge(current_elements, tapped_edge['source'], tapped_edge['target'])
+        #base case - dont respond if un-needed
+        return current_elements
     
     
     def end_visualization(self, n_clicks, elements, max_colors, problem):
@@ -216,8 +221,7 @@ class GraphUtils:
         else:
             missing_nodes = set(range(max(nodes))) - nodes
         missing_list = sorted(list(missing_nodes), reverse=True)
-            
-            
+
         self.vis_object.graph.max_colors = int(max_colors[0])
         self.vis_object.graph.num_nodes = len(nodes)
         #then, removes non existant vertices to comply with graph_coloring problem
@@ -232,17 +236,20 @@ class GraphUtils:
             
         color_collection_array.sort(key = lambda tup : tup[0])
         color_array = [element[1] for element in color_collection_array]
+        for i in range(len(color_array)):
+            if color_array[i] == -1:
+                color_array[i] = None
         self.vis_object.graph = GraphColoring(self.vis_object.graph.num_nodes, self.vis_object.graph.edges, color_array, self.vis_object.graph.max_colors)
         found_solution = True
         end_flag = False
-        solution = [None] * self.vis_object.graph.num_nodes
+        solution = [-1] * self.vis_object.graph.num_nodes
         Ham_solution = None
         match problem:
             case "COLOR":
                 # solve coloring problem
                 solution = self.vis_object.graph.solve()
                 if solution is None:
-                    solution = [None] * self.vis_object.graph.num_nodes
+                    solution = [-1] * self.vis_object.graph.num_nodes
                     found_solution = False
                 
             case "HAMPATH":

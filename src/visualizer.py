@@ -22,7 +22,7 @@ class Visualizer:
         
     #to pass the test with flying colors
     def color_gen(self, color : int | None) -> str:
-        if color is None:
+        if color is -1:
             return "grey"
         
         return self.COLORS[color % len(self.COLORS)]
@@ -30,7 +30,7 @@ class Visualizer:
     #takes string returns color
     def color_to_num(self, color : str) -> int:
         if color == "grey":
-            return None
+            return -1
         else:
             return self.COLORS.index(color)
     
