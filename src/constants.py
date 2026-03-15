@@ -1,11 +1,13 @@
 from SAT_trivial import TrivialSATSolver
 from SAT_backtracking import SAT_backtracking
 from trivial_backtracker import TrivialBacktrackingSolver
+from improved_backtracking import ImproverBacktrackingSolver
 
-DEFAULT_SOLVER = TrivialBacktrackingSolver
+DEFAULT_SOLVER = ImproverBacktrackingSolver
 TrivialSATSolver
 SAT_backtracking
 TrivialBacktrackingSolver
+ImproverBacktrackingSolver
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13

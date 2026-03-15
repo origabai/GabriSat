@@ -19,16 +19,16 @@ from webbrowser import open as webopen
 def benchmark_times():
     print("Starting time benchmark")
     print(
-        "Average time to 10-color a 20 vertex graph:",
-        test_time(GraphColoring.generate(), 20),
+        "Average time to 20-color a 40 vertex graph:",
+        test_time(GraphColoring.generate(), 40),
     )
     print(
-        "Average time to find a hamiltonian cycle on a 7 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 7),
+        "Average time to find a hamiltonian cycle on a 25 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 25),
     )
     print(
-        "Average time to solve a 4x4 sudoku(very hard):",
-        test_time(Sudoku.generate(), 4),
+        "Average time to solve a 9x9 sudoku:",
+        test_time(Sudoku.generate(), 9),
     )
 
 
@@ -48,9 +48,9 @@ def graph_vis():
 def visualize_sudoku():
     vis = SudokuVisualizer()
     action = input("Would you like to generate a random sudoku(1), or input one yourself(2)?")
-    sud = Sudoku.initializeRandomly(4)
+    sud = Sudoku.initializeRandomly(9)
     if (action == "1"):
-        sud = Sudoku.initializeRandomly(4)
+        sud = Sudoku.initializeRandomly(9)
     elif (action == "2"):
         sud = Sudoku.initializeFromInput()
         if sud is None:

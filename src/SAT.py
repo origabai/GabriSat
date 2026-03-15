@@ -10,6 +10,8 @@ class SATClause:
         self.pos_variables: set[int] = pos_variables
         self.neg_variables: set[int] = neg_variables
 
+    def size(self):
+        return len(self.pos_variables) + len(self.neg_variables)
 
 class AbstractSATSolver:
     def __init__(self, num_variables):
