@@ -6,7 +6,7 @@ class TrivialSATSolver(AbstractSATSolver):
         super().__init__(num_variables)
     
     def initializeFromInput(self):
-        pass
+        raise NotImplementedError
 
     # returns an array of booleans containing a satisfying solution, or None if impossible
     def solve(self) -> list[int] | None:
@@ -18,7 +18,7 @@ class TrivialSATSolver(AbstractSATSolver):
         variable_satisfaction = [interpretation[i] for i in clause.pos_variables]
         variable_satisfaction.extend([not interpretation[i] for i in clause.neg_variables])
         return any(variable_satisfaction)
-        
+    
     #checks wether all clauses satisfied
     def check_interpretation_satisfaction(self, interpretation : list[bool]) -> bool:
         clauses_satisfaction = [self.check_clause_satisfaction(clause, interpretation) for clause in self.clauses]

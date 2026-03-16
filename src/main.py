@@ -6,15 +6,10 @@ from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
 from sudoku_visualizer import SudokuVisualizer
 from pynput.keyboard import Controller, Key 
-from constants import (
-    DEFAULT_SOLVER,
-    TrivialSATSolver,
-    TrivialBacktrackingSolver,
-    SAT_backtracking,
-)
-from SAT import AbstractSATSolver
+from sys import setrecursionlimit
 
 from webbrowser import open as webopen
+
 
 def benchmark_times():
     print("Starting time benchmark")
@@ -78,31 +73,11 @@ def visualize_sudoku():
         input("Press enter to exit")
 
 
-# compares the results of different SAT solvers and prints the results
-# solvers is a list of classes of SAT solvers, num_vars is an int representing
-# the desired amount of sat variables to generate randomly, num_clauses is an int
-# representing the desired amount of sat clauses to generate randomly
-def compare_SATs(
-    solvers=[TrivialBacktrackingSolver, SAT_backtracking],
-    num_vars: int = 20,
-    num_clauses: int = 10,
-) -> None:
-    random_sat: AbstractSATSolver = AbstractSATSolver.generate_random(  # generating SAT
-        num_vars, num_clauses, DEFAULT_SOLVER
-    )
-    for clause in random_sat.clauses:  # generating clauses for the SAT
-        print(f"pos: {clause.pos_variables} | neg: {clause.neg_variables}")
-    sats = [solver(num_vars) for solver in solvers]
-    for sat in sats:  # copying the SAT for the different solvers
-        for clause in random_sat.clauses:
-            sat.addClause(clause.pos_variables.copy(), clause.neg_variables.copy())
-    sols = [sat.solve() for sat in sats]  # solving with each solver
-    for i in range(len(sats)):  # printing the results
-        print(f"{type(sats[i])} got the following solution:")
-        print(sols[i])
+
 
 
 def main():
+    setrecursionlimit(3000)
     print("WELCOME TO VERY EPIC SAT SOLVER")
     print("What would you like to do?")
     print("1 - Benchmark solving times")
