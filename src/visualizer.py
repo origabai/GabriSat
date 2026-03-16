@@ -7,7 +7,7 @@ from dash import Dash, Input, Output, State
 
 '''
 a class that shows a graph, allowing it to be edited visually.
-
+generate_initial_data
 main method is .show() - which actually visualizes the graph.
 .show() returns the graph coloring problem which corresponds to what the user has edited
 in the editing window.
@@ -15,64 +15,56 @@ in the editing window.
 '''
 
 class Visualizer:
-    def __init__(self, graph : GraphColoring, solution = None, Ham_solution = None, found_solution = True):
+    def __init__(self, graph : GraphColoring, Ham_solution = None):
         self.graph = graph
         self.correct_end = False
-        self.edges = self.graph.edges
-        self.num_nodes = self.graph.num_nodes
-        self.max_colors = self.graph.max_colors
-        self.found_solution = found_solution
-        
-        self.special_edges = None
-        if Ham_solution is not None:
-            self.special_edges = [[Ham_solution[-1],Ham_solution[0]]]
-            for i in range(len(Ham_solution)-1):
-                self.special_edges.append([Ham_solution[i],Ham_solution[i+1]])
-        
-        self.task = "COLOR"
-        self.color_storage_for_termination = []
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
-        #remembering colours
-        if solution:
-            self.numerical_colors = solution
-        else:
-            self.numerical_colors = self.graph.colors
-            
-        #deciding visualization colours
-        self.colors = [self.color_gen(color) for color in self.numerical_colors]
         
     #to pass the test with flying colors
     def color_gen(self, color : int | None) -> str:
-        if color is None:
+        if color == -1 or color is None:
             return "grey"
         
         return self.COLORS[color % len(self.COLORS)]
     
+    def get_color_at_node(self, node):
+        return self.color_gen(self.graph.colors[node])
+    
+    def generate_color_array(self, color_list : list[int]) -> list[str]:
+        if color_list is None:
+            color_list = self.graph.colors
+        return [self.color_gen(color) for color in color_list]
+    
     #takes string returns color
     def color_to_num(self, color : str) -> int:
         if color == "grey":
-            return None
+            return -1
         else:
             return self.COLORS.index(color)
+    
+    #generate coloured edges from hamiltonian solution
+    def generate_edges(self, Ham_solution):
+        if Ham_solution is None or Ham_solution == []:
+            return []
+        
+        special = [[Ham_solution[-1],Ham_solution[0]]]
+        for i in range(len(Ham_solution)-1):
+            special.append([Ham_solution[i],Ham_solution[i+1]])
+            
+        return special
         
         
-        
-    #show result
+    #start up dash - the visual interface
     def show(self) -> tuple[bool, GraphColoring]:
-        initial_elements = GraphUtils.generate_initial_data(self.num_nodes, self.edges, self.colors, self.special_edges)
-        
+        #set up logger
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
+        
+        #start the app
         app = Dash(__name__)
         helper = GraphUtils(app, self)
-        app.layout = helper.default_layout(initial_elements, self.found_solution)
-        #helper = GraphUtils(app, self)
-        #app.layout = helper.default_layout(initial_elements)
-
-
-
+        app.layout = helper.layout
         app.run()
-        self.color_storage_for_termination.sort(key = lambda tup : tup[0])
-        color_array = [element[1] for element in self.color_storage_for_termination]
-        #print(self.edges)
-        return self.correct_end, GraphColoring(self.num_nodes, self.edges, color_array, self.max_colors)
+        
+        #return the graph as it is at the end - and an indicator of success/failure.
+        return self.correct_end, self.graph
 

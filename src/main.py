@@ -14,16 +14,16 @@ from webbrowser import open as webopen
 def benchmark_times():
     print("Starting time benchmark")
     print(
-        "Average time to 19-color a 38 vertex graph:",
-        test_time(GraphColoring, 38),
+        "Average time to 20-color a 40 vertex graph:",
+        test_time(GraphColoring.generate(), 40),
     )
     print(
-        "Average time to find a hamiltonian cycle on a 23 vertex graph:",
-        test_time(HamiltonianCycle, 23),
+        "Average time to find a hamiltonian cycle on a 25 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 25),
     )
     print(
         "Average time to solve a 9x9 sudoku:",
-        test_time(Sudoku, 9),
+        test_time(Sudoku.generate(), 9),
     )
 
 
@@ -31,41 +31,13 @@ def benchmark_times():
 
 
 def graph_vis():
-    # bootstrap
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(0, [], [], 3)
-    solution = None
-    Ham_solution = None
-    found_solution = True
-    keyboard = Controller()
+    
     webopen('http://localhost:8050')
-    while True:
-        vis = Visualizer(color_graph, solution, Ham_solution, found_solution)
-        #initialize solutions to none
-        solution = None
-        found_solution = True
-        Ham_solution = None
-        correct_end, color_graph = vis.show()
-        if not correct_end:
-            break
-        #depending on the task, solve and update the solution
-        match vis.task:
-            case "COLOR":
-                # solve coloring problem
-                solution = color_graph.solve()
-                if solution is None:
-                    found_solution = False
-                continue
-            case "HAMPATH":
-                # solve hampath problem
-                ham_graph = HamiltonianCycle(color_graph.num_nodes, color_graph.edges)
-                Ham_solution = ham_graph.solve()
-                if Ham_solution is None:
-                    found_solution = False
-                continue
-            case "END":
-                # end simulation
-                break
+    vis = Visualizer(color_graph)
+    correct_end, color_graph = vis.show()
+
 
 
 def visualize_sudoku():

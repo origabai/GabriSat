@@ -131,6 +131,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
             edges=edges,
             colors=colors,
             max_colors=self.board_size,
+            satsolver=self.solver
         )
 
     # takes a valid solution of the reduction graph as a list of ints representing colors,

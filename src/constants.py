@@ -1,11 +1,13 @@
 from SAT_trivial import TrivialSATSolver
 from SAT_backtracking import SAT_backtracking
 from trivial_backtracker import TrivialBacktrackingSolver
+from improved_backtracking import ImproverBacktrackingSolver
 
-DEFAULT_SOLVER = TrivialBacktrackingSolver
+DEFAULT_SOLVER = ImproverBacktrackingSolver
 TrivialSATSolver
 SAT_backtracking
 TrivialBacktrackingSolver
+ImproverBacktrackingSolver
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
@@ -24,3 +26,8 @@ ColourSelectorOptions = [
                         {'label': 'lime (7)', 'value': 'lime'},
                         {'label': 'cyan (8)', 'value': 'cyan'},
                     ]
+
+CLEAR_LABEL = {'display': 'none'}
+LABEL = {'display': 'none'}
+CLEAR_SELECTOR = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
+SELECTOR = {'display': 'block', 'width': '300px', 'marginTop': '5px'}

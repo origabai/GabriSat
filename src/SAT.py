@@ -14,6 +14,8 @@ class SATClause:
             return False
         return self.pos_variables == value.pos_variables and self.neg_variables == value.neg_variables
 
+    def size(self):
+        return len(self.pos_variables) + len(self.neg_variables)
 
 class AbstractSATSolver:
     def __init__(self, num_variables):
