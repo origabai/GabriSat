@@ -93,7 +93,9 @@ class GraphUtils:
 
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
         node_ids = [
-            element["data"]["id"] for element in current_elements if self.is_node(element)
+            element["data"]["id"]
+            for element in current_elements
+            if self.is_node(element)
         ]
         if (
             not source_id
@@ -303,7 +305,7 @@ class GraphUtils:
             return current_elements
         # generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(
-            size=randint(RandomGraphMinSize, RandomGraphMaxSize)
+            num_of_nodes=randint(RandomGraphMinSize, RandomGraphMaxSize)
         )
         return self.generate_initial_graph_data(missing_nodes=[])
 
