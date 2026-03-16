@@ -209,7 +209,7 @@ class GraphUtils():
         if n_clicks == 0:
             return current_elements
         #generates and updates new graph
-        self.vis_object.graph = GraphColoring.generate(size = randint(RandomGraphMinSize, RandomGraphMaxSize))
+        self.vis_object.graph = GraphColoring.generate(num_of_nodes=randint(RandomGraphMinSize, RandomGraphMaxSize))
         return self.generate_initial_graph_data(missing_nodes = [])
     
     '''
