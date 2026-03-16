@@ -26,6 +26,8 @@ class GraphUILayout():
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('success_message', 'children', allow_duplicate=True),
+            Output('success_message', 'style', allow_duplicate=True),
             Input('btn-add-edge', 'n_clicks'),
             State('input-edge-source', 'value'),
             State('input-edge-target', 'value'),
