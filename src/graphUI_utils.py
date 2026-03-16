@@ -102,27 +102,33 @@ class GraphUtils:
             or not target_id
             or source_id not in node_ids
             or target_id not in node_ids
+            or source_id == target_id
         ):
             return current_elements, "Invalid input!", {"color": "red"}
-            # Do nothing if source/target are empty or not real
+            # Do nothing if source/target are empty or not real, or self edge
 
         # Construct the new edge dictionary and append it to the state
         new_edge = {"data": {"source": source_id, "target": target_id, "color": "grey"}}
-        if (
-            {"data": {"source": target_id, "target": source_id, "color": "grey"}}
-            and {
-                "data": {
-                    "source": target_id,
-                    "target": source_id,
-                    "color": "ForestGreen",
-                }
-            }
-            not in current_elements
-            and new_edge not in current_elements
+        if all(
+            not self.are_edges_equal(new_edge, element) for element in current_elements
         ):
             current_elements.append(new_edge)
+        else:
+            return current_elements, "Edge already exists!", {"color": "red"}
 
         return current_elements, "Edge added successfully!", {"color": "green"}
+
+    """
+    returns true iff edge1 and edge 2 are equivalent up to order, id and color
+    """
+
+    def are_edges_equal(self, edge1, edge2) -> bool:
+        if not self.is_edge(edge1) or not self.is_edge(edge2):
+            return False
+        nodes1: set = {edge1["data"]["source"], edge1["data"]["target"]}
+        nodes2: set = {edge2["data"]["source"], edge2["data"]["target"]}
+        # set representing the nodes of the edges
+        return nodes1 == nodes2
 
     """
     handles press of erase button.
