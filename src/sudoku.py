@@ -58,7 +58,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     def initializeRandomly(self, board_size: int, satsolver = DEFAULT_SOLVER):
         board = self.generateTrivialBoard(board_size)
         coords_to_keep: set[tuple[int, int]] = set()
-        while len(coords_to_keep) < board_size ** 1.67:  # magic number i think looks good
+        while len(coords_to_keep) < board_size ** 1.5:  # board_size ** 1.5 is magic number i think looks good
             i: int = randint(0, board_size)
             j: int = randint(0, board_size)
             coords_to_keep.add((i, j))

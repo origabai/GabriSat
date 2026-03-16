@@ -26,7 +26,7 @@ class TrivialBacktrackingSolver(AbstractSATSolver):
                     break
                 else:
                     val |= not self.curr_interp[p]
-            # if the clause is alreafy unsatistified
+            # if the clause is already unsatistified
             if (not val):
                 return False
         return True
