@@ -88,17 +88,22 @@ class ImprovedSATHandler : public SATHandlingDS{
     void initialize(int N, std::vector<SATClause> C) override {
         num_variables = N;
 
-        for (auto &c : C){
+        // initialize clauses
+        for (SATClause &c : C){
             clause_list.push_back(BetterSATClause(c));
         }
         
+        // set all variables to unset
         assignment.assign(N, VARIABLE_UNSET);
         
+        // initialize segment tree with the sizes of all clauses
         minqryds = MinQueryDS(clause_list.size());
         for (int i=0;i<clause_list.size();i++){
             minqryds.update(i, clause_list[i].size());
         }
         
+        // for every clause, add it to the map
+        // for all variables containing it
         var_to_clause_map.resize(num_variables);
         for (int i=0;i<clause_list.size();i++){
             for (int x : clause_list[i].neg_variables){
@@ -223,7 +228,7 @@ class ImprovedSATHandler : public SATHandlingDS{
     }
 };
 
-class ImproverBacktrackingSolver : public AbstractBacktrackingSolver {
+class ImprovedBacktrackingSolver : public AbstractBacktrackingSolver {
     public:
-    ImproverBacktrackingSolver(int num_variables) : AbstractBacktrackingSolver(num_variables, new ImprovedSATHandler()) {}
+    ImprovedBacktrackingSolver(int num_variables) : AbstractBacktrackingSolver(num_variables, new ImprovedSATHandler()) {}
 };

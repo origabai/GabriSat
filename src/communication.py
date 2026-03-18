@@ -2,9 +2,9 @@
 this is the python-side endpoint of the cpp-python communication
 in order for this to work, add a class inheriting from CPP_SATSolver
 to the file cpp_solvers.py
-that class's __init__ should set object_path to be the path
-of the executable in cpp_executables
-see cpp/communication_py.cpp for instructions to create it
+that class's __init__ should set solver_name to be the name
+of the cpp solver you want to use
+see communication.cpp for the list of names/solvers
 """
 from SAT import AbstractSATSolver
 from random import choice
@@ -17,12 +17,13 @@ class CPP_SATSolver(AbstractSATSolver):
     """
     creates the class.
     receives as parameters the number of variables,
-    as well as a path to an object file implementing the interface
-    defined in communication_py.cpp
+    as well as a the name of the cpp solver which will be used
+    as defined in communication.cpp
     """
-    def __init__(self, num_variables, object_path):
+    def __init__(self, num_variables, solver_name):
         super().__init__(num_variables)
-        self.object_path = object_path
+        self.object_path = "cpp" + os.sep + "communication"
+        self.solver_name = solver_name
         
     def solve(self):
         letters = "abcdefghijklmnopqrstuvwxyz"
@@ -38,7 +39,7 @@ class CPP_SATSolver(AbstractSATSolver):
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
         # run the solver
-        os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out")
+        os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
         # read output file
         sans = open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]

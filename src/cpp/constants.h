@@ -7,7 +7,4 @@
 #define SAT_FALSE (0)
 #define minqryds_MAXVAL (1000000000)
 
-// change this to the solver you want and compile
-#define DEFAULT_SOLVER ImproverBacktrackingSolver
-
 #endif 
