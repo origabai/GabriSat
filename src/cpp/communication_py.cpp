@@ -1,3 +1,10 @@
+/*
+this is the cpp-side endpoint of the cpp-python communication
+in order for this to work, change DEFAULT_SOLVER in constants.h
+to the solver you want, and compile this file.
+put the executable in cpp_executables
+*/
+
 #include<bits/stdc++.h>
 #include"SAT.h"
 #include "constants.h"

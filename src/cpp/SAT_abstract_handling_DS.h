@@ -2,6 +2,7 @@
 #define SATHANLDER_H
 #include "SAT.h"
 #include <vector>
+#include <utility>
 
 // an abstract data structure for handling SAT backtracking efficiently
 class SATHandlingDS{
@@ -11,9 +12,10 @@ class SATHandlingDS{
     // should initializes the ds
     virtual void initialize(int N, std::vector<SATClause> C) = 0;
 
-    // should return the next variable to be interpreted
+    // should return the next variable to be interpreted,
+    // as well as the value it should be interpreted as first
     // should return NO_NEXT_VAR if all variables are assigned
-    virtual int next_var(void) = 0;
+    virtual std::pair<int,int> next_var(void) = 0;
 
     // should return the current assignment of the variables
     virtual std::vector<int> current_assignment(void) = 0;

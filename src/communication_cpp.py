@@ -1,3 +1,11 @@
+"""
+this is the python-side endpoint of the cpp-python communication
+in order for this to work, add a class inheriting from CPP_SATSolver
+to the file cpp_solvers.py
+that class's __init__ should set object_path to be the path
+of the executable in cpp_executables
+see cpp/communication_py.cpp for instructions to create it
+"""
 from SAT import AbstractSATSolver
 from random import choice
 import os

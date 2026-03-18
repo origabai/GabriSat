@@ -111,21 +111,21 @@ class ImprovedSATHandler : public SATHandlingDS{
     }
 
     // returns a variable in the clause with the lowest score
-    int next_var(void) override {
+    pair<int,int> next_var(void) override {
         auto [i,v] = minqryds.getmin();
         if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
             // this means everything is already satisfied. give the first unassigned variable
             for (int i=0;i<num_variables;i++){
                 if (assignment[i] == VARIABLE_UNSET){
-                    return i;
+                    return {i,SAT_TRUE};
                 }
             }
         } else if (clause_list[i].pos_variables.size() > 0){
-            return *clause_list[i].pos_variables.begin();
+            return {*clause_list[i].pos_variables.begin(), SAT_TRUE};
         } else {
-            return *clause_list[i].neg_variables.begin();
+            return {*clause_list[i].neg_variables.begin(), SAT_FALSE};
         }
-        return NO_NEXT_VAR;
+        return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
 
     std::vector<int> current_assignment(void) override {
