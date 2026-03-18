@@ -15,12 +15,10 @@ class CPP_SATSolver(AbstractSATSolver):
     def __init__(self, num_variables, object_path):
         super().__init__(num_variables)
         self.object_path = object_path
-
-    def addClause(self, pos_variables, neg_variables):
-        return super().addClause(pos_variables, neg_variables)
         
     def solve(self):
         letters = "abcdefghijklmnopqrstuvwxyz"
+        # create input file with the correct format
         fname = "".join([choice(letters) for i in range(10)])
         with open(fname + ".in", "w") as f:
             print(self.num_variables, len(self.clauses), file = f)
@@ -31,19 +29,15 @@ class CPP_SATSolver(AbstractSATSolver):
                 print(len(self.clauses[i].neg_variables),file = f)
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
-        os.system(self.object_path + " " + fname + ".in " + fname + ".out")
+        # run the solver
+        os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out")
+        # read output file
         sans = open(fname + ".out").read().split(" ")
-        ans = [(x == 1) for x in sans]
-        # os.remove(fname + ".in")
-        # os.remove(fname + ".out")
-        return ans
+        ans = [(x == "1") for x in sans]
+        os.remove(fname + ".in")
+        os.remove(fname + ".out")
+        if (len(ans) == 0):
+            return None
+        else:
+            return ans
 
-def main():
-    solver = CPP_SATSolver(5, "improved_backtracker.exe")
-    solver.addClause([1,2],[])
-    solver.addClause([3],[1])
-    solver.addClause([4],[2])
-    print(solver.solve())
-
-if __name__ == "__main__":
-    main()

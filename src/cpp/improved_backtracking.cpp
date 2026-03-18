@@ -171,7 +171,7 @@ class ImprovedSATHandler : public SATHandlingDS{
                     minqryds.update(cl, minqryds_MAXVAL);
                 } else {
                     if (clause.size() == 1){
-                        valid_bit = true;
+                        valid_bit = false;
                     }
                     clause.pos_variables.erase(curr_var);
                     clause.assigned_pos_variables.insert(curr_var);

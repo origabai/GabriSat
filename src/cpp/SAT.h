@@ -22,7 +22,7 @@ class AbstractSATSolver {
     }
 
     // should solve the SAT.
-    // should return NO_SOLUTION if no solution exists
+    // should return an empty vector if no solution exists
     virtual std::vector<int> solve() = 0;
 
 };

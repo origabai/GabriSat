@@ -44,6 +44,8 @@ DEFAULT_SOLVER *readinput(ifstream &input_file){
 }
 
 // usage: ./path input_file output_file
+// reads a SAT in a format as specified by readinput
+// outputs the solution array
 int main(int argc, char *argv[]){
     if (argc < 3){
         cerr << "invalid command arguments\n";

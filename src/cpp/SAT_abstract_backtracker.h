@@ -26,7 +26,7 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
         handler->upd_assignment(curr_var, SAT_TRUE);
         if (handler->valid()){
             std::vector<int> sol = rec_solve();
-            if (sol != NO_SOLUTION){
+            if (sol.size() != 0){
                 return sol;
             }
         }
@@ -36,13 +36,13 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
         handler->upd_assignment(curr_var, SAT_FALSE);
         if (handler->valid()){
             std::vector<int> sol = rec_solve();
-            if (sol != NO_SOLUTION){
+            if (sol.size() != 0){
                 return sol;
             }
         }
         handler->rollback_assignment();
         
-        return NO_SOLUTION;
+        return {};
     }
 };
 

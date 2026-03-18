@@ -2,7 +2,6 @@
 #define CONSTANTS_H
 
 #define VARIABLE_UNSET (-1)
-#define NO_SOLUTION (std::vector<int>(0))
 #define NO_NEXT_VAR (-1)
 #define SAT_TRUE (1)
 #define SAT_FALSE (0)
