@@ -584,8 +584,6 @@ class UIUtils:
         return board
     
     def change_sudoku_size(self, size, board_div, board_children, board_style):
-        print("hi")
-        print(size)
         message: str
         color: str
         if size is None:
