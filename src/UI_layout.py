@@ -126,6 +126,14 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.sudoku_cell_clicked)
 
+        helper_object.app.callback(
+            Output('success_message', 'children', allow_duplicate=True),
+            Output('success_message', 'style', allow_duplicate=True),
+            Output('sudoku-board', 'children', allow_duplicate=True),
+            Input('generate-random-board', 'n_clicks'),
+            State('sudoku-size-selector', 'value'),
+            prevent_initial_call=True
+        )(helper_object.generate_random_sudoku)
         
         
         
@@ -238,13 +246,20 @@ class UILayout():
                     {'label': '16x16', 'value': '16'},],
                 value=None, # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
-                style={'width': '300px', 'marginBottom': '20px'},
+                style={'width': '300px'},
                 clearable=False,
                 persistence=True,
                 persistence_type='session',
             ),
-            # a div for the sudoku board and number choice, to be revealed only when a size is selected
+            # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
+                # a button for randomly initializing the board
+                html.Button(
+                    'Generate random board',
+                    id='generate-random-board',
+                    n_clicks=0,
+                    style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginTop': '20px'}
+                ),
                 # the number choice for the sudoku
                 html.Div([
                     html.Label("number to place (0 for nothing)"),
@@ -253,7 +268,7 @@ class UILayout():
                         type='text',
                         placeholder='number to place',
                     ),
-                ], style={'width': '300px', 'marginBottom': '20px'}),
+                ], style={'width': '300px', 'marginTop': '20px'}),
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board', style={'display': 'none'})
             ], id='sudoku-board-div', style={'display': 'none'}),

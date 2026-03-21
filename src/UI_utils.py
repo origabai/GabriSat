@@ -552,19 +552,17 @@ class UIUtils:
         return message, color, graph_style, sudoku_style, coloring_style, current_elements
     
     """
-    creates html elements of an empty sudoku board of size x size
+    creates html elements of an empty sudoku board of size x size, initialized with board
+    if board is None it initializes empty
     """
-    def create_empty_sudoku_board(self, size: int):
+    def create_sudoku_board(self, size: int, given_board: list[list[int| None]] | None = None):
         square_size: int = int(size ** .5) # size of sudoku squares
         board = [] # list of the cells
         for row in range(size):
             for column in range(size):
                 cell_style = { # creating the style for the cell
-                        # Optional: Make the text big and look nice
                         'fontSize': f'{27 / size}rem', 
                         'fontWeight': 'bold',
-                        # 'backgroundColor': 'white',
-                        # 'border': '1px solid black',
                         "aspect ratio": "1 / 1",
                         "font size": "{1px}",
                         "borderTop": "1px solid #ccc", # thin gray border
@@ -584,8 +582,11 @@ class UIUtils:
                         cell_style["borderLeft"] = "2px solid black"
                 if (column + 1) % square_size == 0: # last of the column
                         cell_style["borderRight"] = "2px solid black"
+                cell_text: str = "" # default empty text
+                if given_board is not None and given_board[row][column] is not None:
+                    cell_text = str(given_board[row][column] + 1)
                 cell = html.Button(
-                    "", # default empty text
+                    cell_text,
                     id={'type' : 'sudoku-cell', 'row' : row, 'col' : column},
                     style=cell_style,
                 )
@@ -599,7 +600,7 @@ class UIUtils:
     def change_sudoku_size(self, size, board_div, board_children, board_style, board_key):
         message: str # message to display to user
         color: dict # color of message
-        if size == 0: # hide board
+        if size == "0": # hide board
             board_div['display'] = 'none'
             message = "Please choose a board size!"
             color = {'color': 'black'}
@@ -608,7 +609,7 @@ class UIUtils:
             message = f"Sudoku board of size {size}x{size}"
             color = {'color': 'black'}
             pixel_size=576 # a good size, and divisible by 4, 9 and 16
-            board_children = self.create_empty_sudoku_board(int(size)) # creating the actual board
+            board_children = self.create_sudoku_board(int(size)) # creating the actual board
             board_style = {
                         'display': 'grid',
                         'gridTemplateColumns': f'repeat({size}, 1fr)', 
@@ -643,3 +644,16 @@ class UIUtils:
             sudoku_cell = str(int(number)) # put the number
 
         return sudoku_cell
+
+    """
+    called when the generate random board button is pressed, creates a random board
+    with the logic from the Sudoku class, and turns it into html
+    """
+    def generate_random_sudoku(self, n_clicks, size):
+        message = "Board generated successfully!"
+        color = {'color': 'black'}
+        # creating a sudoku object for random board generation
+        sudoku = Sudoku.initializeRandomly(int(size))
+        # creating the html board
+        board_children = self.create_sudoku_board(int(size), sudoku.board)
+        return message, color, board_children
