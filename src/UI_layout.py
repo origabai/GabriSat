@@ -221,7 +221,7 @@ class UILayout():
             #choice for size of sudoku
             dcc.Dropdown(
                 id='sudoku-size-selector',
-                options = [{'label': 'None (none selected)', 'value': None},
+                options = [{'label': 'None (none selected)', 'value': 0},
                     {'label': '4x4', 'value': '4'},
                     {'label': '9x9', 'value': '9'},
                     {'label': '16x16', 'value': '16'},],

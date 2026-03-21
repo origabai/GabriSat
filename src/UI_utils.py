@@ -550,29 +550,49 @@ class UIUtils:
     creates html elements of an empty sudoku board of size x size
     """
     def create_empty_sudoku_board(self, size: int):
+        square_size: int = int(size ** .5)
         board = []
         for row in range(size):
             for column in range(size):
-                cell = html.Button(
-                    "", # default empty text
-                    id = {"type" : "sudoku-cell", "row" : row, "col" : column},
-                    style = {
+                style = {
                         "aspect ratio" : "1 / 1",
                         "font size" : "{10px}",
-                        "border": "1px solid #ccc",  # small border for every cell, needs to be changed
+                        "borderTop": "1px solid #ccc", # thin gray border
+                        "borderLeft": "1px solid #ccc",
+                        "borderBottom": "1px solid #ccc",
+                        "borderRight": "1px solid #ccc",
                         "backgroundColor": "white",
                         "margin": "0",
                         "padding": "0",
-                    }
+                }
+                if row % square_size == 0: # first of the row
+                        style["borderTop"] = "2px solid black"
+                if (row + 1) % square_size == 0: # last of the row
+                        style["borderBottom"] = "2px solid black"
+                if column % square_size == 0: # first of the column
+                        style["borderLeft"] = "2px solid black"
+                if (column + 1) % square_size == 0: # last of the column
+                        style["borderRight"] = "2px solid black"
+                cell = html.Button(
+                    "", # default empty text
+                    id={"type" : "sudoku-cell", "row" : row, "col" : column},
+                    style=style,
                 )
+                
+
                 board.append(cell)
         return board
     
     def change_sudoku_size(self, size, board_div, board_children, board_style):
+        print("hi")
+        print(size)
         message: str
         color: str
+        if size is None:
+            message = "oops :)"
+            color = "yellow"
 
-        if size is None: # hide board
+        elif size == 0: # hide board
             board_div['display'] = 'none'
             message = "Please choose a board size!"
             color = "black"
