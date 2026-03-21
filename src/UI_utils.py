@@ -1,4 +1,5 @@
-from dash import Dash, html, Input, Output, State, dcc
+from dash import Dash, html, Input, Output, State, dcc, ctx, no_update
+from dash.exceptions import PreventUpdate
 import dash_cytoscape as cyto
 import _thread
 from random import randint
@@ -522,7 +523,7 @@ class UIUtils:
     """
     def switch_problem(self, problem, graph_style, sudoku_style, coloring_style, current_elements):
         message: str # message to display to user
-        color: str # color of message
+        color: dict # color of message
         # first hide everything
         graph_style['display'] = 'none'
         sudoku_style['display'] = 'none'
@@ -558,9 +559,14 @@ class UIUtils:
         board = [] # list of the cells
         for row in range(size):
             for column in range(size):
-                style = { # creating the style for the cell
-                        "aspect ratio" : "1 / 1",
-                        "font size" : "{10px}",
+                cell_style = { # creating the style for the cell
+                        # Optional: Make the text big and look nice
+                        'fontSize': f'{27 / size}rem', 
+                        'fontWeight': 'bold',
+                        # 'backgroundColor': 'white',
+                        # 'border': '1px solid black',
+                        "aspect ratio": "1 / 1",
+                        "font size": "{1px}",
                         "borderTop": "1px solid #ccc", # thin gray border
                         "borderLeft": "1px solid #ccc",
                         "borderBottom": "1px solid #ccc",
@@ -571,17 +577,17 @@ class UIUtils:
                 }
                 # making the borders of the squares
                 if row % square_size == 0: # first of the row
-                        style["borderTop"] = "2px solid black"
+                        cell_style["borderTop"] = "2px solid black"
                 if (row + 1) % square_size == 0: # last of the row
-                        style["borderBottom"] = "2px solid black"
+                        cell_style["borderBottom"] = "2px solid black"
                 if column % square_size == 0: # first of the column
-                        style["borderLeft"] = "2px solid black"
+                        cell_style["borderLeft"] = "2px solid black"
                 if (column + 1) % square_size == 0: # last of the column
-                        style["borderRight"] = "2px solid black"
+                        cell_style["borderRight"] = "2px solid black"
                 cell = html.Button(
                     "", # default empty text
-                    id={"type" : "sudoku-cell", "row" : row, "col" : column},
-                    style=style,
+                    id={'type' : 'sudoku-cell', 'row' : row, 'col' : column},
+                    style=cell_style,
                 )
                 board.append(cell)
 
@@ -590,32 +596,50 @@ class UIUtils:
     """
     called when the sudoku size selector is changed
     """
-    def change_sudoku_size(self, size, board_div, board_children, board_style):
+    def change_sudoku_size(self, size, board_div, board_children, board_style, board_key):
         message: str # message to display to user
-        color: str # color of message
-        if size is None: # should not happen, initial value of None fixes a bug
-            message = "oops :)"
-            color = "yellow"
-
-        elif size == 0: # hide board
+        color: dict # color of message
+        if size == 0: # hide board
             board_div['display'] = 'none'
             message = "Please choose a board size!"
-            color = "black"
+            color = {'color': 'black'}
         else: # construct board
             board_div['display'] = 'block'
             message = f"Sudoku board of size {size}x{size}"
-            color = "black"
+            color = {'color': 'black'}
             pixel_size=576 # a good size, and divisible by 4, 9 and 16
             board_children = self.create_empty_sudoku_board(int(size)) # creating the actual board
             board_style = {
                         'display': 'grid',
                         'gridTemplateColumns': f'repeat({size}, 1fr)', 
+                        'gridTemplateRows': f'repeat({size}, 1fr)',
                         'width': f'{pixel_size}px',
                         'height': f'{pixel_size}px',
                         'border': '3px solid black',
                         'marginTop': '20px',
-                        'gap': '0px'
+                        'gap': '0px',
                     }
-
-        return message, color, board_div, board_children, board_style
+            # a unique key for different board sizes, fixes a caching issue
+            board_key = f"sudoku-board-{size}"
+            
+        return message, color, board_div, board_children, board_style, board_key
     
+    """
+    checks if number is legal in a sudoku board of size size
+    """
+    def is_number_valid(self, number: str | None, size: str | None) -> bool:
+        return size is not None and number is not None and number.isdigit() and 0 <= int(number) <= int(size)
+    
+    """
+    called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
+    """
+    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, size, number):
+        if not self.is_number_valid(number, size): # invalid number
+            return no_update
+
+        if int(number) == 0:
+            sudoku_cell = "" # empty the cell
+        else:
+            sudoku_cell = str(int(number)) # put the number
+
+        return sudoku_cell

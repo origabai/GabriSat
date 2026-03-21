@@ -1,4 +1,4 @@
-from dash import Dash, html, Input, Output, State, dcc, ctx, ALL
+from dash import Dash, html, Input, Output, State, dcc, ALL, MATCH
 import dash_cytoscape as cyto
 
 class UILayout():
@@ -108,12 +108,25 @@ class UILayout():
             Output('sudoku-board-div', 'style', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('sudoku-board', 'style', allow_duplicate=True),
+            Output('sudoku-board', 'key', allow_duplicate=True),
             Input('sudoku-size-selector', 'value'),
             State('sudoku-board-div', 'style'),
             State('sudoku-board', 'children'),
             State('sudoku-board', 'style'),
+            State('sudoku-board', 'key'),
             prevent_initial_call=True
         )(helper_object.change_sudoku_size)
+
+        helper_object.app.callback(
+            Output({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'children', allow_duplicate=True),
+            Input({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'n_clicks'), # any sudoku cell
+            State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'children'),
+            State('sudoku-size-selector', 'value'),
+            State('sudoku-num-input', 'value'),
+            prevent_initial_call=True
+        )(helper_object.sudoku_cell_clicked)
+
+        
         
         
     '''
@@ -219,13 +232,16 @@ class UILayout():
             #choice for size of sudoku
             dcc.Dropdown(
                 id='sudoku-size-selector',
-                options = [{'label': 'None (none selected)', 'value': 0},
+                options = [{'label': 'None (none selected)', 'value': '0'},
                     {'label': '4x4', 'value': '4'},
                     {'label': '9x9', 'value': '9'},
                     {'label': '16x16', 'value': '16'},],
                 value=None, # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
                 style={'width': '300px', 'marginBottom': '20px'},
+                clearable=False,
+                persistence=True,
+                persistence_type='session',
             ),
             # a div for the sudoku board and number choice, to be revealed only when a size is selected
             html.Div([
@@ -239,7 +255,7 @@ class UILayout():
                     ),
                 ], style={'width': '300px', 'marginBottom': '20px'}),
                 # the sudoku board itself, initialized in UI_utils
-                html.Div(id='sudoku-board')
+                html.Div(id='sudoku-board', style={'display': 'none'})
             ], id='sudoku-board-div', style={'display': 'none'}),
         ], id='sudoku-div', style={'display': 'none'}), # start hidden
     ])
