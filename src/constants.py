@@ -24,8 +24,3 @@ ColourSelectorOptions = [
                         {'label': 'lime (7)', 'value': 'lime'},
                         {'label': 'cyan (8)', 'value': 'cyan'},
                     ]
-
-CLEAR_LABEL = {'display': 'none'}
-LABEL = {'display': 'none'}
-CLEAR_SELECTOR = {'display': 'none', 'width': '300px', 'marginTop': '5px'}
-SELECTOR = {'display': 'block', 'width': '300px', 'marginTop': '5px'}

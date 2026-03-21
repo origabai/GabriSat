@@ -1,7 +1,8 @@
 from graph_coloring import GraphColoring
 import webbrowser
-from graphUI_utils import GraphUtils
+from UI_utils import UIUtils
 import logging
+from sudoku import Sudoku
 
 from dash import Dash, Input, Output, State
 
@@ -15,8 +16,10 @@ in the editing window.
 '''
 
 class Visualizer:
-    def __init__(self, graph : GraphColoring, Ham_solution = None):
+
+    def __init__(self, graph : GraphColoring, sudoku: Sudoku, Ham_solution = None):
         self.graph = graph
+        self.sudoku = sudoku
         self.correct_end = False
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         
@@ -54,17 +57,17 @@ class Visualizer:
         return special
         
         
-    #start up dash - the visual interface
-    def show(self) -> tuple[bool, GraphColoring]:
+    # start up dash - the visual interface
+    def show(self) -> bool:
         #set up logger
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         
         #start the app
         app = Dash(__name__)
-        helper = GraphUtils(app, self)
+        helper = UIUtils(app, self)
         app.layout = helper.layout
         app.run()
         
-        #return the graph as it is at the end - and an indicator of success/failure.
-        return self.correct_end, self.graph
+        # return an indicator of success/failure.
+        return self.correct_end
 

@@ -5,27 +5,26 @@ from random import randint
 from graph_coloring import GraphColoring
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
-from graphUI_layout import GraphUILayout
-from constants import CLEAR_LABEL, LABEL, CLEAR_SELECTOR, SELECTOR
+from UI_layout import UILayout
 
 
 """
-provides utils for graph_visualizer.py
+provides utils for visualizer.py
 """
 
 
-class GraphUtils:
+class UIUtils:
     """
-    here are all of the functions that the graphUI uses.
+    here are all of the functions that the UI uses.
     """
 
     def __init__(self, app: Dash, vis_object):
         self.vis_object = vis_object
         self.app = app
-        self.layout = GraphUILayout(self).default_layout
+        self.layout = UILayout(self).default_layout
 
     """
-    generates initial graph element data. makes them accordingle to self.
+    generates initial graph element data. makes them accordingly to self.
     """
 
     def generate_initial_graph_data(self, special_edges=[], missing_nodes=[]):
@@ -187,40 +186,9 @@ class GraphUtils:
                 new_elements[-1]["data"]["color"] = "grey"
         return new_elements
 
+    # checks if an element is of a colour aligning with the selected one - if larger, returns false.
     """
-    handles change of mode.
-    """
-
-    def handle_mode_change(self, new_mode, current_elements):
-        # changing to hampath - we need to clear all colors of the graph's nodes.
-        if new_mode == "HAMPATH":
-            new_elements = self.color_to_grey(current_elements, self.is_node)
-            # returns cleared out nodes and hides color parts
-            return (
-                CLEAR_LABEL,
-                CLEAR_LABEL,
-                CLEAR_SELECTOR,
-                CLEAR_SELECTOR,
-                new_elements,
-            )
-        elif new_mode == "COLOR":
-            # when switching to color we need to clear out all coloured edges
-            new_elements = self.color_to_grey(current_elements, self.is_edge)
-            # unhides the color stuff from the html page
-            return LABEL, LABEL, SELECTOR, SELECTOR, new_elements
-        else:
-            # this is the mode for finishing simulation
-            return (
-                CLEAR_LABEL,
-                CLEAR_LABEL,
-                CLEAR_SELECTOR,
-                CLEAR_SELECTOR,
-                current_elements,
-            )
-
-    # checks if an element is of a colour alligning with the selected one - if larger, returns false.
-    """
-    checks if an element's color is alligned with the current restrictions.
+    checks if an element's color is aligned with the current restrictions.
     """
 
     def check_element_color_compliance(self, element, color):
@@ -519,7 +487,7 @@ class GraphUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem):
+    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_num_select):
         # prevent accidental press.
 
         if n_clicks == 0:
@@ -531,14 +499,59 @@ class GraphUtils:
             self.vis_object.correct_end = True
             _thread.interrupt_main()
             return "The program finished running. ", {"color": "blue"}, []
+        
+        if problem in ["COLOR", "HAMPATH"]:
 
-        # now, for the interesting case:
-        original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
-            elements, int(max_colors)
-        )
-        found_solution, new_graph_data = self.solve_problems(problem, original_nodes)
+            # now, for the interesting case:
+            original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
+                elements, int(max_colors)
+            )
+            found_solution, new_graph_data = self.solve_problems(problem, original_nodes)
 
-        if found_solution:
-            return "Everything good, proceed!", {"color": "green"}, new_graph_data
-        else:
-            return "No solution found!", {"color": "red"}, new_graph_data
+            if found_solution:
+                return "Everything good, proceed!", {"color": "green"}, new_graph_data
+            else:
+                return "No solution found!", {"color": "red"}, new_graph_data
+        
+        if problem == "SUDOKU":
+            raise NotImplementedError
+    
+    """
+    generates initial sudoku element data. makes them accordingly to self.
+    """
+
+    def generate_initial_sudoku_data(self):
+        sudoku = self.vis_object.sudoku
+        initial_data = []
+        raise NotImplementedError
+        
+
+        return initial_data
+    
+    def switch_problem(self, problem, graph_style, sudoku_style, coloring_style, current_elements):
+        message: str
+        color: str
+        graph_style['display'] = 'none'
+        sudoku_style['display'] = 'none'
+        coloring_style['display'] = 'none'
+        if problem == "HAMPATH":
+            graph_style['display'] = 'block'
+            message = "Finding a hamiltonian cycle"
+            color = {'color' : 'black'}
+            # returns cleared out nodes and hides color parts
+            current_elements = self.color_to_grey(current_elements, self.is_node)
+        if problem == "COLOR":
+            graph_style['display'] = 'block'
+            coloring_style['display'] = 'block'
+            message = "Finding a coloring"
+            color = {'color' : 'black'}
+            # when switching to color we need to clear out all coloured edges
+            current_elements = self.color_to_grey(current_elements, self.is_edge)
+        if problem == "SUDOKU":
+            sudoku_style['display'] = 'block'
+            message = "Solving a sudoku"
+            color = {'color' : 'black'}
+        if problem == "END":
+            message = "Leaving? :("
+            color = {'color' : 'black'}
+        return message, color, graph_style, sudoku_style, coloring_style, current_elements

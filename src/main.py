@@ -30,13 +30,13 @@ def benchmark_times():
 """runs loop for displaying output"""
 
 
-def graph_vis():
+def vis():
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(0, [], [], 3)
-    
+    sudoku = Sudoku([[None for _ in range(9)] for _ in range(9)])
     webopen('http://localhost:8050')
-    vis = Visualizer(color_graph)
-    correct_end, color_graph = vis.show()
+    vis = Visualizer(color_graph, sudoku)
+    correct_end = vis.show()
 
 
 
@@ -81,15 +81,12 @@ def main():
     print("WELCOME TO VERY EPIC SAT SOLVER")
     print("What would you like to do?")
     print("1 - Benchmark solving times")
-    print("2 - View graph visualizer")
-    print("3 - View sudoku solution")
+    print("2 - View visualizer")
     action = input("")
     if action == "1":
         benchmark_times()
     elif action == "2":
-        graph_vis()
-    elif action == "3":
-        visualize_sudoku()
+        vis()
     else:
         print("Not a valid option")
 
