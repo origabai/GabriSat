@@ -126,8 +126,6 @@ class UILayout():
         #storage for togglable button presses
         dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
-        #storage for sudoku selected number
-        dcc.Store(id="number_current", storage_type='memory', data = {'number' : None}),
         
 
         #do task selector and button
@@ -227,7 +225,7 @@ class UILayout():
                     {'label': '16x16', 'value': '16'},],
                 value=None, # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
-                style={'width': '300px'},
+                style={'width': '300px', 'marginBottom': '20px'},
             ),
             # a div for the sudoku board and number choice, to be revealed only when a size is selected
             html.Div([
@@ -239,7 +237,7 @@ class UILayout():
                         type='text',
                         placeholder='number to place',
                     ),
-                ], style={'width': '300px', 'marginTop': '20px'}),
+                ], style={'width': '300px', 'marginBottom': '20px'}),
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board')
             ], id='sudoku-board-div', style={'display': 'none'}),

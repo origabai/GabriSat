@@ -517,32 +517,36 @@ class UIUtils:
         if problem == "SUDOKU":
             raise NotImplementedError
     
-    
+    """
+    called when the task selector is changed, switches what is shown on screen to match the new task
+    """
     def switch_problem(self, problem, graph_style, sudoku_style, coloring_style, current_elements):
-        message: str
-        color: str
+        message: str # message to display to user
+        color: str # color of message
+        # first hide everything
         graph_style['display'] = 'none'
         sudoku_style['display'] = 'none'
         coloring_style['display'] = 'none'
         if problem == "HAMPATH":
-            graph_style['display'] = 'block'
+            graph_style['display'] = 'block' # show graph div
             message = "Finding a hamiltonian cycle"
             color = {'color' : 'black'}
             # returns cleared out nodes and hides color parts
             current_elements = self.color_to_grey(current_elements, self.is_node)
         if problem == "COLOR":
-            graph_style['display'] = 'block'
-            coloring_style['display'] = 'block'
+            graph_style['display'] = 'block' # show graph div
+            coloring_style['display'] = 'block' # within graph div show elements for coloring
             message = "Finding a coloring"
             color = {'color' : 'black'}
             # when switching to color we need to clear out all coloured edges
             current_elements = self.color_to_grey(current_elements, self.is_edge)
         if problem == "SUDOKU":
-            sudoku_style['display'] = 'block'
+            sudoku_style['display'] = 'block' # show sudoku div
             message = "Solving a sudoku"
             color = {'color' : 'black'}
         if problem == "END":
             message = "Leaving? :("
+            # don't show anything
             color = {'color' : 'black'}
         return message, color, graph_style, sudoku_style, coloring_style, current_elements
     
@@ -550,11 +554,11 @@ class UIUtils:
     creates html elements of an empty sudoku board of size x size
     """
     def create_empty_sudoku_board(self, size: int):
-        square_size: int = int(size ** .5)
-        board = []
+        square_size: int = int(size ** .5) # size of sudoku squares
+        board = [] # list of the cells
         for row in range(size):
             for column in range(size):
-                style = {
+                style = { # creating the style for the cell
                         "aspect ratio" : "1 / 1",
                         "font size" : "{10px}",
                         "borderTop": "1px solid #ccc", # thin gray border
@@ -565,6 +569,7 @@ class UIUtils:
                         "margin": "0",
                         "padding": "0",
                 }
+                # making the borders of the squares
                 if row % square_size == 0: # first of the row
                         style["borderTop"] = "2px solid black"
                 if (row + 1) % square_size == 0: # last of the row
@@ -578,15 +583,17 @@ class UIUtils:
                     id={"type" : "sudoku-cell", "row" : row, "col" : column},
                     style=style,
                 )
-                
-
                 board.append(cell)
+
         return board
     
+    """
+    called when the sudoku size selector is changed
+    """
     def change_sudoku_size(self, size, board_div, board_children, board_style):
-        message: str
-        color: str
-        if size is None:
+        message: str # message to display to user
+        color: str # color of message
+        if size is None: # should not happen, initial value of None fixes a bug
             message = "oops :)"
             color = "yellow"
 
@@ -598,8 +605,8 @@ class UIUtils:
             board_div['display'] = 'block'
             message = f"Sudoku board of size {size}x{size}"
             color = "black"
-            pixel_size=576
-            board_children = self.create_empty_sudoku_board(int(size))
+            pixel_size=576 # a good size, and divisible by 4, 9 and 16
+            board_children = self.create_empty_sudoku_board(int(size)) # creating the actual board
             board_style = {
                         'display': 'grid',
                         'gridTemplateColumns': f'repeat({size}, 1fr)', 
