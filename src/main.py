@@ -33,9 +33,8 @@ def benchmark_times():
 def vis():
     print("STARTING VISUAL EPICNESS")
     color_graph = GraphColoring(0, [], [], 3)
-    sudoku = Sudoku([[None for _ in range(9)] for _ in range(9)])
     webopen('http://localhost:8050')
-    vis = Visualizer(color_graph, sudoku)
+    vis = Visualizer(color_graph)
     correct_end = vis.show()
 
 

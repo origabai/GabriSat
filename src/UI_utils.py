@@ -3,6 +3,7 @@ import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
+from sudoku import Sudoku
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 from UI_layout import UILayout
@@ -516,17 +517,6 @@ class UIUtils:
         if problem == "SUDOKU":
             raise NotImplementedError
     
-    """
-    generates initial sudoku element data. makes them accordingly to self.
-    """
-
-    def generate_initial_sudoku_data(self):
-        sudoku = self.vis_object.sudoku
-        initial_data = []
-        raise NotImplementedError
-        
-
-        return initial_data
     
     def switch_problem(self, problem, graph_style, sudoku_style, coloring_style, current_elements):
         message: str
@@ -555,3 +545,52 @@ class UIUtils:
             message = "Leaving? :("
             color = {'color' : 'black'}
         return message, color, graph_style, sudoku_style, coloring_style, current_elements
+    
+    """
+    creates html elements of an empty sudoku board of size x size
+    """
+    def create_empty_sudoku_board(self, size: int):
+        board = []
+        for row in range(size):
+            for column in range(size):
+                cell = html.Button(
+                    "", # default empty text
+                    id = {"type" : "sudoku-cell", "row" : row, "col" : column},
+                    style = {
+                        "aspect ratio" : "1 / 1",
+                        "font size" : "{10px}",
+                        "border": "1px solid #ccc",  # small border for every cell, needs to be changed
+                        "backgroundColor": "white",
+                        "margin": "0",
+                        "padding": "0",
+                    }
+                )
+                board.append(cell)
+        return board
+    
+    def change_sudoku_size(self, size, board_div, board_children, board_style):
+        message: str
+        color: str
+
+        if size is None: # hide board
+            board_div['display'] = 'none'
+            message = "Please choose a board size!"
+            color = "black"
+        else: # construct board
+            board_div['display'] = 'block'
+            message = f"Sudoku board of size {size}x{size}"
+            color = "black"
+            pixel_size=576
+            board_children = self.create_empty_sudoku_board(int(size))
+            board_style = {
+                        'display': 'grid',
+                        'gridTemplateColumns': f'repeat({size}, 1fr)', 
+                        'width': f'{pixel_size}px',
+                        'height': f'{pixel_size}px',
+                        'border': '3px solid black',
+                        'marginTop': '20px',
+                        'gap': '0px'
+                    }
+
+        return message, color, board_div, board_children, board_style
+    

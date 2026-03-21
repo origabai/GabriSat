@@ -17,9 +17,8 @@ in the editing window.
 
 class Visualizer:
 
-    def __init__(self, graph : GraphColoring, sudoku: Sudoku, Ham_solution = None):
+    def __init__(self, graph : GraphColoring, Ham_solution = None):
         self.graph = graph
-        self.sudoku = sudoku
         self.correct_end = False
         self.COLORS = ["red", "green", "blue", "yellow", "purple", "pink", "magenta", "lime", "cyan"]
         

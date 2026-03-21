@@ -101,6 +101,19 @@ class UILayout():
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(helper_object.switch_problem)
+
+        helper_object.app.callback(
+            Output('success_message', 'children', allow_duplicate=True),
+            Output('success_message', 'style', allow_duplicate=True),
+            Output('sudoku-board-div', 'style', allow_duplicate=True),
+            Output('sudoku-board', 'children', allow_duplicate=True),
+            Output('sudoku-board', 'style', allow_duplicate=True),
+            Input('sudoku-size-selector', 'value'),
+            State('sudoku-board-div', 'style'),
+            State('sudoku-board', 'children'),
+            State('sudoku-board', 'style'),
+            prevent_initial_call=True
+        )(helper_object.change_sudoku_size)
         
         
     '''
@@ -203,38 +216,35 @@ class UILayout():
 
         # everything sudoku related
         html.Div([
-
-            # the number choice for the sudoku
+            #label for the following dropdown
+            html.Label("Please choose a size for the sudoku:"),
+            #choice for size of sudoku
+            dcc.Dropdown(
+                id='sudoku-size-selector',
+                options = [{'label': 'None (none selected)', 'value': None},
+                    {'label': '4x4', 'value': '4'},
+                    {'label': '9x9', 'value': '9'},
+                    {'label': '16x16', 'value': '16'},],
+                value=None, # The default selected array
+                multi=False,  # This strictly enforces multiple-choice behavior
+                style={'width': '300px'},
+            ),
+            # a div for the sudoku board and number choice, to be revealed only when a size is selected
             html.Div([
-                html.Label("number to place (0 for nothing)", id = 'label_3'),
-                dcc.Input(id='sudoku-num-input', type='text', placeholder='number to place'),
-            ]),
-            # the sudoku display
-            html.Div([
-                
-            ])
+                # the number choice for the sudoku
+                html.Div([
+                    html.Label("number to place (0 for nothing)"),
+                    dcc.Input(
+                        id='sudoku-num-input',
+                        type='text',
+                        placeholder='number to place',
+                    ),
+                ], style={'width': '300px', 'marginTop': '20px'}),
+                # the sudoku board itself, initialized in UI_utils
+                html.Div(id='sudoku-board')
+            ], id='sudoku-board-div', style={'display': 'none'}),
         ], id='sudoku-div', style={'display': 'none'}), # start hidden
     ])
 
-    """
-    creates html elements of a sudoku board of size x size
-    """
-    def create_sudoku_board(self, size: int):
-        board = []
-        for row in range(size):
-            for column in range(size):
-                cell = html.button(
-                    "", # default empty text
-                    id = {"type" : "sudoku_cell", "row" : row, "column" : column},
-                    style = {
-                        "aspect ratio" : "1 / 1",
-                        "font size" : "24px",
-                        "border": "1px solid #ccc",  # small border for every cell, needs to be changed
-                        "backgroundColor": "white",
-                        "margin": "0",
-                        "padding": "0",
-                    }
-                )
-                board.append(cell)
-        return board
+    
     
