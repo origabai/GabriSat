@@ -1,0 +1,17 @@
+This directory contains data on how each testcase was generated
+
+Explanation for the SATs in each of the testcases:
+
+1. resources extreme 9x9 sudoku
+2. resources hard 9x9 sudoku
+3. resources expert 9x9 sudoku
+4. unsolvable 4x4 sudoku
+5. random dense 3-colorable 10-node graph
+6. random dense 2-colorable 15-node graph
+7. 10-node graph that is not 3-colorable(has a 4-clique)
+8. 15-node graph that is not 2-colorable(has a 3-clique)
+9. 3-coloring the Grötzsch graph - 11-node graph that is triangle free but not 3-colorable
+10. 4-coloring the Grötzsch graph
+11. 15-node dense graph with hamcycle
+12. hamcycle in a graph that is a cycle of 15
+13. hamcycle in a 16-node graph that is two unconnected 8-cliques

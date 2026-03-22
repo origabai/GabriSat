@@ -9,6 +9,7 @@ see communication.cpp for the list of names/solvers
 from SAT import AbstractSATSolver
 from random import choice
 import os
+import pathlib
 """
 A class for communicating with a satsolver written in c++
 """
@@ -22,13 +23,13 @@ class CPP_SATSolver(AbstractSATSolver):
     """
     def __init__(self, num_variables, solver_name):
         super().__init__(num_variables)
-        self.object_path = "cpp" + os.sep + "communication"
+        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication"
         self.solver_name = solver_name
         
     def solve(self):
         letters = "abcdefghijklmnopqrstuvwxyz"
         # create input file with the correct format
-        fname = "".join([choice(letters) for i in range(10)])
+        fname = os.path.dirname(os.path.abspath(__file__)) + os.sep + "".join([choice(letters) for i in range(10)])
         with open(fname + ".in", "w") as f:
             print(self.num_variables, len(self.clauses), file = f)
             for i in range(len(self.clauses)):
@@ -45,7 +46,7 @@ class CPP_SATSolver(AbstractSATSolver):
         ans = [(x == "1") for x in sans]
         os.remove(fname + ".in")
         os.remove(fname + ".out")
-        if (len(ans) == 0):
+        if (sans[0] == "UNSAT"):
             return None
         else:
             return ans
