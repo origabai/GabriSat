@@ -437,11 +437,13 @@ class UIUtils:
     """
 
     def solve_problems(self, problem, original_nodes):
-        new_colors = [None] * self.vis_object.graph.num_nodes
+        new_colors = self.vis_object.graph.colors
         hampath_edges = []
 
         if problem == "COLOR":
-            found_solution, new_colors = self.generate_solved_colors()
+            found_solution, found_colors = self.generate_solved_colors()
+            if found_solution:
+                new_colors = found_colors
         elif problem == "HAMPATH":
             found_solution, hampath_edges = self.generate_solved_hampath()
         else:
