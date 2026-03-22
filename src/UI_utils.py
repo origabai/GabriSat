@@ -8,6 +8,7 @@ from sudoku import Sudoku
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 from UI_layout import UILayout
+from uuid import uuid4
 
 
 """
@@ -489,18 +490,19 @@ class UIUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_num_select):
+    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku):
+        message: str # success message to return
+        color: dict # color of message
         # prevent accidental press.
-
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, elements
+            return "this is unusual...", {"color": "yellow"}, no_update, no_update
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, []
+            return "The program finished running. ", {"color": "blue"}, no_update, no_update
         
         if problem in ["COLOR", "HAMPATH"]:
 
@@ -508,15 +510,29 @@ class UIUtils:
             original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
                 elements, int(max_colors)
             )
-            found_solution, new_graph_data = self.solve_problems(problem, original_nodes)
+            found_solution, elements = self.solve_problems(problem, original_nodes)
 
             if found_solution:
-                return "Everything good, proceed!", {"color": "green"}, new_graph_data
+                message = "Everything good, proceed!"
+                color = {"color": "green"}
             else:
-                return "No solution found!", {"color": "red"}, new_graph_data
+                message = "No solution found!"
+                color = {"color": "red"}
         
         if problem == "SUDOKU":
-            raise NotImplementedError
+            # making a backend_board
+            board = self.sudoku_frontend_to_backend(sudoku_board, int(size_of_sudoku))
+            sudoku = Sudoku(board)
+            solution = sudoku.solve() # backend solving
+            if solution is None: # no solution
+                message = "No solution found!"
+                color = {"color": "red"}
+            else: # solution found
+                message = "Everything good, proceed!"
+                color = {"color": "green"}
+                # reassembling the frontend board
+                sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
+        return message, color, elements, sudoku_board
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -556,13 +572,14 @@ class UIUtils:
     if board is None it initializes empty
     """
     def create_sudoku_board(self, size: int, given_board: list[list[int| None]] | None = None):
+        version = str(uuid4()) # unique id, fixes a memory bug
         square_size: int = int(size ** .5) # size of sudoku squares
         board = [] # list of the cells
         for row in range(size):
             for column in range(size):
                 cell_style = { # creating the style for the cell
-                        'fontSize': f'{27 / size}rem', 
-                        'fontWeight': 'bold',
+                        "fontSize": f"{27 / size}rem", 
+                        "fontWeight": "bold",
                         "aspect ratio": "1 / 1",
                         "font size": "{1px}",
                         "borderTop": "1px solid #ccc", # thin gray border
@@ -572,6 +589,7 @@ class UIUtils:
                         "backgroundColor": "white",
                         "margin": "0",
                         "padding": "0",
+                        "color": "black",
                 }
                 # making the borders of the squares
                 if row % square_size == 0: # first of the row
@@ -587,7 +605,7 @@ class UIUtils:
                     cell_text = str(given_board[row][column] + 1)
                 cell = html.Button(
                     cell_text,
-                    id={'type' : 'sudoku-cell', 'row' : row, 'col' : column},
+                    id={'type' : 'sudoku-cell', 'row' : row, 'col' : column, 'version': version},
                     style=cell_style,
                 )
                 board.append(cell)
@@ -634,16 +652,17 @@ class UIUtils:
     """
     called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
     """
-    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, size, number):
+    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, cell_style, size, number):
         if not self.is_number_valid(number, size): # invalid number
-            return no_update
+            return no_update, no_update
 
+        cell_style['color'] = 'black'
         if int(number) == 0:
             sudoku_cell = "" # empty the cell
         else:
             sudoku_cell = str(int(number)) # put the number
 
-        return sudoku_cell
+        return sudoku_cell, cell_style
 
     """
     called when the generate random board button is pressed, creates a random board
@@ -657,3 +676,41 @@ class UIUtils:
         # creating the html board
         board_children = self.create_sudoku_board(int(size), sudoku.board)
         return message, color, board_children
+    
+    """
+    takes a frontend sudoku board as a list of cells and the size of the board,
+    and makes a backend board. treats non black cells as empty ones
+    """
+    def sudoku_frontend_to_backend(self, sudoku_board, size: int) -> list[list[int | None]]:
+        board = [[None for _ in range(size)] for _ in range(size)] # empty backend board
+        for cell in sudoku_board:
+            row: int = int(cell['props']['id']['row'])
+            column: int = int(cell['props']['id']['col'])
+            text: str = cell['props']['children']
+            color: str = cell['props']['style']['color']
+            if text != "" and color == 'black': # if filled by the user
+                board[row][column] = int(text) - 1 # 1 index to 0 index
+        return board
+    
+    """
+    takes the current frontend board as sudoku_board and the backend board as board.
+    changes the frontend according to the backend solution. assumes all backend cells
+    are non empty. keeps the full frontend cells filled by the user (black), and puts
+    the new values in the rest of the cells, all new values are colored blue
+    """
+    def sudoku_backend_to_frontend(self, sudoku_board, board):
+        version = str(uuid4()) # unique id, fixes a memory bug 
+        for cell in sudoku_board:
+            cell['props']['id']['version'] = version
+            row: int = int(cell['props']['id']['row'])
+            column: int = int(cell['props']['id']['col'])
+            text: str = cell['props']['children']
+            color: str = cell['props']['style']['color']
+            if text != "" and color == 'black': # if filled by user
+                continue
+            text = str(board[row][column] + 1) # 0 index to 1 index
+            color = 'blue'
+            cell['props']['children'] = text
+            cell['props']['style']['color'] = color
+        return sudoku_board
+    

@@ -64,11 +64,13 @@ class UILayout():
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('sudoku-board', 'children', allow_duplicate=True),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'value'),
-            State('sudoku-num-input', 'value'),
+            State('sudoku-board', 'children'),
+            State('sudoku-size-selector', 'value'),
             prevent_initial_call=True
         )(helper_object.do_task)
         
@@ -118,9 +120,11 @@ class UILayout():
         )(helper_object.change_sudoku_size)
 
         helper_object.app.callback(
-            Output({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'children', allow_duplicate=True),
-            Input({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'n_clicks'), # any sudoku cell
-            State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH}, 'children'),
+            Output({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'children', allow_duplicate=True),
+            Output({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'style', allow_duplicate=True),
+            Input({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'n_clicks'), # any sudoku cell
+            State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'children'),
+            State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'style'),
             State('sudoku-size-selector', 'value'),
             State('sudoku-num-input', 'value'),
             prevent_initial_call=True
