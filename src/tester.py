@@ -26,7 +26,6 @@ import datetime
 from bidi.algorithm import get_display
 from time import sleep
 from constants import DEFAULT_SOLVER
-from hamiltonian_cycle import HamiltonianCycle
 # dependency: pip install termcolor
 from termcolor import colored
 
@@ -118,15 +117,12 @@ def print_deposition(verdict: bool) -> None:
 
 # run all the tests in testing/testcases
 def test_solver(solver: AbstractSATSolver) -> None:
-    i = 0
+    num_tests = 0
     tests_passed = 0
     TESTS_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep + "testing" + os.sep + "testcases"
     for test_file in os.listdir(TESTS_PATH):
-        i+=1
-        test = str(i)
-        if (len(test)==1):
-            test = "0" + test
-        print("running test",test,": ",end="")
+        num_tests+=1
+        print("running test",test_file,": ",end="")
         verdict = run_test(TESTS_PATH + os.sep + test_file, solver)
         if (verdict):
             print(colored("ACCEPTED","green"))
@@ -134,8 +130,8 @@ def test_solver(solver: AbstractSATSolver) -> None:
         else:
             print(colored("WRONG ANSWER","red"))
     print("-------------------------------------------------------")
-    print("passed",tests_passed,"/",i,"tests")
-    if (tests_passed == i):
+    print("passed",tests_passed,"/",num_tests,"tests")
+    if (tests_passed == num_tests):
         print(colored("All tests passed!","green"))
     else:
         print(colored("Some tests failed!","red"))
@@ -143,7 +139,7 @@ def test_solver(solver: AbstractSATSolver) -> None:
     print("PRINTING LEGAL NOTICE REGARDING THE VALIDITY OF THIS TESTING PROCEDURE")
     sleep(2)
     print("-------------------------------------------------------")
-    print_deposition(tests_passed == i)
+    print_deposition(tests_passed == num_tests)
     print("-------------------------------------------------------")
 
 def main():
