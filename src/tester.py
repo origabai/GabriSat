@@ -26,7 +26,9 @@ import datetime
 from bidi.algorithm import get_display
 from time import sleep
 from constants import DEFAULT_SOLVER
-from graph_coloring import GraphColoring
+from hamiltonian_cycle import HamiltonianCycle
+# dependency: pip install termcolor
+from termcolor import colored
 
 # loads a sat problem from a file according to the above format
 # returns a the number of variabls, a list of the clauses and the correct answer
@@ -121,19 +123,22 @@ def test_solver(solver: AbstractSATSolver) -> None:
     TESTS_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep + "testing" + os.sep + "testcases"
     for test_file in os.listdir(TESTS_PATH):
         i+=1
-        print("running test",i,": ",end="")
+        test = str(i)
+        if (len(test)==1):
+            test = "0" + test
+        print("running test",test,": ",end="")
         verdict = run_test(TESTS_PATH + os.sep + test_file, solver)
         if (verdict):
-            print("ACCEPTED")
+            print(colored("ACCEPTED","green"))
             tests_passed += 1
         else:
-            print("WRONG ANSWER")
+            print(colored("WRONG ANSWER","red"))
     print("-------------------------------------------------------")
     print("passed",tests_passed,"/",i,"tests")
     if (tests_passed == i):
-        print("All tests passed!")
+        print(colored("All tests passed!","green"))
     else:
-        print("Some tests failed!")
+        print(colored("Some tests failed!","red"))
     print("-------------------------------------------------------")
     print("PRINTING LEGAL NOTICE REGARDING THE VALIDITY OF THIS TESTING PROCEDURE")
     sleep(2)
@@ -143,10 +148,6 @@ def test_solver(solver: AbstractSATSolver) -> None:
 
 def main():
     test_solver(DEFAULT_SOLVER)
-    # g = GraphColoring(11, [[0,1],[0,2],[1,3],[2,3],[2,5],[1,4],[4,6],[3,6],[5,7],[3,7],[3,9],[6,8],[7,10],[8,9],[9,10],[0,10],[5,8],[10,4],[8,0],[4,5]], [None for i in range(11)], 4)
-    # print(g.edges)
-    # s = g.solve()
-    # print(s)
     
 
 if __name__ == "__main__":

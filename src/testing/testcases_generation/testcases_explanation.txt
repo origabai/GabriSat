@@ -14,4 +14,4 @@ Explanation for the SATs in each of the testcases:
 10. 4-coloring the Grötzsch graph
 11. 15-node dense graph with hamcycle
 12. hamcycle in a graph that is a cycle of 15
-13. hamcycle in a 16-node graph that is two unconnected 8-cliques
+13. hamcycle in a 10-node graph that is two unconnected 5-cliques

@@ -9,7 +9,6 @@ see communication.cpp for the list of names/solvers
 from SAT import AbstractSATSolver
 from random import choice
 import os
-import pathlib
 """
 A class for communicating with a satsolver written in c++
 """
