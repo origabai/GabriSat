@@ -136,11 +136,11 @@ def test_solver(solver: AbstractSATSolver) -> None:
     else:
         print(colored("Some tests failed!","red"))
     print("-------------------------------------------------------")
-    print("PRINTING LEGAL NOTICE REGARDING THE VALIDITY OF THIS TESTING PROCEDURE")
-    sleep(2)
-    print("-------------------------------------------------------")
-    print_deposition(tests_passed == num_tests)
-    print("-------------------------------------------------------")
+    # print("PRINTING LEGAL NOTICE REGARDING THE VALIDITY OF THIS TESTING PROCEDURE")
+    # sleep(2)
+    # print("-------------------------------------------------------")
+    # print_deposition(tests_passed == num_tests)
+    # print("-------------------------------------------------------")
 
 def main():
     test_solver(DEFAULT_SOLVER)
