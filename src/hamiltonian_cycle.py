@@ -8,6 +8,24 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
         Graph.__init__(self,num_nodes,edges)
         SATReducibleProblem.__init__(self,satsolver)
     
+    def validate(self, sol):
+        ssol = sorted(sol)
+        # validate it is a permutation
+        if (ssol != [i for i in range(len(sol))]):
+            return False
+        # construct adj matrix
+        adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
+        for e in self.edges:
+            adj[e[0]][e[1]] = True
+            adj[e[1]][e[0]] = True
+        # validate it is a cycle
+        for i in range(len(sol)):
+            if (not adj[sol[i]][sol[(i+1)%len(sol)]]):
+                return False
+        return True
+
+
+
     @classmethod
     def generate(self, size = 2, solver = DEFAULT_SOLVER):
         g = HamiltonianCycle(size, [], satsolver=solver)

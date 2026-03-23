@@ -19,6 +19,17 @@ class GraphColoring(Graph, SATReducibleProblem):
         self.colors = colors
         self.max_colors = max_colors
 
+    def validate(self, sol):
+        # check all colors are valid
+        for x in sol:
+            if x < 0 or x >= self.max_colors:
+                return False
+        # check coloring constraint on all edges
+        for e in self.edges:
+            if (sol[e[0]] == sol[e[1]]):
+                return False
+        return True
+
     @classmethod
     def generate(
         self, num_of_nodes: int = 2, solver=DEFAULT_SOLVER, max_colors: int = None

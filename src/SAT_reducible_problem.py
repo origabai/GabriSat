@@ -14,3 +14,11 @@ class SATReducibleProblem:
     def solve(self):
         pass
 
+    # should receive a solution, and return whether it is valid
+    def validate(self, solution):
+        pass
+
+    # sets the solver used for the problem
+    def setsolver(self, solver):
+        self.solver = solver
+
