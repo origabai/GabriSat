@@ -63,7 +63,7 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
                     s.addClause([],[self.num_nodes*i + j, self.num_nodes*i + k])
                     s.addClause([],[self.num_nodes*j + i, self.num_nodes*k + i])
 
-        # ensure every adjacent pair is connected
+        # ensure every adjacent pair is connected 
         for i in range(self.num_nodes):
             for j in range(self.num_nodes):
                 for k in range(j+1,self.num_nodes):
