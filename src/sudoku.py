@@ -46,9 +46,9 @@ class Sudoku(SATReducibleProblem):
                 col.append(board[i][j])
             row.sort()
             col.sort()
-            if (row != [0,1,2,3,4,5,6,7,8]):
+            if (row != [i for i in range(len(board))]):
                 return False
-            if (col != [0,1,2,3,4,5,6,7,8]):
+            if (col != [i for i in range(len(board))]):
                 return False
         # check squares
         for i in range(len(board) // sq):
@@ -58,7 +58,7 @@ class Sudoku(SATReducibleProblem):
                     for y in range(sq):
                         square.append(board[sq*i + x][sq*j + y])
                 square.sort()
-                if (square != [0,1,2,3,4,5,6,7,8]):
+                if (square != [i for i in range(len(board))]):
                     return False
 
         return True

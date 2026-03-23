@@ -111,7 +111,7 @@ testcase_answers = [
     False
 ]
 
-# run the problem
+# run the problem, and check it against the correct answer
 # returns true is success, false if failure
 def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
     try:
@@ -124,7 +124,7 @@ def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
         else:
             return True
     else:
-        if answer:
+        if (answer):
             return problem.validate(sol)
         else:
             return False
@@ -132,6 +132,7 @@ def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
 # prints the deposition regarding the correctness of the satsolver
 # verdict is true if the solver was correct, and false otherwise
 def print_deposition(verdict: bool) -> None:
+
     if (verdict):
         s = """I, the undersigned, {{name}}, holder of ID number {{taz}}, after having been warned that I must tell the truth and that I will be subject to the penalties prescribed by law if I do not do so, hereby declare as follows:
 
