@@ -20,6 +20,49 @@ class Sudoku(SATReducibleProblem):
             sqrt(self.board_size)
         )  # size of the squares of the sudoku
 
+    # converts board from display format (1 indexed, and 0 meaning blanks)
+    # to the format used by the constructor(0 indexed, and None meaning blanks)
+    @classmethod
+    def convert_board(self, board: list[list[int]]) -> list[list[int | None]]:
+        b = board.copy()
+        for i in range(len(b)):
+            for j in range(len(b[i])):
+                if (b[i][j] == 0):
+                    b[i][j] = None
+                else:
+                    b[i][j] -= 1
+        return b
+
+    def validate(self, board: list[list[int]]):
+        sq = isqrt(len(board))
+        if (sq * sq != len(board)):
+            return False        
+        # check rows and collumns
+        for i in range(len(board)):
+            row = []
+            col = []
+            for j in range(len(board)):
+                row.append(board[i][j])
+                col.append(board[i][j])
+            row.sort()
+            col.sort()
+            if (row != [i for i in range(len(board))]):
+                return False
+            if (col != [i for i in range(len(board))]):
+                return False
+        # check squares
+        for i in range(len(board) // sq):
+            for j in range(len(board) // sq):
+                square = []
+                for x in range(sq):
+                    for y in range(sq):
+                        square.append(board[sq*i + x][sq*j + y])
+                square.sort()
+                if (square != [i for i in range(len(board))]):
+                    return False
+
+        return True
+
     # returns a board with numbers representing a valid solution, or None if none exist
     def solve(self) -> list[list[int]] | None:
         graph_reduction: GraphColoring = self.reduceToGraphColoring()
