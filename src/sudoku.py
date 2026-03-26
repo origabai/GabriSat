@@ -3,6 +3,7 @@ from graph_coloring import GraphColoring
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER
+from SAT import AbstractSATSolver
 
 """
 Sudoku class
@@ -66,7 +67,25 @@ class Sudoku(SATReducibleProblem):
     # returns a board with numbers representing a valid solution, or None if none exist
     def solve(self) -> list[list[int]] | None:
         graph_reduction: GraphColoring = self.reduceToGraphColoring()
-        solution: list[int] | None = graph_reduction.solve()
+        sat_reduction: AbstractSATSolver = graph_reduction.reduce_to_SAT()
+        sq = isqrt(self.board_size)
+        for color in range(self.board_size):
+            for i in range(self.board_size):
+                    # collumns
+                    sat_reduction.addClause([(i*self.board_size + j)*self.board_size + color for j in range(self.board_size)],[])
+                    # rows
+                    sat_reduction.addClause([(j*self.board_size + i)*self.board_size + color for j in range(self.board_size)],[])
+            # squares
+            for i in range(sq):
+                for j in range(sq):
+                    square = []
+                    for x in range(sq):
+                        for y in range(sq):
+                            square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
+                    sat_reduction.addClause(square, [])
+
+
+        solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         if solution is None:
             return None
         return self.reconstructSolutionFromReduction(solution)
