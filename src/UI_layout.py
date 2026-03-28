@@ -251,7 +251,8 @@ class UILayout():
                 options = [{'label': 'None (none selected)', 'value': '0'},
                     {'label': '4x4', 'value': '4'},
                     {'label': '9x9', 'value': '9'},
-                    {'label': '16x16', 'value': '16'},],
+                    {'label': '16x16', 'value': '16'},
+                    {'label': '25x25', 'value': '25'},],
                 value=None, # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
                 style={'width': '300px'},
