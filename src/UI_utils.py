@@ -722,3 +722,29 @@ class UIUtils:
             cell['props']['style']['color'] = color
         return sudoku_board
     
+    """
+    whenever an input number field changes you can call this function to check if its an
+    integer in the specified range, return a boolean value accordingly
+    """
+    def validate_number_field_change(self, number, lower_bound: int, upper_bound: int) -> bool:
+        if number is None or not number: # empty input
+            return True
+        if not isinstance(number, str) and not isinstance(number, int) and not isinstance(number, float):
+            return False # illegal type
+        if isinstance(number, str) and not number.isdigit():
+            return False # not a number
+        number = int(number) # make it an int
+        return lower_bound <= number <= upper_bound
+    
+    """
+    called whenever the sudoku number input changes and makes sure its legal
+    """
+    def sudoku_number_input_changed(self, number, size):
+        print(number)
+        if self.validate_number_field_change(number, 0, int(size)):
+            print(" :)")
+            if number is None: # empty
+                return None
+            return int(number) # make it an int if float or string
+        return 0 # if illegal
+        

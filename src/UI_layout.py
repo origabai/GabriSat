@@ -139,6 +139,13 @@ class UILayout():
             State('sudoku-size-selector', 'value'),
             prevent_initial_call=True
         )(helper_object.generate_random_sudoku)
+
+        helper_object.app.callback(
+            Output('sudoku-num-input', 'value', allow_duplicate=True),
+            Input('sudoku-num-input', 'value'),
+            State('sudoku-size-selector', 'value'),
+            prevent_initial_call=True
+        )(helper_object.sudoku_number_input_changed)
         
         
         

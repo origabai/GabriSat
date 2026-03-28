@@ -4,7 +4,6 @@ from sudoku import Sudoku
 from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
-from sudoku_visualizer import SudokuVisualizer
 from pynput.keyboard import Controller, Key 
 from sys import setrecursionlimit
 
@@ -36,44 +35,6 @@ def vis():
     webopen('http://localhost:8050')
     vis = Visualizer(color_graph)
     correct_end = vis.show()
-
-
-
-def visualize_sudoku():
-    vis = SudokuVisualizer()
-    action = input("Would you like to generate a random sudoku(1), or input one yourself(2)?")
-    sz = 9
-    sud = Sudoku.initializeRandomly(sz)
-    if (action == "1"):
-        sud = Sudoku.initializeRandomly(sz)
-    elif (action == "2"):
-        sud = Sudoku.initializeFromInput()
-        if sud is None:
-            return
-    else:
-        print("Invalid option >:(")
-        return
-    
-    # make the cells in the right colors
-    cellColors = copy.deepcopy(sud.board)
-    for i in range(len(sud.board)):
-        for j in range(len(sud.board[i])):
-            if (sud.board[i][j] is None):
-                cellColors[i][j] = "blue"
-            else:
-                cellColors[i][j] = "black"
-    
-    vis.visualize_sudoku(sud.board, cellColors)
-    input("Press enter to calculate solution")
-    sol = sud.solve()
-    if sol is None:
-        print("No solution")
-    else:
-        vis.visualize_sudoku(sol, cellColors)
-        input("Press enter to exit")
-
-
-
 
 
 def main():
