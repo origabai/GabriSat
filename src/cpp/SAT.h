@@ -17,7 +17,7 @@ class AbstractSATSolver {
     public:
     AbstractSATSolver(int num_variables) : num_variables(num_variables){}
 
-    void addClause(std::set<int> pos, std::set<int> neg){
+    virtual void addClause(std::set<int> pos, std::set<int> neg){
         clauses.push_back(SATClause(pos, neg));
     }
 

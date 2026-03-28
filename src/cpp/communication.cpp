@@ -9,13 +9,15 @@ the executable should be named communication.exe
 #include"SAT.h"
 #include "constants.h"
 #include "improved_backtracking.cpp"
+#include "backtracking_2sat_2furious.cpp"
 using namespace std;
 
 
 // a map from solver names to functions creating them
 // add an entry to this map every time you add a new solver
 map<string, function<AbstractSATSolver*(int)>> name_to_solver_map = {
-    {"ImprovedBacktrackingSolver", [](int n){return new ImprovedBacktrackingSolver(n);}}
+    {"ImprovedBacktrackingSolver", [](int n){return new ImprovedBacktrackingSolver(n);}},
+    {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}}
 };
 
 /*
