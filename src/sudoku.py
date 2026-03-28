@@ -3,6 +3,7 @@ from graph_coloring import GraphColoring
 from random import randint
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER
+from SAT import AbstractSATSolver
 
 """
 Sudoku class
@@ -20,10 +21,71 @@ class Sudoku(SATReducibleProblem):
             sqrt(self.board_size)
         )  # size of the squares of the sudoku
 
+    # converts board from display format (1 indexed, and 0 meaning blanks)
+    # to the format used by the constructor(0 indexed, and None meaning blanks)
+    @classmethod
+    def convert_board(self, board: list[list[int]]) -> list[list[int | None]]:
+        b = board.copy()
+        for i in range(len(b)):
+            for j in range(len(b[i])):
+                if (b[i][j] == 0):
+                    b[i][j] = None
+                else:
+                    b[i][j] -= 1
+        return b
+
+    def validate(self, board: list[list[int]]):
+        sq = isqrt(len(board))
+        if (sq * sq != len(board)):
+            return False        
+        # check rows and collumns
+        for i in range(len(board)):
+            row = []
+            col = []
+            for j in range(len(board)):
+                row.append(board[i][j])
+                col.append(board[i][j])
+            row.sort()
+            col.sort()
+            if (row != [i for i in range(len(board))]):
+                return False
+            if (col != [i for i in range(len(board))]):
+                return False
+        # check squares
+        for i in range(len(board) // sq):
+            for j in range(len(board) // sq):
+                square = []
+                for x in range(sq):
+                    for y in range(sq):
+                        square.append(board[sq*i + x][sq*j + y])
+                square.sort()
+                if (square != [i for i in range(len(board))]):
+                    return False
+
+        return True
+
     # returns a board with numbers representing a valid solution, or None if none exist
     def solve(self) -> list[list[int]] | None:
         graph_reduction: GraphColoring = self.reduceToGraphColoring()
-        solution: list[int] | None = graph_reduction.solve()
+        sat_reduction: AbstractSATSolver = graph_reduction.reduce_to_SAT()
+        sq = isqrt(self.board_size)
+        for color in range(self.board_size):
+            for i in range(self.board_size):
+                    # collumns
+                    sat_reduction.addClause([(i*self.board_size + j)*self.board_size + color for j in range(self.board_size)],[])
+                    # rows
+                    sat_reduction.addClause([(j*self.board_size + i)*self.board_size + color for j in range(self.board_size)],[])
+            # squares
+            for i in range(sq):
+                for j in range(sq):
+                    square = []
+                    for x in range(sq):
+                        for y in range(sq):
+                            square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
+                    sat_reduction.addClause(square, [])
+
+
+        solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         if solution is None:
             return None
         return self.reconstructSolutionFromReduction(solution)

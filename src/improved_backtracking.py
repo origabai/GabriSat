@@ -91,6 +91,7 @@ class ImprovedSATHandler(SATHandlingDS):
             return next(iter(self.clause_list[i].pos_variables))
         else:
             return next(iter(self.clause_list[i].neg_variables))
+        return None
             
 
 

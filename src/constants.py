@@ -1,11 +1,13 @@
 from SAT_trivial import TrivialSATSolver
 from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
+from cpp_solvers import CPP_ImprovedBacktracker
 
-DEFAULT_SOLVER = ImproverBacktrackingSolver
+DEFAULT_SOLVER = CPP_ImprovedBacktracker
 TrivialSATSolver
 TrivialBacktrackingSolver
 ImproverBacktrackingSolver
+CPP_ImprovedBacktracker
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
