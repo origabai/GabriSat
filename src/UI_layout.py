@@ -78,6 +78,7 @@ class UILayout():
             Output('interactive-graph', 'elements', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
+            State('graph-size-input', 'value'),
             prevent_initial_call=True
         )(helper_object.generate_random_graph)
         
@@ -182,11 +183,14 @@ class UILayout():
             
             # Control Panel for Adding Edges
             html.Div([
-                dcc.Input(id='input-edge-source', type='text', placeholder='Source Node ID'),
-                dcc.Input(id='input-edge-target', type='text', placeholder='Target Node ID'),
+                dcc.Input(id='input-edge-source', type='number', placeholder='Source Node ID'),
+                dcc.Input(id='input-edge-target', type='number', placeholder='Target Node ID'),
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], id='control-panel',style={'marginBottom': '20px'}),
             
+            # random graph size input
+            dcc.Input(id='graph-size-input', type='number', placeholder='Size of the random generated graph'),
+
             # erase and random button
             html.Div([
                 html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
@@ -269,7 +273,7 @@ class UILayout():
                     html.Label("number to place (0 for nothing)"),
                     dcc.Input(
                         id='sudoku-num-input',
-                        type='text',
+                        type='number',
                         placeholder='number to place',
                     ),
                 ], style={'width': '300px', 'marginTop': '20px'}),

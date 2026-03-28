@@ -90,10 +90,11 @@ class UIUtils:
     # TODO: replace with better add edge capabilities.
     """
     currently handles edge addition. TEMPORARY!
-    TODO: add edge validity check
     """
 
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
+        source_id = str(source_id)
+        target_id = str(target_id)
         node_ids = [
             element["data"]["id"]
             for element in current_elements
@@ -276,14 +277,19 @@ class UIUtils:
     generates random graph - returns elements accordingly and updates graph in self.
     """
 
-    def generate_random_graph(self, n_clicks, current_elements):
+    def generate_random_graph(self, n_clicks, current_elements, size):
         # handles automatic activation at creation
         if n_clicks == 0:
             return current_elements
+        # bad size input
+        if not size: # make it random
+            size = randint(RandomGraphMinSize, RandomGraphMaxSize)
+        # making size an int fitting in the legal range
+        size = int(size)
+        size = max(size, RandomGraphMinSize)
+        size = min(size, RandomGraphMaxSize)
         # generates and updates new graph
-        self.vis_object.graph = GraphColoring.generate(
-            num_of_nodes=randint(RandomGraphMinSize, RandomGraphMaxSize)
-        )
+        self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
         return self.generate_initial_graph_data(missing_nodes=[])
 
     """
@@ -649,7 +655,7 @@ class UIUtils:
     checks if number is legal in a sudoku board of size size
     """
     def is_number_valid(self, number: str | None, size: str | None) -> bool:
-        return size is not None and number is not None and number.isdigit() and 0 <= int(number) <= int(size)
+        return size is not None and number is not None and 0 <= int(number) <= int(size)
     
     """
     called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
