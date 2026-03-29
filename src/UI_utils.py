@@ -1,31 +1,33 @@
-from dash import Dash, html, Input, Output, State, dcc
+from dash import Dash, html, Input, Output, State, dcc, ctx, no_update
+from dash.exceptions import PreventUpdate
 import dash_cytoscape as cyto
 import _thread
 from random import randint
 from graph_coloring import GraphColoring
+from sudoku import Sudoku
 from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
-from graphUI_layout import GraphUILayout
-from constants import CLEAR_LABEL, LABEL, CLEAR_SELECTOR, SELECTOR
+from UI_layout import UILayout
+from uuid import uuid4
 
 
 """
-provides utils for graph_visualizer.py
+provides utils for visualizer.py
 """
 
 
-class GraphUtils:
+class UIUtils:
     """
-    here are all of the functions that the graphUI uses.
+    here are all of the functions that the UI uses.
     """
 
     def __init__(self, app: Dash, vis_object):
         self.vis_object = vis_object
         self.app = app
-        self.layout = GraphUILayout(self).default_layout
+        self.layout = UILayout(self).default_layout
 
     """
-    generates initial graph element data. makes them accordingle to self.
+    generates initial graph element data. makes them accordingly to self.
     """
 
     def generate_initial_graph_data(self, special_edges=[], missing_nodes=[]):
@@ -88,10 +90,11 @@ class GraphUtils:
     # TODO: replace with better add edge capabilities.
     """
     currently handles edge addition. TEMPORARY!
-    TODO: add edge validity check
     """
 
     def add_edge(self, n_clicks, source_id, target_id, current_elements):
+        source_id = str(source_id)
+        target_id = str(target_id)
         node_ids = [
             element["data"]["id"]
             for element in current_elements
@@ -187,40 +190,9 @@ class GraphUtils:
                 new_elements[-1]["data"]["color"] = "grey"
         return new_elements
 
+    # checks if an element is of a colour aligning with the selected one - if larger, returns false.
     """
-    handles change of mode.
-    """
-
-    def handle_mode_change(self, new_mode, current_elements):
-        # changing to hampath - we need to clear all colors of the graph's nodes.
-        if new_mode == "HAMPATH":
-            new_elements = self.color_to_grey(current_elements, self.is_node)
-            # returns cleared out nodes and hides color parts
-            return (
-                CLEAR_LABEL,
-                CLEAR_LABEL,
-                CLEAR_SELECTOR,
-                CLEAR_SELECTOR,
-                new_elements,
-            )
-        elif new_mode == "COLOR":
-            # when switching to color we need to clear out all coloured edges
-            new_elements = self.color_to_grey(current_elements, self.is_edge)
-            # unhides the color stuff from the html page
-            return LABEL, LABEL, SELECTOR, SELECTOR, new_elements
-        else:
-            # this is the mode for finishing simulation
-            return (
-                CLEAR_LABEL,
-                CLEAR_LABEL,
-                CLEAR_SELECTOR,
-                CLEAR_SELECTOR,
-                current_elements,
-            )
-
-    # checks if an element is of a colour alligning with the selected one - if larger, returns false.
-    """
-    checks if an element's color is alligned with the current restrictions.
+    checks if an element's color is aligned with the current restrictions.
     """
 
     def check_element_color_compliance(self, element, color):
@@ -305,14 +277,19 @@ class GraphUtils:
     generates random graph - returns elements accordingly and updates graph in self.
     """
 
-    def generate_random_graph(self, n_clicks, current_elements):
+    def generate_random_graph(self, n_clicks, current_elements, size):
         # handles automatic activation at creation
         if n_clicks == 0:
             return current_elements
+        # bad size input
+        if not size: # make it random
+            size = randint(RandomGraphMinSize, RandomGraphMaxSize)
+        # making size an int fitting in the legal range
+        size = int(size)
+        size = max(size, RandomGraphMinSize)
+        size = min(size, RandomGraphMaxSize)
         # generates and updates new graph
-        self.vis_object.graph = GraphColoring.generate(
-            num_of_nodes=randint(RandomGraphMinSize, RandomGraphMaxSize)
-        )
+        self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
         return self.generate_initial_graph_data(missing_nodes=[])
 
     """
@@ -466,11 +443,13 @@ class GraphUtils:
     """
 
     def solve_problems(self, problem, original_nodes):
-        new_colors = [None] * self.vis_object.graph.num_nodes
+        new_colors = self.vis_object.graph.colors
         hampath_edges = []
 
         if problem == "COLOR":
-            found_solution, new_colors = self.generate_solved_colors()
+            found_solution, found_colors = self.generate_solved_colors()
+            if found_solution:
+                new_colors = found_colors
         elif problem == "HAMPATH":
             found_solution, hampath_edges = self.generate_solved_hampath()
         else:
@@ -519,26 +498,251 @@ class GraphUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem):
+    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
+        message: str # success message to return
+        color: dict # color of message
         # prevent accidental press.
-
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, elements
+            return "this is unusual...", {"color": "yellow"}, no_update, no_update
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, []
+            return "The program finished running. ", {"color": "blue"}, no_update, no_update
+        
+        if problem in ["COLOR", "HAMPATH"]:
 
-        # now, for the interesting case:
-        original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
-            elements, int(max_colors)
-        )
-        found_solution, new_graph_data = self.solve_problems(problem, original_nodes)
+            # now, for the interesting case:
+            original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
+                elements, int(max_colors)
+            )
+            found_solution, elements = self.solve_problems(problem, original_nodes)
 
-        if found_solution:
-            return "Everything good, proceed!", {"color": "green"}, new_graph_data
+            if found_solution:
+                message = "Everything good, proceed!"
+                color = {"color": "green"}
+            else:
+                message = "No solution found!"
+                color = {"color": "red"}
+        
+        if problem == "SUDOKU":
+            # making a backend_board
+            board = self.sudoku_frontend_to_backend(sudoku_board, int(size_of_sudoku))
+            sudoku = Sudoku(board)
+            solution = sudoku.solve() # backend solving
+            if solution is None: # no solution
+                message = "No solution found!"
+                color = {"color": "red"}
+            else: # solution found
+                message = "Everything good, proceed!"
+                color = {"color": "green"}
+                # reassembling the frontend board
+                sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
+        return message, color, elements, sudoku_board
+    
+    """
+    called when the task selector is changed, switches what is shown on screen to match the new task
+    """
+    def switch_problem(self, problem: str, graph_style, sudoku_style, coloring_style, current_elements):
+        message: str # message to display to user
+        color: dict # color of message
+        # first hide everything
+        graph_style['display'] = 'none'
+        sudoku_style['display'] = 'none'
+        coloring_style['display'] = 'none'
+        if problem == "HAMPATH":
+            graph_style['display'] = 'block' # show graph div
+            message = "Finding a hamiltonian cycle"
+            color = {'color' : 'black'}
+            # returns cleared out nodes and hides color parts
+            current_elements = self.color_to_grey(current_elements, self.is_node)
+        if problem == "COLOR":
+            graph_style['display'] = 'block' # show graph div
+            coloring_style['display'] = 'block' # within graph div show elements for coloring
+            message = "Finding a coloring"
+            color = {'color' : 'black'}
+            # when switching to color we need to clear out all coloured edges
+            current_elements = self.color_to_grey(current_elements, self.is_edge)
+        if problem == "SUDOKU":
+            sudoku_style['display'] = 'block' # show sudoku div
+            message = "Solving a sudoku"
+            color = {'color' : 'black'}
+        if problem == "END":
+            message = "Leaving? :("
+            # don't show anything
+            color = {'color' : 'black'}
+        return message, color, graph_style, sudoku_style, coloring_style, current_elements
+    
+    """
+    creates html elements of an empty sudoku board of size x size, initialized with board
+    if board is None it initializes empty
+    """
+    def create_sudoku_board(self, size: int, given_board: list[list[int| None]] | None = None):
+        version = str(uuid4()) # unique id, fixes a memory bug
+        square_size: int = int(size ** .5) # size of sudoku squares
+        board = [] # list of the cells
+        for row in range(size):
+            for column in range(size):
+                cell_style = { # creating the style for the cell
+                        "fontSize": f"{27 / size}rem", 
+                        "fontWeight": "bold",
+                        "aspect ratio": "1 / 1",
+                        "font size": "{1px}",
+                        "borderTop": "1px solid #ccc", # thin gray border
+                        "borderLeft": "1px solid #ccc",
+                        "borderBottom": "1px solid #ccc",
+                        "borderRight": "1px solid #ccc",
+                        "backgroundColor": "white",
+                        "margin": "0",
+                        "padding": "0",
+                        "color": "black",
+                }
+                # making the borders of the squares
+                if row % square_size == 0: # first of the row
+                        cell_style["borderTop"] = "2px solid black"
+                if (row + 1) % square_size == 0: # last of the row
+                        cell_style["borderBottom"] = "2px solid black"
+                if column % square_size == 0: # first of the column
+                        cell_style["borderLeft"] = "2px solid black"
+                if (column + 1) % square_size == 0: # last of the column
+                        cell_style["borderRight"] = "2px solid black"
+                cell_text: str = "" # default empty text
+                if given_board is not None and given_board[row][column] is not None:
+                    cell_text = str(given_board[row][column] + 1)
+                cell = html.Button(
+                    cell_text,
+                    id={'type' : 'sudoku-cell', 'row' : row, 'col' : column, 'version': version},
+                    style=cell_style,
+                )
+                board.append(cell)
+
+        return board
+    
+    """
+    called when the sudoku size selector is changed
+    """
+    def change_sudoku_size(self, size, board_div, board_children, board_style, board_key):
+        message: str # message to display to user
+        color: dict # color of message
+        if size == "0": # hide board
+            board_div['display'] = 'none'
+            message = "Please choose a board size!"
+            color = {'color': 'black'}
+        else: # construct board
+            board_div['display'] = 'block'
+            message = f"Sudoku board of size {size}x{size}"
+            color = {'color': 'black'}
+            pixel_size=576 # a good size, and divisible by 4, 9 and 16
+            board_children = self.create_sudoku_board(int(size)) # creating the actual board
+            board_style = {
+                        'display': 'grid',
+                        'gridTemplateColumns': f'repeat({size}, 1fr)', 
+                        'gridTemplateRows': f'repeat({size}, 1fr)',
+                        'width': f'{pixel_size}px',
+                        'height': f'{pixel_size}px',
+                        'border': '3px solid black',
+                        'marginTop': '20px',
+                        'gap': '0px',
+                    }
+            # a unique key for different board sizes, fixes a caching issue
+            board_key = f"sudoku-board-{size}"
+            
+        return message, color, board_div, board_children, board_style, board_key
+    
+    """
+    checks if number is legal in a sudoku board of size size
+    """
+    def is_number_valid(self, number: str | None, size: str | None) -> bool:
+        return size is not None and number is not None and 0 <= int(number) <= int(size)
+    
+    """
+    called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
+    """
+    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, cell_style, size: str, number):
+        if not self.is_number_valid(number, size): # invalid number
+            return no_update, no_update
+
+        cell_style['color'] = 'black'
+        if int(number) == 0:
+            sudoku_cell = "" # empty the cell
         else:
-            return "No solution found!", {"color": "red"}, new_graph_data
+            sudoku_cell = str(int(number)) # put the number
+
+        return sudoku_cell, cell_style
+
+    """
+    called when the generate random board button is pressed, creates a random board
+    with the logic from the Sudoku class, and turns it into html
+    """
+    def generate_random_sudoku(self, n_clicks, size: str):
+        message = "Board generated successfully!"
+        color = {'color': 'black'}
+        # creating a sudoku object for random board generation
+        sudoku = Sudoku.initializeRandomly(int(size))
+        # creating the html board
+        board_children = self.create_sudoku_board(int(size), sudoku.board)
+        return message, color, board_children
+    
+    """
+    takes a frontend sudoku board as a list of cells and the size of the board,
+    and makes a backend board. treats non black cells as empty ones
+    """
+    def sudoku_frontend_to_backend(self, sudoku_board, size: int) -> list[list[int | None]]:
+        board = [[None for _ in range(size)] for _ in range(size)] # empty backend board
+        for cell in sudoku_board:
+            row: int = int(cell['props']['id']['row'])
+            column: int = int(cell['props']['id']['col'])
+            text: str = cell['props']['children']
+            color: str = cell['props']['style']['color']
+            if text != "" and color == 'black': # if filled by the user
+                board[row][column] = int(text) - 1 # 1 index to 0 index
+        return board
+    
+    """
+    takes the current frontend board as sudoku_board and the backend board as board.
+    changes the frontend according to the backend solution. assumes all backend cells
+    are non empty. keeps the full frontend cells filled by the user (black), and puts
+    the new values in the rest of the cells, all new values are colored blue
+    """
+    def sudoku_backend_to_frontend(self, sudoku_board, board: list[list[int | None]]):
+        version = str(uuid4()) # unique id, fixes a memory bug 
+        for cell in sudoku_board:
+            cell['props']['id']['version'] = version
+            row: int = int(cell['props']['id']['row'])
+            column: int = int(cell['props']['id']['col'])
+            text: str = cell['props']['children']
+            color: str = cell['props']['style']['color']
+            if text != "" and color == 'black': # if filled by user
+                continue
+            text = str(board[row][column] + 1) # 0 index to 1 index
+            color = 'blue'
+            cell['props']['children'] = text
+            cell['props']['style']['color'] = color
+        return sudoku_board
+    
+    """
+    whenever an input number field changes you can call this function to check if its an
+    integer in the specified range, return a boolean value accordingly
+    """
+    def validate_number_field_change(self, number, lower_bound: int, upper_bound: int) -> bool:
+        if number is None or not number: # empty input
+            return True
+        if not isinstance(number, str) and not isinstance(number, int) and not isinstance(number, float):
+            return False # illegal type
+        if isinstance(number, str) and not number.isdigit():
+            return False # not a number
+        number = int(number) # make it an int
+        return lower_bound <= number <= upper_bound
+    
+    """
+    called whenever the sudoku number input changes and makes sure its legal
+    """
+    def sudoku_number_input_changed(self, number, size: str):
+        if self.validate_number_field_change(number, 0, int(size)):
+            if number is None: # empty
+                return None
+            return int(number) # make it an int if float or string
+        return 0 # if illegal
+        
