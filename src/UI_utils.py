@@ -498,7 +498,7 @@ class UIUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku):
+    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
         message: str # success message to return
         color: dict # color of message
         # prevent accidental press.
@@ -545,7 +545,7 @@ class UIUtils:
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
     """
-    def switch_problem(self, problem, graph_style, sudoku_style, coloring_style, current_elements):
+    def switch_problem(self, problem: str, graph_style, sudoku_style, coloring_style, current_elements):
         message: str # message to display to user
         color: dict # color of message
         # first hide everything
@@ -660,7 +660,7 @@ class UIUtils:
     """
     called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
     """
-    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, cell_style, size, number):
+    def sudoku_cell_clicked(self, n_clicks, sudoku_cell, cell_style, size: str, number):
         if not self.is_number_valid(number, size): # invalid number
             return no_update, no_update
 
@@ -676,7 +676,7 @@ class UIUtils:
     called when the generate random board button is pressed, creates a random board
     with the logic from the Sudoku class, and turns it into html
     """
-    def generate_random_sudoku(self, n_clicks, size):
+    def generate_random_sudoku(self, n_clicks, size: str):
         message = "Board generated successfully!"
         color = {'color': 'black'}
         # creating a sudoku object for random board generation
@@ -706,7 +706,7 @@ class UIUtils:
     are non empty. keeps the full frontend cells filled by the user (black), and puts
     the new values in the rest of the cells, all new values are colored blue
     """
-    def sudoku_backend_to_frontend(self, sudoku_board, board):
+    def sudoku_backend_to_frontend(self, sudoku_board, board: list[list[int | None]]):
         version = str(uuid4()) # unique id, fixes a memory bug 
         for cell in sudoku_board:
             cell['props']['id']['version'] = version
@@ -739,10 +739,8 @@ class UIUtils:
     """
     called whenever the sudoku number input changes and makes sure its legal
     """
-    def sudoku_number_input_changed(self, number, size):
-        print(number)
+    def sudoku_number_input_changed(self, number, size: str):
         if self.validate_number_field_change(number, 0, int(size)):
-            print(" :)")
             if number is None: # empty
                 return None
             return int(number) # make it an int if float or string
