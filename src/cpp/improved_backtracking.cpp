@@ -83,6 +83,13 @@ class ImprovedSATHandler : public SATHandlingDS{
     // stack of assigned variables
     vector<pair<int,int>> op_stack;
 
+    private:
+    int get_clause_size(BetterSATClause& c) {
+        int value = 2 * c.size();
+        if (c.neg_variables.size()) value++;
+        return value;
+    }
+
     public:
     ImprovedSATHandler() {}
     void initialize(int N, std::vector<SATClause> C) override {
@@ -99,7 +106,7 @@ class ImprovedSATHandler : public SATHandlingDS{
         // initialize segment tree with the sizes of all clauses
         minqryds = MinQueryDS(clause_list.size());
         for (int i=0;i<clause_list.size();i++){
-            minqryds.update(i, clause_list[i].size());
+            minqryds.update(i, get_clause_size(clause_list[i]));
         }
         
         // for every clause, add it to the map
@@ -165,7 +172,7 @@ class ImprovedSATHandler : public SATHandlingDS{
                     // update everything else
                     clause.neg_variables.erase(curr_var);
                     clause.assigned_neg_variables.insert(curr_var);
-                    minqryds.update(cl, clause.size());
+                    minqryds.update(cl, get_clause_size(clause));
                 }
             } else {
                 // this is dual to the previous case
@@ -180,7 +187,7 @@ class ImprovedSATHandler : public SATHandlingDS{
                     }
                     clause.pos_variables.erase(curr_var);
                     clause.assigned_pos_variables.insert(curr_var);
-                    minqryds.update(cl, clause.size());
+                    minqryds.update(cl, get_clause_size(clause));
                 }
             }
         }
@@ -206,7 +213,7 @@ class ImprovedSATHandler : public SATHandlingDS{
             if (clause.assigned_neg_variables.count(curr_var)){
                 clause.assigned_neg_variables.erase(curr_var);
                 clause.neg_variables.insert(curr_var);
-                minqryds.update(cl, clause.size());
+                minqryds.update(cl, get_clause_size(clause));
                 // in the case where the variable was satisfied, update it accordingly
                 if (value == SAT_FALSE){
                     clause.sat--;
@@ -214,7 +221,7 @@ class ImprovedSATHandler : public SATHandlingDS{
             } else {
                 clause.assigned_pos_variables.erase(curr_var);
                 clause.pos_variables.insert(curr_var);
-                minqryds.update(cl, clause.size());
+                minqryds.update(cl, get_clause_size(clause));
                 if (value == SAT_TRUE){
                     clause.sat--;
                 }
