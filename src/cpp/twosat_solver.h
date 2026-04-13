@@ -9,7 +9,6 @@ using std::pair, std::vector, std::stack, std::queue;
 
 // solver for a 2SAT problem
 class TwoSATSolver : AbstractSATSolver {
-    int num_variables;
     // implication graph.
     // positive literals are [0,n-1], negative literals are [n, 2n-1]
     vector<vector<int>> graph_out, graph_in;

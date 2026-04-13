@@ -65,13 +65,6 @@ class SATHandler_V2 : public SATHandlingDS{
             if (clause.sat) continue;
             solver.addClause(clause.pos_variables, clause.neg_variables);
         }
-        for (int i=0;i<num_variables;i++){
-            if (assignment[i] == SAT_TRUE){
-                solver.addClause({i},{});
-            } else if (assignment[i] == SAT_FALSE){
-                solver.addClause({},{i});
-            }
-        }
         vector<int> sol = solver.solve();
         if (sol.size() == 0){
             valid_bit = false;

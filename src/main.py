@@ -17,10 +17,10 @@ def benchmark_times():
         "Average time to 20-color a 40 vertex graph:",
         test_time(GraphColoring.generate(), 40),
     )
-    # print(
-    #     "Average time to find a hamiltonian cycle on a 25 vertex graph:",
-    #     test_time(HamiltonianCycle.generate(), 25),
-    # )
+    print(
+        "Average time to find a hamiltonian cycle on a 25 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 25),
+    )
     print(
         "Average time to solve a 9x9 sudoku:",
         test_time(Sudoku.generate(), 9),
