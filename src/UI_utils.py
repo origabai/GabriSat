@@ -748,13 +748,17 @@ class UIUtils:
         number = int(number) # make it an int
         return lower_bound <= number <= upper_bound
     
-    # """
-    # called whenever the sudoku number input changes and makes sure its legal
-    # """
-    # def sudoku_number_input_changed(self, number, size: str):
-    #     if self.validate_number_field_change(number, 0, int(size)):
-    #         if number is None: # empty
-    #             return None
-    #         return int(number) # make it an int if float or string
-    #     return 0 # if illegal
+    # called when one of the two add edge input fields changed or the list of nodes changed
+    # checks if they input field is legal and changes its color accordingly
+    def add_edge_input_changed(self, value, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        if value in nodes: # legal input
+            return {'color' : 'black'}
+        else:
+            return {'color': 'red'}
         
+    # called when the list of graph nodes changes, and changes the max of the edge input fields
+    def nodes_list_changed(self, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        max_node = max(nodes)
+        return max_node, max_node

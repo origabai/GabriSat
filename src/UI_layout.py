@@ -147,12 +147,26 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.generate_random_sudoku)
 
-        # helper_object.app.callback(
-        #     Output('sudoku-num-input', 'value', allow_duplicate=True),
-        #     Input('sudoku-num-input', 'value'),
-        #     State('sudoku-size-selector', 'value'),
-        #     prevent_initial_call=True
-        # )(helper_object.sudoku_number_input_changed)
+        helper_object.app.callback(
+            Output('input-edge-source', 'style', allow_duplicate=True),
+            Input('input-edge-source', 'value'),
+            Input('nodes-list', 'children'),
+            prevent_initial_call=True
+        )(helper_object.add_edge_input_changed)
+        
+        helper_object.app.callback(
+            Output('input-edge-target', 'style', allow_duplicate=True),
+            Input('input-edge-target', 'value'),
+            Input('nodes-list', 'children'),
+            prevent_initial_call=True
+        )(helper_object.add_edge_input_changed)
+        
+        helper_object.app.callback(
+            Output('input-edge-source', 'max', allow_duplicate=True),
+            Output('input-edge-target', 'max', allow_duplicate=True),
+            Input('nodes-list', 'children'),
+            prevent_initial_call=True
+        )(helper_object.nodes_list_changed)
         
         
         
@@ -197,8 +211,8 @@ class UILayout():
             
             # Control Panel for Adding Edges
             html.Div([
-                dcc.Input(id='input-edge-source', type='number', placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                dcc.Input(id='input-edge-target', type='number', placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                dcc.Input(id='input-edge-source', type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                dcc.Input(id='input-edge-target', type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
                 html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], id='control-panel',style={'marginBottom': '20px'}),
