@@ -17,8 +17,8 @@ def benchmark_times():
         test_time(GraphColoring.generate(), 40),
     )
     print(
-        "Average time to find a hamiltonian cycle on a 10 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 10),
+        "Average time to find a hamiltonian cycle on a 12 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 12),
     )
     print(
         "Average time to solve a 16x16 sudoku:",
