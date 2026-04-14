@@ -2,6 +2,7 @@ from graph import Graph
 from constants import DEFAULT_SOLVER
 from SAT_reducible_problem import SATReducibleProblem
 from random import shuffle, randint
+from constants import HAMCYCLE_GENERATION_CONST
 
 class HamiltonianCycle(Graph, SATReducibleProblem):
     def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = DEFAULT_SOLVER):
@@ -29,23 +30,21 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
     @classmethod
     def generate(self, size = 2, solver = DEFAULT_SOLVER):
         g = HamiltonianCycle(size, [], satsolver=solver)
-        adj = [[False for i in range(size)] for i in range(size)]
-        # generate a lot of random edges
+        # make a random tree, and add HAMCYCLE_GENERATION_CONST*N edges to it
+        for i in range(1,size):
+            g.edges.append([i, randint(0, i-1)])
+
+        for i in range(HAMCYCLE_GENERATION_CONST*size):
+            a = randint(0,size-1)
+            b = randint(0, size-1)
+            if (a != b):
+                g.edges.append([a,b])
+        
+        # ensure hamcycle
+        perm = [i for i in range(size)]
+        shuffle(perm)
         for i in range(size):
-            for j in range(i+1,size):
-                if (randint(0,1) == 1):
-                    adj[i][j] = True
-                    adj[j][i] = True
-        # force a random permutation to be a cycle
-        a = [i for i in range(size)]
-        shuffle(a)
-        for i in range(size):
-            adj[a[i]][a[(i+1)%size]] = True
-            adj[a[(i+1)%size]][a[i]] = True
-        for i in range(size):
-            for j in range(i+1,size):
-                if (adj[i][j]):
-                    g.edges.append([i,j])
+            g.edges.append([perm[i], perm[(i+1)%size]])
         return g
 
     # returns a hamiltonian cycle if exists, or None otherwise
