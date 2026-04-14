@@ -299,7 +299,6 @@ class UIUtils:
         # making size an int fitting in the legal range
         size = int(size)
         size = max(size, RandomGraphMinSize)
-        size = min(size, RandomGraphMaxSize)
         # generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
         nodes_list = [html.Option(value=str(n)) for n in range(size)]
