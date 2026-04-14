@@ -52,11 +52,11 @@ class TwoSATSolver : AbstractSATSolver {
     // topologically sorts the graph
     vector<int> topsort(vector<int> out[], int n){
         vector<int> deg(n,0);
-        for (int i=0;i<n;i++){
+        for (int i=0; i<n; i++){
             for (int u : out[i]) deg[u]++;
         }
         queue<int> q;
-        for (int i=0;i<n;i++){
+        for (int i=0; i<n; i++){
             if (deg[i] == 0)q.push(i);
         }
         vector<int> ans;
@@ -109,7 +109,7 @@ class TwoSATSolver : AbstractSATSolver {
 
     std::vector<int> solve() override{
         // calculate the dfs out order, and store it in the stack "ord"
-        for (int i=0;i<2*num_variables;i++){
+        for (int i=0; i<2*num_variables; i++){
             dfs1(i);
         }
         visited.assign(2 * num_variables, 0);
@@ -122,7 +122,7 @@ class TwoSATSolver : AbstractSATSolver {
             if (visited[v]) continue;
             dfs2(timer++,v);
         }
-        for (int v=0;v<num_variables;v++){
+        for (int v=0; v<num_variables; v++){
             if (component[v] == component[v+num_variables]){
                 return {};
             }
@@ -130,7 +130,7 @@ class TwoSATSolver : AbstractSATSolver {
 
         // find scc
         vector<int> gscc[timer];
-        for (int v=0;v<2*num_variables;v++){
+        for (int v=0; v<2*num_variables; v++){
             for (int u : graph_out[v]){
                 if (component[v]!=component[u]) gscc[component[v]].push_back(component[u]);
             }
@@ -138,11 +138,11 @@ class TwoSATSolver : AbstractSATSolver {
         // topological sort
         vector<int> srt = topsort(gscc, timer);
         vector<int> inv(timer);
-        for (int i=0;i<timer;i++){
+        for (int i=0; i<timer; i++){
             inv[srt[i]] = i;
         }
         vector<int> ans(num_variables);
-        for (int i=0;i<num_variables;i++){
+        for (int i=0; i<num_variables; i++){
             if (inv[component[i]] < inv[component[i+num_variables]]){
                 ans[i] = SAT_FALSE;
             } else {

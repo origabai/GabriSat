@@ -39,10 +39,10 @@ class GeneralSegmentTreeDS {
         if (size == 0) return;
         N = 1 << (32 - __builtin_clz(size-1)); // don't worry about it
         seg.resize(2*N);
-        for (int i=N;i<2*N;i++){
+        for (int i=N; i<2*N; i++){
             seg[i] = {i - N, e};
         }
-        for (int i=N-1;i>0;i--){
+        for (int i=N-1; i>0; i--){
             if (comp(seg[2 * i].second, seg[2 * i + 1].second)) {
                 seg[i] = seg[2 * i];
             }

@@ -39,7 +39,7 @@ class SATHandler_V2 : public SATHandlingDS{
         
         // initialize segment tree with the sizes of all clauses
         minqryds = MinQueryDS(clause_list.size());
-        for (int i=0;i<clause_list.size();i++){
+        for (int i=0; i<clause_list.size(); i++){
             minqryds.update(i, clause_list[i].size());
             if (clause_list[i].size() > 2){
                 big_active_clause_sizes.insert(clause_list[i].size());
@@ -49,7 +49,7 @@ class SATHandler_V2 : public SATHandlingDS{
         // for every clause, add it to the map
         // for all variables containing it
         var_to_clause_map.resize(num_variables);
-        for (int i=0;i<clause_list.size();i++){
+        for (int i=0; i<clause_list.size(); i++){
             for (int x : clause_list[i].neg_variables){
                 var_to_clause_map[x].insert(i);
             }
@@ -65,7 +65,7 @@ class SATHandler_V2 : public SATHandlingDS{
             if (clause.sat) continue;
             solver.addClause(clause.pos_variables, clause.neg_variables);
         }
-        for (int i=0;i<num_variables;i++){
+        for (int i=0; i<num_variables; i++){
             if (assignment[i] == SAT_TRUE){
                 solver.addClause({i},{});
             } else if (assignment[i] == SAT_FALSE){
@@ -90,7 +90,7 @@ class SATHandler_V2 : public SATHandlingDS{
         auto [i,v] = minqryds.getmin();
         if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
             // this means everything is already satisfied. give the first unassigned variable
-            for (int i=0;i<num_variables;i++){
+            for (int i=0; i<num_variables; i++){
                 if (assignment[i] == VARIABLE_UNSET){
                     return {i,SAT_TRUE};
                 }
