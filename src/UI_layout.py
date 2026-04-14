@@ -19,6 +19,7 @@ class UILayout():
         '''
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Input('btn-add-node', 'n_clicks'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
@@ -26,6 +27,7 @@ class UILayout():
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
             Input('btn-add-edge', 'n_clicks'),
@@ -43,6 +45,7 @@ class UILayout():
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
@@ -54,6 +57,7 @@ class UILayout():
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Input('interactive-graph', 'tapEdgeData'),
             State('interactive-graph', 'elements'),
             State('erase_toggled', 'data'),
@@ -64,6 +68,7 @@ class UILayout():
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -76,6 +81,7 @@ class UILayout():
         
         helper_object.app.callback(
             Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('interactive-graph', 'layout', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('graph-size-input', 'value'),
