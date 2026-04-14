@@ -2,6 +2,7 @@ from graph import Graph
 from constants import DEFAULT_SOLVER
 from SAT_reducible_problem import SATReducibleProblem
 from random import shuffle, randint
+from constants import HAMCYCLE_GENERATION_CONST
 
 class HamiltonianCycle(Graph, SATReducibleProblem):
     def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = DEFAULT_SOLVER):
@@ -29,11 +30,11 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
     @classmethod
     def generate(self, size = 2, solver = DEFAULT_SOLVER):
         g = HamiltonianCycle(size, [], satsolver=solver)
-        # make a random tree, and add 8*N edges to it
+        # make a random tree, and add HAMCYCLE_GENERATION_CONST*N edges to it
         for i in range(1,size):
             g.edges.append([i, randint(0, i-1)])
 
-        for i in range(8*size):
+        for i in range(HAMCYCLE_GENERATION_CONST*size):
             a = randint(0,size-1)
             b = randint(0, size-1)
             if (a != b):

@@ -11,6 +11,7 @@ CPP_ImprovedBacktracker
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
+HAMCYCLE_GENERATION_CONST = 8
 
 ColourSelectorOptions = [
                         # 'label' is what the user sees, 'value' is what Python receives
