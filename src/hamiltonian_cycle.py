@@ -82,3 +82,18 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
                     ans.append(j)
                     break
         return ans
+    
+    # alternative reduction
+    def solve2(self):
+        s = self.solver(len(self.edges))
+        adj_list = [[] for i in range(self.num_nodes)]
+        for e in self.edges:
+            adj_list[e[0]].append[e[1]]
+            adj_list[e[1]].append[e[0]]
+        for v in range(self.num_nodes):
+            # every 
+            for a in range(len(adj_list[v])):
+                for b in range(a+1, len(adj_list[v])):
+                    for c in range(b+1, len(adj_list[v])):
+                        s.addClause([], [adj_list[v][a],adj_list[v][b],adj_list[v][c]])
+        
