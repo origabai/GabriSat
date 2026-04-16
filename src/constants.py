@@ -1,16 +1,18 @@
 from SAT_trivial import TrivialSATSolver
 from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
-from cpp_solvers import CPP_ImprovedBacktracker
+from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2
 
 DEFAULT_SOLVER = CPP_ImprovedBacktracker
 TrivialSATSolver
 TrivialBacktrackingSolver
 ImproverBacktrackingSolver
 CPP_ImprovedBacktracker
+CPP_BacktrackingSolver_V2
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
+HAMCYCLE_GENERATION_CONST = 8
 
 ColourSelectorOptions = [
                         # 'label' is what the user sees, 'value' is what Python receives
