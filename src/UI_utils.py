@@ -265,7 +265,6 @@ class UIUtils:
             current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
             node_ind = None
             for ind, node in enumerate(nodes_list):
-                # print(node)
                 if int(node['props']['value']) == int(tapped_node["id"]):
                     node_ind = ind
             
@@ -752,7 +751,7 @@ class UIUtils:
     # checks if they input field is legal and changes its color accordingly
     def add_edge_input_changed(self, value, nodes_list):
         nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
-        if value in nodes or not value: # legal input
+        if value in nodes or value is None or value == "": # legal input
             return {'color' : 'black'}
         else:
             return {'color': 'red'}
