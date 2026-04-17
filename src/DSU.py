@@ -22,6 +22,7 @@ class DSU:
             return False
         self.comps -= 1
         self.par[v] = u
+        return True
         
     # returns number of connected components in the graph
     def components(self):
