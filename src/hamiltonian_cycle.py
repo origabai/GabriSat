@@ -85,15 +85,64 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
     
     # alternative reduction
     def solve2(self):
+        self.adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
+        for e in self.edges:
+            self.adj[e[0]][e[1]] = True
+            self.adj[e[1]][e[0]] = True
         s = self.solver(len(self.edges))
         adj_list = [[] for i in range(self.num_nodes)]
-        for e in self.edges:
-            adj_list[e[0]].append[e[1]]
-            adj_list[e[1]].append[e[0]]
+        for i in range(len(self.edges)):
+            e = self.edges[i]
+            adj_list[e[0]].append(i)
+            adj_list[e[1]].append(i)
         for v in range(self.num_nodes):
-            # every 
+            # there are strictly less than three חבר'ה connected to every vertex
             for a in range(len(adj_list[v])):
                 for b in range(a+1, len(adj_list[v])):
                     for c in range(b+1, len(adj_list[v])):
                         s.addClause([], [adj_list[v][a],adj_list[v][b],adj_list[v][c]])
-        
+            # there is at least one edge connected to every vertex
+            s.addClause([x for x in adj_list[v]], [])
+            # there is at least two vertices connected to every vertex
+            for a in range(len(adj_list[v])):
+                clause = []
+                for b in range(len(adj_list[v])):
+                    if a != b:
+                        clause.append(adj_list[v][b])
+                s.addClause(clause, [])
+        while True:
+            sol = s.solve()
+            if sol is None:
+                return None
+            # check whether the solution is an actual cycle
+            neighbors = [[] for i in range(self.num_nodes)]
+            for i in range(len(self.edges)):
+                if (not sol[i]):
+                    continue
+                e = self.edges[i]
+                neighbors[e[0]].append(e[1])
+                neighbors[e[1]].append(e[0])
+            cycle = [0]
+            vis = [False for i in range(self.num_nodes)]
+            while True:
+                v = cycle[-1]
+                vis[v] = True
+                flag = True
+                for u in neighbors[v]:
+                    if (not vis[u]):
+                        flag = False
+                        cycle.append(u)
+                        break
+                if (flag):
+                    break
+            if len(cycle) == self.num_nodes:
+                return cycle
+            else:
+                # enforce that there must be an edge in the cut
+                clause = []
+                for e in range(len(self.edges)):
+                    a = self.edges[e][0]
+                    b = self.edges[e][1]
+                    if (a in cycle and b not in cycle) or (a not in cycle and b in cycle):
+                        clause.append(e)
+                s.addClause(clause, [])
