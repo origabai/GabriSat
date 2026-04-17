@@ -3,7 +3,7 @@ from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
 from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2
 
-DEFAULT_SOLVER = CPP_ImprovedBacktracker
+DEFAULT_SOLVER = CPP_BacktrackingSolver_V2
 TrivialSATSolver
 TrivialBacktrackingSolver
 ImproverBacktrackingSolver

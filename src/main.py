@@ -21,8 +21,8 @@ def benchmark_times():
         test_time(HamiltonianCycle.generate(), 12),
     )
     print(
-        "Average time to solve a 16x16 sudoku:",
-        test_time(Sudoku.generate(), 16),
+        "Average time to solve a 9x9 sudoku:",
+        test_time(Sudoku.generate(), 9),
     )
 
 
