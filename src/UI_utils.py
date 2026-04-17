@@ -70,7 +70,7 @@ class UIUtils:
     handles press of "add node" button.
     """
 
-    def add_node(self, n_clicks, current_elements):
+    def add_node(self, n_clicks, current_elements, nodes_list):
         # finds existing nodes
         current_nodes = [
             int(element["data"]["id"])
@@ -85,7 +85,9 @@ class UIUtils:
         }
         current_elements.append(new_node)
 
-        return current_elements
+        nodes_list.append(html.Option(value=next_id)) # updating the nodes list
+
+        return current_elements, nodes_list
 
     # TODO: replace with better add edge capabilities.
     """
@@ -252,14 +254,23 @@ class UIUtils:
         erase_mode,
         max_num,
         current_mode,
+        nodes_list,
     ):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
-            return current_elements
+            return no_update, no_update
 
         # if erasing:
         if erase_mode["toggled"]:
-            return self.remove_adjacent_edges(tapped_node["id"], current_elements)
+            current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
+            node_ind = None
+            for ind, node in enumerate(nodes_list):
+                if int(node['props']['value']) == int(tapped_node["id"]):
+                    node_ind = ind
+            
+            if node_ind is not None:
+                nodes_list.pop(node_ind)
+            return current_elements, nodes_list
         else:
             # check need to color depending on selected color
             trivial_conditions = current_mode != "COLOR" or selected_colour is None
@@ -267,30 +278,30 @@ class UIUtils:
                 trivial_conditions
                 or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1
             ):
-                return current_elements
+                return no_update, no_update
             # now, recolor when needed:
             return self.recolor_node(
                 current_elements, selected_colour, tapped_node["id"]
-            )
+            ), no_update
 
     """
     generates random graph - returns elements accordingly and updates graph in self.
     """
 
-    def generate_random_graph(self, n_clicks, current_elements, size):
+    def generate_random_graph(self, n_clicks, current_elements, size, nodes_list):
         # handles automatic activation at creation
         if n_clicks == 0:
-            return current_elements
+            return no_update, no_update
         # bad size input
         if not size: # make it random
             size = randint(RandomGraphMinSize, RandomGraphMaxSize)
         # making size an int fitting in the legal range
         size = int(size)
         size = max(size, RandomGraphMinSize)
-        size = min(size, RandomGraphMaxSize)
         # generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
-        return self.generate_initial_graph_data(missing_nodes=[])
+        nodes_list = [html.Option(value=str(n)) for n in range(size)]
+        return self.generate_initial_graph_data(missing_nodes=[]), nodes_list
 
     """
     function that checks wether edge is connecting between id1 and id2.
@@ -649,7 +660,7 @@ class UIUtils:
             # a unique key for different board sizes, fixes a caching issue
             board_key = f"sudoku-board-{size}"
             
-        return message, color, board_div, board_children, board_style, board_key
+        return message, color, board_div, board_children, board_style, board_key, (int)(size)
     
     """
     checks if number is legal in a sudoku board of size size
@@ -736,13 +747,17 @@ class UIUtils:
         number = int(number) # make it an int
         return lower_bound <= number <= upper_bound
     
-    """
-    called whenever the sudoku number input changes and makes sure its legal
-    """
-    def sudoku_number_input_changed(self, number, size: str):
-        if self.validate_number_field_change(number, 0, int(size)):
-            if number is None: # empty
-                return None
-            return int(number) # make it an int if float or string
-        return 0 # if illegal
+    # called when one of the two add edge input fields changed or the list of nodes changed
+    # checks if they input field is legal and changes its color accordingly
+    def add_edge_input_changed(self, value, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        if value in nodes or value is None or value == "": # legal input
+            return {'color' : 'black'}
+        else:
+            return {'color': 'red'}
         
+    # called when the list of graph nodes changes, and changes the max of the edge input fields
+    def nodes_list_changed(self, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        max_node = max(nodes)
+        return max_node, max_node
