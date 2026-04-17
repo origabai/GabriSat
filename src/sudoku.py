@@ -4,6 +4,7 @@ from random import randint
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER
 from SAT import AbstractSATSolver
+from sudoku_generate import generate_sudoku_board
 
 """
 Sudoku class
@@ -130,6 +131,8 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
                     board[i][j] = None  # deleting unwanted cells
         return Sudoku(board, solver=satsolver)
 
+    
+    
     @classmethod
     def generate(self, size = 2, solver = DEFAULT_SOLVER):
         return self.initializeRandomly(size, satsolver=solver)
@@ -234,3 +237,8 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
                     for x in board[square_row]
                 ]
         return board
+    
+    @staticmethod
+    
+    def generateInterestingBoard(board_size: int) -> list[list[int | None]]:
+        return generate_sudoku_board(board_size) #for now return only working boards
