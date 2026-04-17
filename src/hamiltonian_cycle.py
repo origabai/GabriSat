@@ -3,6 +3,7 @@ from constants import DEFAULT_SOLVER
 from SAT_reducible_problem import SATReducibleProblem
 from random import shuffle, randint
 from constants import HAMCYCLE_GENERATION_CONST
+from DSU import DSU
 
 class HamiltonianCycle(Graph, SATReducibleProblem):
     def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = DEFAULT_SOLVER):
@@ -40,15 +41,16 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
             if (a != b):
                 g.edges.append([a,b])
         
-        # ensure hamcycle
-        perm = [i for i in range(size)]
-        shuffle(perm)
-        for i in range(size):
-            g.edges.append([perm[i], perm[(i+1)%size]])
+        # randomly ensure hamcycle
+        if (randint(0,1) == 0):
+            perm = [i for i in range(size)]
+            shuffle(perm)
+            for i in range(size):
+                g.edges.append([perm[i], perm[(i+1)%size]])
         return g
 
     # returns a hamiltonian cycle if exists, or None otherwise
-    def solve(self):
+    def solve2(self):
         self.adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
         for e in self.edges:
             self.adj[e[0]][e[1]] = True
@@ -83,7 +85,14 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
         return ans
     
     # alternative reduction
-    def solve2(self):
+    def solve(self):
+        # if the graph is not connected, don't even bother
+        ds = DSU(self.num_nodes)
+        for e in self.edges:
+            ds.unite(e[0], e[1])
+        if ds.components() != 1:
+            return None
+        # ok it's connected 👍
         self.adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
         for e in self.edges:
             self.adj[e[0]][e[1]] = True
