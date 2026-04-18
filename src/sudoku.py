@@ -1,15 +1,15 @@
 from math import sqrt, isqrt
 from graph_coloring import GraphColoring
-from random import randint
+from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER
 from SAT import AbstractSATSolver
-from sudoku_generate import generate_sudoku_board
+#from sudoku_generate import generate_sudoku_seed
 
 """
 Sudoku class
 the board is an N x N list of ints, representing the colors(0-indexed)
-or None if no color is set. N must be a square number
+or None if no scolor is set. N must be a square number
 """
 
 
@@ -119,7 +119,10 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     @classmethod
     # creates a new random Sudoku object of size board_size
     def initializeRandomly(self, board_size: int, satsolver = DEFAULT_SOLVER):
-        board = self.generateTrivialBoard(board_size)
+        
+        #board = self.generateTrivialBoard(board_size)
+        #this is a shinier version!
+        board = self.generateInterestingSolvedBoard(board_size)
         coords_to_keep: set[tuple[int, int]] = set()
         while len(coords_to_keep) < board_size ** 1.5:  # board_size ** 1.5 is magic number i think looks good
             i: int = randint(0, board_size)
@@ -129,6 +132,8 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
             for j in range(board_size):
                 if (i, j) not in coords_to_keep:
                     board[i][j] = None  # deleting unwanted cells
+        
+        #return Sudoku(self.generateInterestingSolvedBoard(board_size), solver=satsolver)
         return Sudoku(board, solver=satsolver)
 
     
@@ -238,7 +243,38 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
                 ]
         return board
     
-    @staticmethod
+    @classmethod
+    def generateInterestingSolvedBoard(self, board_size: int, satsolver = DEFAULT_SOLVER) -> list[list[int]]:
+        solution = None
+        while solution is None:
+            board_seed = self.sudokuSeedGen(board_size)
+            sudoku_gen = Sudoku(board_seed, solver=satsolver)
+            solution = sudoku_gen.solve()
+        return solution #for now return only working boards
     
-    def generateInterestingBoard(board_size: int) -> list[list[int | None]]:
-        return generate_sudoku_board(board_size) #for now return only working boards
+    @classmethod
+    def sudokuSeedGen(self, size : int) -> list[list[int | None]]:
+        #seeding row
+        board = [[None] * size for _ in range(size)]
+        values = [i for i in range(size)]
+        shuffle(values)
+        board[0] = values[:]
+        
+        #editing other rows for non-triviality
+        shuffled_vals = self.randomDerangement(values)
+        for i in range(int(sqrt(size))):
+            j = randint(int(sqrt(size)), size - 1)
+            board[j][i] = shuffled_vals[i]
+        
+        return board
+    
+    @staticmethod
+    #generates random arrangement of an array without fixed points.
+    #used for unique seeding.
+    def randomDerangement(arr):
+        n = len(arr)
+        res = list(arr)
+        while True:
+            shuffle(res)
+            if all(res[i] != arr[i] for i in range(n)):
+                return res
