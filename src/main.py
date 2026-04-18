@@ -18,7 +18,7 @@ def benchmark_times():
     )
     print(
         "Average time to find a hamiltonian cycle on a 25 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 25),
+        test_time(HamiltonianCycle.generate(), 25, trials=100),
     )
     print(
         "Average time to solve a 9x9 sudoku:",
