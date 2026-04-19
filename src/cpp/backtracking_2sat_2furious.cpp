@@ -87,18 +87,22 @@ class SATHandler_V2 : public SATHandlingDS{
             // solve 2sat instead
             return handle_twosat_case();
         }
+        // randomize truthval
+        int truthval = SAT_TRUE;
+        if (rand()%2 == 0) truthval = SAT_FALSE;
+
         auto [i,v] = minqryds.getmin();
         if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
             // this means everything is already satisfied. give the first unassigned variable
             for (int i=0; i<num_variables; i++){
                 if (assignment[i] == VARIABLE_UNSET){
-                    return {i,SAT_TRUE};
+                    return {i,truthval};
                 }
             }
         } else if (clause_list[i].pos_variables.size() > 0){
-            return {*clause_list[i].pos_variables.begin(), SAT_TRUE};
+            return {*clause_list[i].pos_variables.begin(), truthval};
         } else {
-            return {*clause_list[i].neg_variables.begin(), SAT_FALSE};
+            return {*clause_list[i].neg_variables.begin(), truthval};
         }
         return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
