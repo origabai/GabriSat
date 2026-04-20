@@ -18,16 +18,14 @@ class UILayout():
         "Output" is the element of UI that is changed by the function - it's return value is passed to the  corresponding field.
         '''
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('btn-add-node', 'n_clicks'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(helper_object.add_node)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
             Input('btn-add-edge', 'n_clicks'),
@@ -44,8 +42,7 @@ class UILayout():
         )(helper_object.switch_erasing_mode)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
@@ -56,8 +53,7 @@ class UILayout():
         )(helper_object.process_node_click)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapEdgeData'),
             State('interactive-graph', 'elements'),
             State('erase_toggled', 'data'),
@@ -67,8 +63,7 @@ class UILayout():
         helper_object.app.callback(
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -80,8 +75,7 @@ class UILayout():
         )(helper_object.do_task)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
-            Output('interactive-graph', 'layout', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('graph-size-input', 'value'),
@@ -90,7 +84,7 @@ class UILayout():
         
         helper_object.app.callback(
             Output('multi-colour-selector', 'options'),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
@@ -102,7 +96,7 @@ class UILayout():
             Output('graph-div', 'style', allow_duplicate=True),
             Output('sudoku-div', 'style', allow_duplicate=True),
             Output('coloring-div', 'style', allow_duplicate=True),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('end-task-selector', 'value'),
             State('graph-div', 'style'),
             State('sudoku-div', 'style'),
@@ -242,16 +236,18 @@ class UILayout():
                 ),
             ], id='coloring-div', style={'display': 'none'}),
             # the canvas - for graph display
-            cyto.Cytoscape(
-                id='interactive-graph',
-                elements=[],
-                layout={'name': 'cose'}, # Force-directed physics layout
-                style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
-                stylesheet=[
-                    # Basic styling to make labels visible
-                    {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
-                    {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
-                ])
+            html.Div(id='graph-wrapper', children=[
+                cyto.Cytoscape(
+                    id='interactive-graph',
+                    elements=[],
+                    layout={'name': 'cose'}, # Force-directed physics layout
+                    style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
+                    stylesheet=[
+                        # Basic styling to make labels visible
+                        {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
+                        {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
+                    ])
+            ]),
         ], id='graph-div', style={'display': 'block'}),
 
         # everything sudoku related
