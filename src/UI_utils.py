@@ -832,6 +832,9 @@ class UIUtils:
             return int(number) # make it an int if float or string
         return 0 # if illegal
     
+    """
+    generates a new frontend cytoscape graph object, with the given elements
+    """
     def generate_frontend_graph_object(self, elements):
         return cyto.Cytoscape(
             # key=str(uuid4()),
@@ -842,7 +845,7 @@ class UIUtils:
                 'fit': True,
                 'animate': False,
                 'padding': 30,
-                'stop': 'function(event){ event.cy.resize(); }',
+                'stop': 'function(event){ event.cy.resize(); }', # ui magic
             },
             style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
             stylesheet=[
