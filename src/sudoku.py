@@ -2,7 +2,7 @@ from math import sqrt, isqrt
 from graph_coloring import GraphColoring
 from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
-from constants import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER, SUDOKU_GEN_STATUS
 from SAT import AbstractSATSolver
 #from sudoku_generate import generate_sudoku_seed
 
@@ -122,18 +122,27 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         
         #board = self.generateTrivialBoard(board_size)
         #this is a shinier version!
-        board = self.generateInterestingSolvedBoard(board_size)
-        coords_to_keep: set[tuple[int, int]] = set()
-        while len(coords_to_keep) < board_size ** 1.5:  # board_size ** 1.5 is magic number i think looks good
-            i: int = randint(0, board_size)
-            j: int = randint(0, board_size)
-            coords_to_keep.add((i, j))
-        for i in range(board_size):
-            for j in range(board_size):
-                if (i, j) not in coords_to_keep:
-                    board[i][j] = None  # deleting unwanted cells
         
-        #return Sudoku(self.generateInterestingSolvedBoard(board_size), solver=satsolver)
+        #handle board creation - old vs new
+        if SUDOKU_GEN_STATUS == "OLD":
+            board = self.generateTrivialBoard(board_size)
+        else:
+            board = self.generateInterestingSolvedBoard(board_size)
+        
+        #handle seed status
+        if SUDOKU_GEN_STATUS == "NEW_seed":
+            return Sudoku(board, solver=satsolver)
+        else:
+            coords_to_keep: set[tuple[int, int]] = set()
+            while len(coords_to_keep) < board_size ** 1.5:  # board_size ** 1.5 is magic number i think looks good
+                i: int = randint(0, board_size)
+                j: int = randint(0, board_size)
+                coords_to_keep.add((i, j))
+            for i in range(board_size):
+                for j in range(board_size):
+                    if (i, j) not in coords_to_keep:
+                        board[i][j] = None  # deleting unwanted cells
+            
         return Sudoku(board, solver=satsolver)
 
     
@@ -248,11 +257,18 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         solution = None
         while solution is None:
             board_seed = self.sudokuSeedGen(board_size)
+            solution = board_seed
+            #if we search for seed only - stop after first gen.
+            if SUDOKU_GEN_STATUS == "NEW_seed":
+                break
+            
+            #else - solve and then compare.
             sudoku_gen = Sudoku(board_seed, solver=satsolver)
             solution = sudoku_gen.solve()
         return solution #for now return only working boards
     
     @classmethod
+    #generates a sudoku seed
     def sudokuSeedGen(self, size : int) -> list[list[int | None]]:
         #seeding row
         board = [[None] * size for _ in range(size)]
@@ -262,7 +278,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         
         #editing other rows for non-triviality
         shuffled_vals = self.randomDerangement(values)
-        for i in range(int(sqrt(size))):
+        for i in range(size):
             j = randint(int(sqrt(size)), size - 1)
             board[j][i] = shuffled_vals[i]
         
