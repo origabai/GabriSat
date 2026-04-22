@@ -9,7 +9,7 @@ TrivialBacktrackingSolver
 ImproverBacktrackingSolver
 CPP_ImprovedBacktracker
 
-SUDOKU_GEN_STATUS = "NEW_seed" #can be NEW_seed, NEW, OLD. 
+SUDOKU_GEN_STATUS = "OLD" #can be NEW_seed, NEW, OLD. 
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
