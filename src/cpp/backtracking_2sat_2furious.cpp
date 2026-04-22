@@ -1,10 +1,12 @@
 #include "SAT.h"
 #include "SAT_abstract_backtracker.h"
 #include "SAT_abstract_handling_DS.h"
-#include "backtracking_utils.h"
-using std::vector, std::set, std::pair;
+#include "backtracking_utils.h" 
+#include "twosat_solver.h"
+using std::vector, std::set, std::pair, std::multiset;
 
-class ImprovedSATHandler : public SATHandlingDS{
+
+class SATHandler_V2 : public SATHandlingDS{
 
     int num_variables;
     // list of all clauses
@@ -19,9 +21,11 @@ class ImprovedSATHandler : public SATHandlingDS{
     bool valid_bit = true;
     // stack of assigned variables
     vector<pair<int,int>> op_stack;
+    // set of sizes of the unsatisfied clauses with size > 2
+    multiset<int> big_active_clause_sizes;
 
     public:
-    ImprovedSATHandler() {}
+    SATHandler_V2() {}
     void initialize(int N, std::vector<SATClause> C) override {
         num_variables = N;
 
@@ -35,14 +39,17 @@ class ImprovedSATHandler : public SATHandlingDS{
         
         // initialize segment tree with the sizes of all clauses
         minqryds = MinQueryDS(clause_list.size());
-        for (int i=0;i<clause_list.size();i++){
+        for (int i=0; i<clause_list.size(); i++){
             minqryds.update(i, clause_list[i].size());
+            if (clause_list[i].size() > 2){
+                big_active_clause_sizes.insert(clause_list[i].size());
+            }
         }
         
         // for every clause, add it to the map
         // for all variables containing it
         var_to_clause_map.resize(num_variables);
-        for (int i=0;i<clause_list.size();i++){
+        for (int i=0; i<clause_list.size(); i++){
             for (int x : clause_list[i].neg_variables){
                 var_to_clause_map[x].insert(i);
             }
@@ -52,20 +59,50 @@ class ImprovedSATHandler : public SATHandlingDS{
         }
     }
 
+    pair<int,int> handle_twosat_case(void){
+        TwoSATSolver solver(num_variables);
+        for (BetterSATClause &clause : clause_list){
+            if (clause.sat) continue;
+            solver.addClause(clause.pos_variables, clause.neg_variables);
+        }
+        for (int i=0; i<num_variables; i++){
+            if (assignment[i] == SAT_TRUE){
+                solver.addClause({i},{});
+            } else if (assignment[i] == SAT_FALSE){
+                solver.addClause({},{i});
+            }
+        }
+        vector<int> sol = solver.solve();
+        if (sol.size() == 0){
+            valid_bit = false;
+        } else {
+            assignment = sol;
+        }
+        return {NO_NEXT_VAR, NO_NEXT_VAR};
+    }
+
     // returns a variable in the clause with the lowest score
     pair<int,int> next_var(void) override {
+        if (big_active_clause_sizes.size() == 0){
+            // solve 2sat instead
+            return handle_twosat_case();
+        }
+        // randomize truthval
+        int truthval = SAT_TRUE;
+        if (rand()%2 == 0) truthval = SAT_FALSE;
+
         auto [i,v] = minqryds.getmin();
         if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
             // this means everything is already satisfied. give the first unassigned variable
-            for (int i=0;i<num_variables;i++){
+            for (int i=0; i<num_variables; i++){
                 if (assignment[i] == VARIABLE_UNSET){
-                    return {i,SAT_TRUE};
+                    return {i,truthval};
                 }
             }
         } else if (clause_list[i].pos_variables.size() > 0){
-            return {*clause_list[i].pos_variables.begin(), SAT_TRUE};
+            return {*clause_list[i].pos_variables.begin(), truthval};
         } else {
-            return {*clause_list[i].neg_variables.begin(), SAT_FALSE};
+            return {*clause_list[i].neg_variables.begin(), truthval};
         }
         return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
@@ -88,6 +125,9 @@ class ImprovedSATHandler : public SATHandlingDS{
             if (value == SAT_TRUE){
                 if (clause.pos_variables.count(curr_var)){
                     // the clause is now satisfied
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));
+                    }
                     clause.sat++;
                     clause.pos_variables.erase(curr_var);
                     clause.assigned_pos_variables.insert(curr_var);
@@ -100,13 +140,22 @@ class ImprovedSATHandler : public SATHandlingDS{
                         valid_bit = false;
                     }
                     // update everything else
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));
+                    }
                     clause.neg_variables.erase(curr_var);
                     clause.assigned_neg_variables.insert(curr_var);
                     minqryds.update(cl, clause.size());
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.insert(clause.size());
+                    }
                 }
             } else {
                 // this is dual to the previous case
                 if (clause.neg_variables.count(curr_var)){
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));
+                    }
                     clause.sat++;
                     clause.neg_variables.erase(curr_var);
                     clause.assigned_neg_variables.insert(curr_var);
@@ -115,9 +164,15 @@ class ImprovedSATHandler : public SATHandlingDS{
                     if (clause.size() == 1){
                         valid_bit = false;
                     }
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));
+                    }
                     clause.pos_variables.erase(curr_var);
                     clause.assigned_pos_variables.insert(curr_var);
                     minqryds.update(cl, clause.size());
+                    if (clause.size() > 2){
+                        big_active_clause_sizes.insert(clause.size());
+                    }
                 }
             }
         }
@@ -141,6 +196,10 @@ class ImprovedSATHandler : public SATHandlingDS{
             }
             // fix all clauses and rollback the segment tree
             if (clause.assigned_neg_variables.count(curr_var)){
+                // if the clause is unsatisfied WITH the variable, erase
+                if (clause.sat == 0){
+                    if (clause.size() > 2) big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));  
+                }
                 clause.assigned_neg_variables.erase(curr_var);
                 clause.neg_variables.insert(curr_var);
                 minqryds.update(cl, clause.size());
@@ -148,13 +207,18 @@ class ImprovedSATHandler : public SATHandlingDS{
                 if (value == SAT_FALSE){
                     clause.sat--;
                 }
+                if (clause.size() > 2) big_active_clause_sizes.insert(clause.size());
             } else {
+                if (clause.sat == 0){
+                    if (clause.size() > 2) big_active_clause_sizes.erase(big_active_clause_sizes.find(clause.size()));  
+                }
                 clause.assigned_pos_variables.erase(curr_var);
                 clause.pos_variables.insert(curr_var);
                 minqryds.update(cl, clause.size());
                 if (value == SAT_TRUE){
                     clause.sat--;
                 }
+                if (clause.size() > 2) big_active_clause_sizes.insert(clause.size());
             }
         }
     }
@@ -165,7 +229,7 @@ class ImprovedSATHandler : public SATHandlingDS{
     }
 };
 
-class ImprovedBacktrackingSolver : public AbstractBacktrackingSolver {
+class BacktrackingSolver_V2 : public AbstractBacktrackingSolver {
     public:
-    ImprovedBacktrackingSolver(int num_variables) : AbstractBacktrackingSolver(num_variables, new ImprovedSATHandler()) {}
+    BacktrackingSolver_V2(int num_variables) : AbstractBacktrackingSolver(num_variables, new SATHandler_V2()) {}
 };

@@ -9,6 +9,7 @@ from hamiltonian_cycle import HamiltonianCycle
 from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
 from UI_layout import UILayout
 from uuid import uuid4
+from math import pi, sin, cos
 
 
 """
@@ -28,13 +29,13 @@ class UIUtils:
 
     """
     generates initial graph element data. makes them accordingly to self.
+    if positions are given as an array of pairs, it forces this layout
     """
 
-    def generate_initial_graph_data(self, special_edges=[], missing_nodes=[]):
+    def generate_initial_graph_data(self, special_edges=[], missing_nodes=[], positions = None):
         # handle zero input
         graph = self.vis_object.graph
 
-        # print("MISSING NODES ARE: ", missing_nodes)
         initial_data = []
         # generates nodes in initial_data
         for node in range(graph.num_nodes):
@@ -48,6 +49,8 @@ class UIUtils:
                         }
                     }
                 )
+                if positions is not None:
+                    initial_data[-1]['position'] = {'x': float(positions[node][0]), 'y': float(positions[node][1])}
 
         # adds edges -  special edges are a list of edges to colour green. long if statement for undigraph support
         for edge in graph.edges:
@@ -70,7 +73,7 @@ class UIUtils:
     handles press of "add node" button.
     """
 
-    def add_node(self, n_clicks, current_elements):
+    def add_node(self, n_clicks, current_elements, nodes_list):
         # finds existing nodes
         current_nodes = [
             int(element["data"]["id"])
@@ -84,8 +87,11 @@ class UIUtils:
             "data": {"id": str(next_id), "label": str(next_id), "color": "grey"}
         }
         current_elements.append(new_node)
+        new_graph = self.generate_frontend_graph_object(current_elements)
 
-        return current_elements
+        nodes_list.append(html.Option(value=next_id)) # updating the nodes list
+
+        return new_graph, nodes_list
 
     # TODO: replace with better add edge capabilities.
     """
@@ -107,7 +113,7 @@ class UIUtils:
             or target_id not in node_ids
             or source_id == target_id
         ):
-            return current_elements, "Invalid input!", {"color": "red"}
+            return no_update, "Invalid input!", {"color": "red"}
             # Do nothing if source/target are empty or not real, or self edge
 
         # Construct the new edge dictionary and append it to the state
@@ -117,9 +123,10 @@ class UIUtils:
         ):
             current_elements.append(new_edge)
         else:
-            return current_elements, "Edge already exists!", {"color": "red"}
-
-        return current_elements, "Edge added successfully!", {"color": "green"}
+            return no_update, "Edge already exists!", {"color": "red"}
+        
+        new_graph = self.generate_frontend_graph_object(current_elements)
+        return new_graph, "Edge added successfully!", {"color": "green"}
 
     """
     returns true iff edge1 and edge 2 are equivalent up to order, id and color
@@ -217,8 +224,9 @@ class UIUtils:
             return self.check_element_color_compliance(element, value)
 
         new_elements = self.color_to_grey(current_elements, compare_color)
+        new_graph = self.generate_frontend_graph_object(new_elements)
         # also changes the settings of the options
-        return next_options, new_elements
+        return next_options, new_graph
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -252,14 +260,24 @@ class UIUtils:
         erase_mode,
         max_num,
         current_mode,
+        nodes_list,
     ):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
-            return current_elements
+            return no_update, no_update
 
         # if erasing:
         if erase_mode["toggled"]:
-            return self.remove_adjacent_edges(tapped_node["id"], current_elements)
+            current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
+            node_ind = None
+            for ind, node in enumerate(nodes_list):
+                if int(node['props']['value']) == int(tapped_node["id"]):
+                    node_ind = ind
+            
+            if node_ind is not None:
+                nodes_list.pop(node_ind)
+            new_graph = self.generate_frontend_graph_object(current_elements)
+            return new_graph, nodes_list
         else:
             # check need to color depending on selected color
             trivial_conditions = current_mode != "COLOR" or selected_colour is None
@@ -267,30 +285,32 @@ class UIUtils:
                 trivial_conditions
                 or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1
             ):
-                return current_elements
+                return no_update, no_update
             # now, recolor when needed:
-            return self.recolor_node(
-                current_elements, selected_colour, tapped_node["id"]
-            )
+            current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
+            new_graph = self.construct_new_graph(current_elements)
+            return new_graph, no_update
 
     """
     generates random graph - returns elements accordingly and updates graph in self.
     """
 
-    def generate_random_graph(self, n_clicks, current_elements, size):
+    def generate_random_graph(self, n_clicks, current_elements, size, nodes_list):
         # handles automatic activation at creation
         if n_clicks == 0:
-            return current_elements
+            return no_update, no_update
         # bad size input
         if not size: # make it random
             size = randint(RandomGraphMinSize, RandomGraphMaxSize)
         # making size an int fitting in the legal range
         size = int(size)
         size = max(size, RandomGraphMinSize)
-        size = min(size, RandomGraphMaxSize)
         # generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
-        return self.generate_initial_graph_data(missing_nodes=[])
+        nodes_list = [html.Option(value=str(n)) for n in range(size)]
+        elements = self.generate_initial_graph_data(missing_nodes=[])
+        new_graph = self.generate_frontend_graph_object(elements)
+        return new_graph, nodes_list
 
     """
     function that checks wether edge is connecting between id1 and id2.
@@ -317,14 +337,14 @@ class UIUtils:
     def process_edge_click(self, tapped_edge, current_elements, erase_mode):
         # remove edge if necessary
         if tapped_edge is not None and erase_mode["toggled"]:
-            return self.erase_edge(
-                current_elements, tapped_edge["source"], tapped_edge["target"]
-            )
+            current_elements = self.erase_edge(current_elements, tapped_edge["source"], tapped_edge["target"])
+            new_graph = self.generate_frontend_graph_object(current_elements)
+            return new_graph
         # base case - dont respond if un-needed
-        return current_elements
+        return no_update
 
     """
-    takes a UI graph elemnt and returns it's color in graph readable format.
+    takes a UI graph element and returns it's color in graph readable format.
     """
 
     def parse_color_for_graph(self, element):
@@ -439,40 +459,96 @@ class UIUtils:
         return ham_solution is not None, self.vis_object.generate_edges(ham_solution)
 
     """
-    helper function. resolves the problem on self.vis_object.graph. also raises back node indices
+    takes an ordering of the nodes, and returns coordinates of their positions in a dict
     """
+    
+    def cyclic_positions_from_order(self, nodes_order):
+        middle = [400, 250] # half of the graph box size
+        radius = 180 # a bit less then the minimum of middle x and y coordinates
+        num_of_nodes = len(nodes_order)
+        positions = dict()
+        for i in range(num_of_nodes):
+            theta = 2 * i * pi / num_of_nodes
+            x = radius * cos(theta)
+            y = radius * sin(theta)
+            positions[nodes_order[i]] = [middle[0] + x, middle[1] + y]
+        return positions
 
-    def solve_problems(self, problem, original_nodes):
+    """
+    takes edges of a hamiltonian path and returns a permutation of the nodes in this order
+    """
+    def find_cycle_from_hampath(self, hampath_edges):
+        if len(hampath_edges) == 0:
+            return []
+        nodes_order = []
+        hampath_graph: list[list[int]] = [[] for _ in range(len(hampath_edges))]
+        for edge in hampath_edges:
+            a: int = edge[0]
+            b: int = edge[1]
+            hampath_graph[a].append(b)
+            hampath_graph[b].append(a)
+        nodes_order.append(0) # start
+        visited: set[int] = {0}
+        for _ in range(len(hampath_edges) - 1):
+            a = nodes_order[-1]
+            b = hampath_graph[a][0]
+            if b in visited: # if already came from it
+                b = hampath_graph[a][1] # switch to other node
+            nodes_order.append(b)
+            visited.add(b)
+        
+        return nodes_order
+
+    """
+    helper function. resolves the problem on self.vis_object.graph. also raises back node indices
+    if order_nodes_cyclic is True (which it is by default) then the nodes will be order in a circle
+    based on the found solution (if such a solution is found)
+    """
+    def solve_problems(self, problem, original_nodes, order_nodes_cyclic: bool = True):
         new_colors = self.vis_object.graph.colors
         hampath_edges = []
+        nodes_order = [] # the cyclic order based on the solution
 
         if problem == "COLOR":
             found_solution, found_colors = self.generate_solved_colors()
             if found_solution:
                 new_colors = found_colors
+                tmp_list = [(new_colors[i], i) for i in range(len(new_colors))]
+                tmp_list.sort()
+                nodes_order = [tmp_list[i][1] for i in range(len(new_colors))]
         elif problem == "HAMPATH":
             found_solution, hampath_edges = self.generate_solved_hampath()
+            if found_solution:
+                nodes_order = self.find_cycle_from_hampath(hampath_edges)
         else:
             found_solution = False
 
         self.vis_object.graph.colors = new_colors
+
+        positions = None
+        if len(nodes_order) != 0:
+            positions = self.cyclic_positions_from_order(nodes_order)
         # raise nodes back up after solving
-        hampath_edges, missing_nodes = self.oxidize_graph(original_nodes, hampath_edges)
-        new_graph_data = self.generate_initial_graph_data(hampath_edges, missing_nodes)
+        hampath_edges, missing_nodes, positions = self.oxidize_graph(original_nodes, hampath_edges, positions)
+        new_graph_data = self.generate_initial_graph_data(hampath_edges, missing_nodes, positions)
         return found_solution, new_graph_data
 
     """
     does the inverse of the reduce graph function. returns an array of missing nodes. also reduces ham_edges
+    it also does the same thing for a possible positions vector for the positions of the nodes
     """
 
-    def oxidize_graph(self, original_nodes, ham_edges):
+    def oxidize_graph(self, original_nodes, ham_edges, positions = None):
         if original_nodes == []:
-            return [], set([])
+            if positions is None:
+                return [], set([]), None
+            else:
+                return [], set([]), []
 
         # useful for algorithmics later
         original_nodes.sort()
 
-        # updating curreng graph parameters
+        # updating current graph parameters
         self.vis_object.graph.num_nodes = max(original_nodes) + 1
         self.vis_object.graph.edges = [
             [original_nodes[edge[0]], original_nodes[edge[1]]]
@@ -488,10 +564,23 @@ class UIUtils:
             new_colors[original_nodes[ind]] = self.vis_object.graph.colors[ind]
         self.vis_object.graph.colors = new_colors
 
+
+        new_positions = None
+        if positions is not None:
+            # updating the positions
+            new_positions = dict()
+            for node, position in positions.items():
+                new_positions[original_nodes[node]] = position
+
         # return set of missing nodes
-        return ham_edges_reduced, set(range(0, max(original_nodes))) - set(
-            original_nodes
-        )
+        if new_positions is None:
+            return ham_edges_reduced, set(range(0, max(original_nodes))) - set(
+                original_nodes
+            ), None
+        else:
+            return ham_edges_reduced, set(range(0, max(original_nodes))) - set(
+                original_nodes
+            ), new_positions
 
     """
     processes press of "do action" button. takes in state input and returns output message and new graph components.
@@ -501,6 +590,7 @@ class UIUtils:
     def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
         message: str # success message to return
         color: dict # color of message
+        new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
@@ -519,6 +609,9 @@ class UIUtils:
                 elements, int(max_colors)
             )
             found_solution, elements = self.solve_problems(problem, original_nodes)
+            if found_solution:
+                new_graph.layout['name'] = 'preset'
+                new_graph.elements = elements
 
             if found_solution:
                 message = "Everything good, proceed!"
@@ -540,7 +633,7 @@ class UIUtils:
                 color = {"color": "green"}
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, elements, sudoku_board
+        return message, color, new_graph, sudoku_board
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -573,7 +666,9 @@ class UIUtils:
             message = "Leaving? :("
             # don't show anything
             color = {'color' : 'black'}
-        return message, color, graph_style, sudoku_style, coloring_style, current_elements
+        
+        new_graph = self.generate_frontend_graph_object(current_elements)
+        return message, color, graph_style, sudoku_style, coloring_style, new_graph
     
     """
     creates html elements of an empty sudoku board of size x size, initialized with board
@@ -649,7 +744,7 @@ class UIUtils:
             # a unique key for different board sizes, fixes a caching issue
             board_key = f"sudoku-board-{size}"
             
-        return message, color, board_div, board_children, board_style, board_key
+        return message, color, board_div, board_children, board_style, board_key, (int)(size)
     
     """
     checks if number is legal in a sudoku board of size size
@@ -736,6 +831,20 @@ class UIUtils:
         number = int(number) # make it an int
         return lower_bound <= number <= upper_bound
     
+    # called when one of the two add edge input fields changed or the list of nodes changed
+    # checks if they input field is legal and changes its color accordingly
+    def add_edge_input_changed(self, value, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        if value in nodes or value is None or value == "": # legal input
+            return {'color' : 'black'}
+        else:
+            return {'color': 'red'}
+        
+    # called when the list of graph nodes changes, and changes the max of the edge input fields
+    def nodes_list_changed(self, nodes_list):
+        nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
+        max_node = max(nodes)
+        return max_node, max_node
     """
     called whenever the sudoku number input changes and makes sure its legal
     """
@@ -745,4 +854,27 @@ class UIUtils:
                 return None
             return int(number) # make it an int if float or string
         return 0 # if illegal
+    
+    """
+    generates a new frontend cytoscape graph object, with the given elements
+    """
+    def generate_frontend_graph_object(self, elements):
+        return cyto.Cytoscape(
+            # key=str(uuid4()),
+            id='interactive-graph',
+            elements=elements,
+            layout={
+                'name': 'cose',
+                'fit': True,
+                'animate': False,
+                'padding': 30,
+                'stop': 'function(event){ event.cy.resize(); }', # ui magic
+            },
+            style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
+            stylesheet=[
+                # Basic styling to make labels visible
+                {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
+                {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
+            ],
+        )
         

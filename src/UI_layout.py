@@ -18,14 +18,16 @@ class UILayout():
         "Output" is the element of UI that is changed by the function - it's return value is passed to the  corresponding field.
         '''
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Output('nodes-list', 'children', allow_duplicate=True),
             Input('btn-add-node', 'n_clicks'),
             State('interactive-graph', 'elements'),
+            State('nodes-list', 'children'),
             prevent_initial_call=True
         )(helper_object.add_node)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
             Input('btn-add-edge', 'n_clicks'),
@@ -42,18 +44,20 @@ class UILayout():
         )(helper_object.switch_erasing_mode)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Output('nodes-list', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'value'),
+            State('nodes-list', 'children'),
             prevent_initial_call=True
         )(helper_object.process_node_click)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapEdgeData'),
             State('interactive-graph', 'elements'),
             State('erase_toggled', 'data'),
@@ -63,7 +67,7 @@ class UILayout():
         helper_object.app.callback(
             Output('success_message', 'children', allow_duplicate=True),
             Output('success_message', 'style', allow_duplicate=True),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Input('btn-end', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -75,16 +79,18 @@ class UILayout():
         )(helper_object.do_task)
         
         helper_object.app.callback(
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Output('nodes-list', 'children', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('graph-size-input', 'value'),
+            State('nodes-list', 'children'),
             prevent_initial_call=True
         )(helper_object.generate_random_graph)
         
         helper_object.app.callback(
             Output('multi-colour-selector', 'options'),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
@@ -96,7 +102,7 @@ class UILayout():
             Output('graph-div', 'style', allow_duplicate=True),
             Output('sudoku-div', 'style', allow_duplicate=True),
             Output('coloring-div', 'style', allow_duplicate=True),
-            Output('interactive-graph', 'elements', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('end-task-selector', 'value'),
             State('graph-div', 'style'),
             State('sudoku-div', 'style'),
@@ -112,6 +118,7 @@ class UILayout():
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('sudoku-board', 'style', allow_duplicate=True),
             Output('sudoku-board', 'key', allow_duplicate=True),
+            Output('sudoku-num-input', 'max', allow_duplicate=True),
             Input('sudoku-size-selector', 'value'),
             State('sudoku-board-div', 'style'),
             State('sudoku-board', 'children'),
@@ -141,11 +148,25 @@ class UILayout():
         )(helper_object.generate_random_sudoku)
 
         helper_object.app.callback(
-            Output('sudoku-num-input', 'value', allow_duplicate=True),
-            Input('sudoku-num-input', 'value'),
-            State('sudoku-size-selector', 'value'),
+            Output('input-edge-source', 'style', allow_duplicate=True),
+            Input('input-edge-source', 'value'),
+            Input('nodes-list', 'children'),
             prevent_initial_call=True
-        )(helper_object.sudoku_number_input_changed)
+        )(helper_object.add_edge_input_changed)
+        
+        helper_object.app.callback(
+            Output('input-edge-target', 'style', allow_duplicate=True),
+            Input('input-edge-target', 'value'),
+            Input('nodes-list', 'children'),
+            prevent_initial_call=True
+        )(helper_object.add_edge_input_changed)
+        
+        helper_object.app.callback(
+            Output('input-edge-source', 'max', allow_duplicate=True),
+            Output('input-edge-target', 'max', allow_duplicate=True),
+            Input('nodes-list', 'children'),
+            prevent_initial_call=True
+        )(helper_object.nodes_list_changed)
         
         
         
@@ -190,13 +211,14 @@ class UILayout():
             
             # Control Panel for Adding Edges
             html.Div([
-                dcc.Input(id='input-edge-source', type='number', placeholder='Source Node ID'),
-                dcc.Input(id='input-edge-target', type='number', placeholder='Target Node ID'),
+                dcc.Input(id='input-edge-source', type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                dcc.Input(id='input-edge-target', type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], id='control-panel',style={'marginBottom': '20px'}),
             
             # random graph size input
-            dcc.Input(id='graph-size-input', type='number', placeholder='Size of the random generated graph'),
+            dcc.Input(id='graph-size-input', type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
 
             # erase and random button
             html.Div([
@@ -236,16 +258,18 @@ class UILayout():
                 ),
             ], id='coloring-div', style={'display': 'none'}),
             # the canvas - for graph display
-            cyto.Cytoscape(
-                id='interactive-graph',
-                elements=[],
-                layout={'name': 'cose'}, # Force-directed physics layout
-                style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
-                stylesheet=[
-                    # Basic styling to make labels visible
-                    {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
-                    {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
-                ])
+            html.Div(id='graph-wrapper', children=[
+                cyto.Cytoscape(
+                    id='interactive-graph',
+                    elements=[],
+                    layout={'name': 'cose'}, # Force-directed physics layout
+                    style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
+                    stylesheet=[
+                        # Basic styling to make labels visible
+                        {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
+                        {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
+                    ])
+            ]),
         ], id='graph-div', style={'display': 'block'}),
 
         # everything sudoku related
@@ -281,6 +305,9 @@ class UILayout():
                     html.Label("number to place (0 for nothing)"),
                     dcc.Input(
                         id='sudoku-num-input',
+                        min=0,
+                        max=0, # a temporary value 
+                        step=1,
                         type='number',
                         placeholder='number to place',
                     ),

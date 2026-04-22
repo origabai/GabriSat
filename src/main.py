@@ -9,23 +9,6 @@ from sys import setrecursionlimit
 
 from webbrowser import open as webopen
 
-
-def benchmark_times():
-    print("Starting time benchmark")
-    print(
-        "Average time to 20-color a 40 vertex graph:",
-        test_time(GraphColoring.generate(), 40),
-    )
-    print(
-        "Average time to find a hamiltonian cycle on a 25 vertex graph:",
-        test_time(HamiltonianCycle.generate(), 25),
-    )
-    print(
-        "Average time to solve a 9x9 sudoku:",
-        test_time(Sudoku.generate(), 9),
-    )
-
-
 """runs loop for displaying output"""
 
 
@@ -40,16 +23,7 @@ def vis():
 def main():
     setrecursionlimit(3000)
     print("WELCOME TO VERY EPIC SAT SOLVER")
-    print("What would you like to do?")
-    print("1 - Benchmark solving times")
-    print("2 - View visualizer")
-    action = input("")
-    if action == "1":
-        benchmark_times()
-    elif action == "2":
-        vis()
-    else:
-        print("Not a valid option")
+    vis()
 
 
 if __name__ == "__main__":
