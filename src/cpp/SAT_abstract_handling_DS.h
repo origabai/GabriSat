@@ -29,6 +29,12 @@ class SATHandlingDS{
     // should return whether the current assignment has hope to be extended to a valid one
     virtual bool valid(void) = 0;
 
+    // optional, should return whether to fork the assignment of the current variable
+    // receives as input the current number of operating processes
+    virtual bool do_fork(int num_processes){
+        return false;
+    }
+
 };
 
 #endif

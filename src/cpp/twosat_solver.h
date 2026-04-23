@@ -1,3 +1,5 @@
+#ifndef TWOSAT_SOLVER
+#define TWOSAT_SOLVER
 #include "constants.h"
 #include "SAT.h"
 #include<vector>
@@ -152,3 +154,4 @@ class TwoSATSolver : AbstractSATSolver {
         return ans;
     }
 };
+#endif

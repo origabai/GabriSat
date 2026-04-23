@@ -10,6 +10,7 @@ the executable should be named communication.exe
 #include "constants.h"
 #include "improved_backtracking.cpp"
 #include "backtracking_2sat_2furious.cpp"
+#include "backtracking_threaded.cpp"
 using namespace std;
 
 
@@ -17,7 +18,8 @@ using namespace std;
 // add an entry to this map every time you add a new solver
 map<string, function<AbstractSATSolver*(int)>> name_to_solver_map = {
     {"ImprovedBacktrackingSolver", [](int n){return new ImprovedBacktrackingSolver(n);}},
-    {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}}
+    {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}},
+    {"ThreadedSolver", [](int n){return new ThreadedSolver(n);}},
 };
 
 /*
