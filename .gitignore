@@ -1,5 +1,6 @@
 __pycache__/
 .vscode/
 src/cpp/communication.exe
+src/cpp/communication
 *.in
 *.out

@@ -21,6 +21,8 @@ class GraphColoring(Graph, SATReducibleProblem):
 
     def validate(self, sol):
         # check all colors are valid
+        if None in sol:
+            return False
         for x in sol:
             if x < 0 or x >= self.max_colors:
                 return False

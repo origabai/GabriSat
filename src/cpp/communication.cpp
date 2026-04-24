@@ -73,6 +73,9 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
 // outputs the solution array, or UNSAT if there is no solution
 int main(int argc, char *argv[]){
     ios_base::sync_with_stdio(false);
+    // argc = 4;
+    // const char *aaa[] = {"communication", "/home/origabai/GabriSat/src/lyqndderry.in","/home/origabai/GabriSat/src/lyqndderry.out","ThreadedSolver"};
+    // argv = const_cast<char**>(aaa);
     if (argc < 4){
         cerr << "invalid command arguments\n";
         return 1;

@@ -45,6 +45,10 @@ class Sudoku(SATReducibleProblem):
             for j in range(len(board)):
                 row.append(board[i][j])
                 col.append(board[i][j])
+            if None in row:
+                return False
+            if None in col:
+                return False
             row.sort()
             col.sort()
             if (row != [i for i in range(len(board))]):

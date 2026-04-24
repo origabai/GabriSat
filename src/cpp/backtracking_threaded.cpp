@@ -1,3 +1,4 @@
+#include<iostream>
 #include "SAT.h"
 #include "SAT_abstract_backtracker.h"
 #include "SAT_abstract_handling_DS.h"
@@ -119,6 +120,7 @@ class SATHandler_Threaded : public SATHandlingDS{
             if (clause.sat > 0){
                 continue;
             }
+            std::cout << getpid() << " " << __LINE__ << std::endl;
             if (value == SAT_TRUE){
                 if (clause.pos_variables.count(curr_var)){
                     // the clause is now satisfied
@@ -227,6 +229,7 @@ class SATHandler_Threaded : public SATHandlingDS{
 
     bool do_fork(int num_processes) override{
         return (num_processes < MAX_PROCESSES);
+        // return false;
     }
 };
 

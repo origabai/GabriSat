@@ -1,0 +1,4 @@
+#!/bin/bash
+# this file should contain the compilation command used to create communication.exe
+
+g++ -static -Ofast communication.cpp -o communication
