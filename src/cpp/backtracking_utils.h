@@ -72,6 +72,11 @@ class GeneralSegmentTreeDS {
     pair<int, T> getmin(){
         return seg[1];
     }
+
+    // returns the value at the index (like a vector)
+    T get_value(int ind) {
+        return seg[ind + N];
+    }
 };
 
 bool lesscomp(int l, int r) {return l < r;}

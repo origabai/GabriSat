@@ -103,7 +103,7 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
     // undoes the last change made, and updates changes accordingly
     void undo() override {
         if (this->changes.empty()) {
-            throw std::runtime_error("vector is empty! nothing to undo!");
+            throw std::runtime_error("no changes to undo!");
         }
         auto [ind, value] = this->changes.top();
         this->changes.pop();

@@ -25,7 +25,7 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         auto res = st.insert(std::forward<Args>(args)...);
         if (res.second) {// if was actually added
             // true for inserting, res.first is the element added
-            this->changes.push(pair<bool, int>(true, res.first));
+            this->changes.push(pair<bool, T>(true, res.first));
         }
         return res;// forwarding the return value
     }
@@ -34,7 +34,7 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         size_t res = st.erase(value);
         if (res > 0) {// if was actually erased
             // false for erasing
-            this->changes.push(pair<bool, int>(false, value));
+            this->changes.push(pair<bool, T>(false, value));
         }
         return res;// forwarding the return value
     }
@@ -43,14 +43,14 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         T value = *it; // a copy because we will erase it
         auto nextIt = data.erase(it);
         // false for erasing
-        this->changes.push(pair<bool, int>(false, value));
+        this->changes.push(pair<bool, T>(false, value));
         return nextIt;
     }
 
     // undoes the last change made, and updates changes accordingly
     void undo() override {
         if (this->changes.empty()) {
-            throw std::runtime_error("set is empty! nothing to undo!");
+            throw std::runtime_error("no changes to undo!");
         }
         auto [is_insert, value] = this->changes.top();
         this->changes.pop();
