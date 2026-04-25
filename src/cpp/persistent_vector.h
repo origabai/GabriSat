@@ -10,7 +10,7 @@
 // a wrapper for vector that supports rollbacks
 // use the issue_ticket() method to get an identifier, and then you can call rollback with that
 // ticket, and rollback to that very point. you can also use the undo() method to undo the last change
-// doesn't support iterable
+// be careful with iterating over it by reference, as such changes won't affect the rollback functionality
 template<class T>
 class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
     private:
@@ -115,9 +115,13 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
         vec[ind] = value;
     }
 
-    size_t size() {
-        return vec.size();
-    }
+    size_t size() { return vec.size(); }
+    
+    bool empty() { return vec.empty(); }
+
+    auto begin() { return vec.begin(); }
+
+    auto end() { return vec.end(); }
 };
 
 #endif
