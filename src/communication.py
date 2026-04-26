@@ -22,7 +22,7 @@ class CPP_SATSolver(AbstractSATSolver):
     """
     def __init__(self, num_variables, solver_name):
         super().__init__(num_variables)
-        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication"
+        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication.exe"
         self.solver_name = solver_name
         
     def solve(self):
