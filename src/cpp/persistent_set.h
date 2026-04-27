@@ -24,8 +24,8 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         // still black magic, forwarding the arguments
         auto res = st.insert(std::forward<Args>(args)...);
         if (res.second) {// if was actually added
-            // true for inserting, res.first is the element added
-            this->changes.push(pair<bool, T>(true, res.first));
+            // true for inserting, res.first is an iterator to the element added
+            this->changes.push(std::pair<bool, T>(true, *res.first));
         }
         return res;// forwarding the return value
     }
@@ -34,16 +34,16 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         size_t res = st.erase(value);
         if (res > 0) {// if was actually erased
             // false for erasing
-            this->changes.push(pair<bool, T>(false, value));
+            this->changes.push(std::pair<bool, T>(false, value));
         }
         return res;// forwarding the return value
     }
 
     auto erase(typename std::set<T>::iterator it) { // erase by iterator
         T value = *it; // a copy because we will erase it
-        auto nextIt = data.erase(it);
+        auto nextIt = st.erase(it);
         // false for erasing
-        this->changes.push(pair<bool, T>(false, value));
+        this->changes.push(std::pair<bool, T>(false, value));
         return nextIt;
     }
 
@@ -62,7 +62,7 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
         }
     }
 
-    size_t size() { return vec.size(); }
+    size_t size() { return st.size(); }
 
     bool empty() { return st.empty(); }
 
@@ -70,15 +70,17 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
 
     auto end() { return st.end(); }
 
-    auto find(T& key) { return st.find(key); }
+    auto find(T key) { return st.find(key); }
 
-    auto count(T& key) { return st.count(key); }
+    auto count(T key) { return st.count(key); }
     
-    auto contains(T& key) { return st.contains(key); }
+    auto contains(T key) { return st.contains(key); }
 
-    auto lower_bound(T& key) { return st.lower_bound(key); }
+    auto lower_bound(T key) { return st.lower_bound(key); }
     
-    auto upper_bound(T& key) { return st.upper_bound(key); }
+    auto upper_bound(T key) { return st.upper_bound(key); }
+
+    auto rbegin() { return st.rbegin(); }
 };
 
 #endif

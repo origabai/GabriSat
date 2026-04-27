@@ -26,7 +26,7 @@ class AbstractPersistentDT{
     virtual void undo() {}
 
     void rollback(int ticket) {
-        if (ticket > changes.size()) {
+        if (ticket > (int)changes.size()) {
             throw std::invalid_argument("ticket used for rollback is too large!");
         }
         while (ticket < changes.size()) {

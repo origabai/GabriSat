@@ -1,4 +1,4 @@
-#ifndef PERSISTENT_ MULTISET_H
+#ifndef PERSISTENT_MULTISET_H
 #define PERSISTENT_MULTISET_H
 #include "SAT.h"
 #include "abstract_persistence_dt.h"
@@ -23,8 +23,8 @@ class PersistentMultiset : public AbstractPersistentDT<std::pair<bool, T>>{
     auto insert(Args&&... args) {
         // still black magic, forwarding the arguments
         auto res = st.insert(std::forward<Args>(args)...);
-        // always inserted, true for inserting, res.first is the element added
-        this->changes.push(pair<bool, T>(true, res.first));
+        // always inserted, true for inserting, res is an iterator of the element added
+        this->changes.push(std::pair<bool, T>(true, *res));
         return res;// forwarding the return value
     }
 
@@ -33,16 +33,16 @@ class PersistentMultiset : public AbstractPersistentDT<std::pair<bool, T>>{
         size_t res = st.erase(value);
         for (int i = 0; i < count; ++i) {// one for each removal
             // false for erasing
-            this->changes.push(pair<bool, T>(false, value));
+            this->changes.push(std::pair<bool, T>(false, value));
         }
         return res;// forwarding the return value
     }
 
     auto erase(typename std::set<T>::iterator it) { // erase by iterator
         T value = *it; // a copy because we will erase it
-        auto nextIt = data.erase(it);
+        auto nextIt = st.erase(it);
         // false for erasing
-        this->changes.push(pair<bool, T>(false, value));
+        this->changes.push(std::pair<bool, T>(false, value));
         return nextIt;
     }
 
@@ -61,7 +61,7 @@ class PersistentMultiset : public AbstractPersistentDT<std::pair<bool, T>>{
         }
     }
 
-    size_t size() { return vec.size(); }
+    size_t size() { return st.size(); }
 
     bool empty() { return st.empty(); }
 
@@ -69,15 +69,17 @@ class PersistentMultiset : public AbstractPersistentDT<std::pair<bool, T>>{
 
     auto end() { return st.end(); }
 
-    auto find(T& key) { return st.find(key); }
+    auto find(T key) { return st.find(key); }
 
-    auto count(T& key) { return st.count(key); }
+    auto count(T key) { return st.count(key); }
     
-    auto contains(T& key) { return st.contains(key); }
+    auto contains(T key) { return st.contains(key); }
 
-    auto lower_bound(T& key) { return st.lower_bound(key); }
+    auto lower_bound(T key) { return st.lower_bound(key); }
     
-    auto upper_bound(T& key) { return st.upper_bound(key); }
+    auto upper_bound(T key) { return st.upper_bound(key); }
+
+    auto rbegin() { return st.rbegin(); }
 };
 
 #endif

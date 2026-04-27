@@ -18,7 +18,7 @@ class PersistentGeneralSegmentTreeDS : public AbstractPersistentDT<std::pair<int
     GeneralSegmentTreeDS<T, e, comp> seg;
 
     public:
-    PersistentGeneralSegmentTreeDS() {}
+    PersistentGeneralSegmentTreeDS(int size = 0) : seg(size) {}
 
     void update(int ind, T value) {
         T old_value = seg.get_value(ind);
@@ -28,6 +28,14 @@ class PersistentGeneralSegmentTreeDS : public AbstractPersistentDT<std::pair<int
 
     pair<int, T> getmin(){
         return seg.getmin();
+    }
+
+    T get_value(int ind) const {
+        return seg.get_value(ind);
+    }
+
+    size_t size() const {
+        return seg.size();
     }
 
     // undoes the last change made, and updates changes accordingly
