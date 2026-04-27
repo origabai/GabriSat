@@ -30,12 +30,13 @@ template<class T, T e, bool (*comp)(T, T)>
 class GeneralSegmentTreeDS {
     int N;
     vector<pair<int, T>> seg;
+    size_t siz;
     
 
     public:
 
     // size is one more than the maximum value of an index
-    GeneralSegmentTreeDS(int size = 0){
+    GeneralSegmentTreeDS(int size = 0) : siz(size) {
         if (size == 0) return;
         N = 1 << (32 - __builtin_clz(size-1)); // don't worry about it
         seg.resize(2*N);
@@ -54,6 +55,9 @@ class GeneralSegmentTreeDS {
 
     // sets index i to be val
     void update(int i, T val){
+        if (i >= siz) {
+            throw std::invalid_argument("index too large!");
+        }
         seg[i + N] = pair(i, val);
         i += N;
         i /= 2;
@@ -71,6 +75,16 @@ class GeneralSegmentTreeDS {
     // get the min variable (or max or whatever, depends on the implementation)
     pair<int, T> getmin(){
         return seg[1];
+    }
+
+    // returns the value at the index (like a vector)
+    T get_value(int ind) const {
+        return seg[ind + N].second;
+    }
+
+    // the size of the data structure
+    size_t size() const {
+        return siz;
     }
 };
 
