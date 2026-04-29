@@ -87,8 +87,11 @@ class UIUtils:
             "data": {"id": str(next_id), "label": str(next_id), "color": "grey"}
         }
         current_elements.append(new_node)
+        new_graph = self.generate_frontend_graph_object(current_elements)
 
-        return current_elements, {'name': 'cose'}, nodes_list
+        nodes_list.append(html.Option(value=next_id)) # updating the nodes list
+
+        return new_graph, nodes_list
 
     # TODO: replace with better add edge capabilities.
     """
@@ -110,7 +113,7 @@ class UIUtils:
             or target_id not in node_ids
             or source_id == target_id
         ):
-            return no_update, no_update, "Invalid input!", {"color": "red"}
+            return no_update, "Invalid input!", {"color": "red"}
             # Do nothing if source/target are empty or not real, or self edge
 
         # Construct the new edge dictionary and append it to the state
@@ -120,9 +123,10 @@ class UIUtils:
         ):
             current_elements.append(new_edge)
         else:
-            return no_update, no_update, "Edge already exists!", {"color": "red"}
-
-        return current_elements, {'name': 'cose'}, "Edge added successfully!", {"color": "green"}
+            return no_update, "Edge already exists!", {"color": "red"}
+        
+        new_graph = self.generate_frontend_graph_object(current_elements)
+        return new_graph, "Edge added successfully!", {"color": "green"}
 
     """
     returns true iff edge1 and edge 2 are equivalent up to order, id and color
@@ -220,8 +224,9 @@ class UIUtils:
             return self.check_element_color_compliance(element, value)
 
         new_elements = self.color_to_grey(current_elements, compare_color)
+        new_graph = self.generate_frontend_graph_object(new_elements)
         # also changes the settings of the options
-        return next_options, new_elements
+        return next_options, new_graph
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -263,7 +268,7 @@ class UIUtils:
 
         # if erasing:
         if erase_mode["toggled"]:
-            current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements), {'name': 'cose'}
+            current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
             node_ind = None
             for ind, node in enumerate(nodes_list):
                 if int(node['props']['value']) == int(tapped_node["id"]):
@@ -271,7 +276,8 @@ class UIUtils:
             
             if node_ind is not None:
                 nodes_list.pop(node_ind)
-            return current_elements, {'name': 'cose'}, nodes_list
+            new_graph = self.generate_frontend_graph_object(current_elements)
+            return new_graph, nodes_list
         else:
             # check need to color depending on selected color
             trivial_conditions = current_mode != "COLOR" or selected_colour is None
@@ -281,9 +287,9 @@ class UIUtils:
             ):
                 return no_update, no_update, no_update
             # now, recolor when needed:
-            return self.recolor_node(
-                current_elements, selected_colour, tapped_node["id"]
-            ), {'name': 'cose'}, no_update
+            current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
+            new_graph = self.construct_new_graph(current_elements)
+            return new_graph, no_update
 
     """
     generates random graph - returns elements accordingly and updates graph in self.
@@ -301,7 +307,10 @@ class UIUtils:
         size = max(size, RandomGraphMinSize)
         # generates and updates new graph
         self.vis_object.graph = GraphColoring.generate(num_of_nodes=size)
-        return self.generate_initial_graph_data(missing_nodes=[]), {'name': 'cose'}, nodes_list
+        nodes_list = [html.Option(value=str(n)) for n in range(size)]
+        elements = self.generate_initial_graph_data(missing_nodes=[])
+        new_graph = self.generate_frontend_graph_object(elements)
+        return new_graph, nodes_list
 
     """
     function that checks wether edge is connecting between id1 and id2.
@@ -328,11 +337,11 @@ class UIUtils:
     def process_edge_click(self, tapped_edge, current_elements, erase_mode):
         # remove edge if necessary
         if tapped_edge is not None and erase_mode["toggled"]:
-            return self.erase_edge(
-                current_elements, tapped_edge["source"], tapped_edge["target"]
-            ), {'name': 'cose'}
+            current_elements = self.erase_edge(current_elements, tapped_edge["source"], tapped_edge["target"])
+            new_graph = self.generate_frontend_graph_object(current_elements)
+            return new_graph
         # base case - dont respond if un-needed
-        return no_update, no_update
+        return no_update
 
     """
     takes a UI graph element and returns it's color in graph readable format.
@@ -581,7 +590,7 @@ class UIUtils:
     def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
         message: str # success message to return
         color: dict # color of message
-        layout = {'name': 'cose'}
+        new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
         if n_clicks == 0:
             print("i have no clue how to fix this, thats a bug.")
@@ -601,7 +610,8 @@ class UIUtils:
             )
             found_solution, elements = self.solve_problems(problem, original_nodes)
             if found_solution:
-                layout['name'] = 'preset'
+                new_graph.layout['name'] = 'preset'
+                new_graph.elements = elements
 
             if found_solution:
                 message = "Everything good, proceed!"
@@ -623,7 +633,7 @@ class UIUtils:
                 color = {"color": "green"}
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, elements, layout, sudoku_board
+        return message, color, new_graph, sudoku_board
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -656,7 +666,9 @@ class UIUtils:
             message = "Leaving? :("
             # don't show anything
             color = {'color' : 'black'}
-        return message, color, graph_style, sudoku_style, coloring_style, current_elements
+        
+        new_graph = self.generate_frontend_graph_object(current_elements)
+        return message, color, graph_style, sudoku_style, coloring_style, new_graph
     
     """
     creates html elements of an empty sudoku board of size x size, initialized with board
@@ -835,3 +847,36 @@ class UIUtils:
         nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
         max_node = max(nodes)
         return max_node, max_node
+    """
+    called whenever the sudoku number input changes and makes sure its legal
+    """
+    def sudoku_number_input_changed(self, number, size: str):
+        if self.validate_number_field_change(number, 0, int(size)):
+            if number is None: # empty
+                return None
+            return int(number) # make it an int if float or string
+        return 0 # if illegal
+    
+    """
+    generates a new frontend cytoscape graph object, with the given elements
+    """
+    def generate_frontend_graph_object(self, elements):
+        return cyto.Cytoscape(
+            # key=str(uuid4()),
+            id='interactive-graph',
+            elements=elements,
+            layout={
+                'name': 'cose',
+                'fit': True,
+                'animate': False,
+                'padding': 30,
+                'stop': 'function(event){ event.cy.resize(); }', # ui magic
+            },
+            style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
+            stylesheet=[
+                # Basic styling to make labels visible
+                {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
+                {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
+            ],
+        )
+        

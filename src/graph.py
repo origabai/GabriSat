@@ -1,4 +1,5 @@
 from random import randint
+from DSU import DSU
 
 """
 An undirected graph
@@ -35,3 +36,17 @@ class Graph:
             edge = input("Enter edge: ").split(" ")
             edge = [int(s) for s in edge]
             self.edges.append(edge)
+
+    # returns True whether the graph is connected, and False otherwise
+    def is_connected(self):
+        ds = DSU(self.num_nodes)
+        for e in self.edges:
+            ds.unite(e[0], e[1])
+        return ds.components() == 1
+    
+    # generates self.adj, the adjacency matrix for the graph
+    def generate_adjacency_matrix(self):
+        self.adj = [[False for i in range(self.num_nodes)] for i in range(self.num_nodes)]
+        for e in self.edges:
+            self.adj[e[0]][e[1]] = True
+            self.adj[e[1]][e[0]] = True
