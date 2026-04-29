@@ -120,7 +120,6 @@ class SATHandler_Threaded : public SATHandlingDS{
             if (clause.sat > 0){
                 continue;
             }
-            std::cout << getpid() << " " << __LINE__ << std::endl;
             if (value == SAT_TRUE){
                 if (clause.pos_variables.count(curr_var)){
                     // the clause is now satisfied

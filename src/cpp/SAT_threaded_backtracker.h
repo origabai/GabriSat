@@ -49,16 +49,14 @@ class AbstractThreadedSolver : public AbstractSATSolver{
     
     std::vector<int> solve() override {
         handler->initialize(num_variables, clauses);
+        setpgid(0,0);
         if (fork() == 0){
             // child
-            std::cout << getpid() << " " << __LINE__ << std::endl;
             bool fl = rec_solve();
             exit(0);
         } else {
             // root process
-            std::cout << getpid() << " " << __LINE__ << " " << *solution_found << std::endl;
             wait(0);
-            std::cout << getpid() << " " << __LINE__ << " " << *solution_found << std::endl;
             if (!*solution_found){
                 return {};
             }
@@ -66,14 +64,12 @@ class AbstractThreadedSolver : public AbstractSATSolver{
             for (int i=0;i<num_variables;i++){
                 ans[i] = solution_space[i];
             }
-            std::cout << getpid() << " " << __LINE__ << std::endl;
             return ans;
         }
     }
     
     // returns whether a solution was found
     bool rec_solve() {
-        std::cout << getpid() << " " << __LINE__ << std::endl;
         auto [curr_var, truthval] = handler->next_var();
         // base case
         if (curr_var == NO_NEXT_VAR){
@@ -85,9 +81,7 @@ class AbstractThreadedSolver : public AbstractSATSolver{
                     solution_space[i] = ans[i];
                 }
                 // a solution was found, murder everyone
-                std::cout << getpid() << " " << __LINE__ << std::endl;
                 kill(0, SIGUSR1);
-                std::cout << getpid() << " " << __LINE__ << std::endl;
                 exit(0);
             } else {
                 return false;
@@ -101,7 +95,6 @@ class AbstractThreadedSolver : public AbstractSATSolver{
     }
 
     bool fork_assignment(int curr_var){
-        std::cout << getpid() << " " << __LINE__ << std::endl;
         if (*solution_found){
             for (;;){
                 sched_yield();
@@ -119,7 +112,6 @@ class AbstractThreadedSolver : public AbstractSATSolver{
             handle_assignment(curr_var, SAT_TRUE);
             // wait for all children to exit
             while (wait(0) > 0);
-            std::cout << getpid() << " " << __LINE__ << std::endl;
             return false;
         }
     }
