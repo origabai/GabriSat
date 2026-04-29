@@ -288,7 +288,7 @@ class UIUtils:
                 return no_update, no_update
             # now, recolor when needed:
             current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
-            new_graph = self.construct_new_graph(current_elements)
+            new_graph = self.generate_frontend_graph_object(current_elements)
             return new_graph, no_update
 
     """
@@ -610,8 +610,9 @@ class UIUtils:
             )
             found_solution, elements = self.solve_problems(problem, original_nodes)
             if found_solution:
+                new_graph = self.generate_frontend_graph_object(elements, eliminate_positions=False)
                 new_graph.layout['name'] = 'preset'
-                new_graph.elements = elements
+                # new_graph.elements = elements
 
             if found_solution:
                 message = "Everything good, proceed!"
@@ -856,10 +857,11 @@ class UIUtils:
         return 0 # if illegal
     
     """
-    generates a new frontend cytoscape graph object, with the given elements
+    generates a new frontend cytoscape graph object, with the given elements,
+    if eliminate_positions is given as True, all nodes manual set positions will be deleted (this is the default behavior)
     """
-    def generate_frontend_graph_object(self, elements):
-        return cyto.Cytoscape(
+    def generate_frontend_graph_object(self, elements, eliminate_positions: bool = True):
+        new_graph = cyto.Cytoscape(
             # key=str(uuid4()),
             id='interactive-graph',
             elements=elements,
@@ -870,11 +872,18 @@ class UIUtils:
                 'padding': 30,
                 'stop': 'function(event){ event.cy.resize(); }', # ui magic
             },
-            style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
+            style= {'width': '800px', 'height': '400px', 'border': '1px solid black'},
             stylesheet=[
                 # Basic styling to make labels visible
                 {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
                 {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
             ],
         )
+        if eliminate_positions: # removing all of the positions of the nodes
+            for element in new_graph.elements:
+                if not self.is_node(element): # skip non nodes
+                    continue
+                if 'position' in element:
+                    del element['position']
+        return new_graph
         
