@@ -127,7 +127,38 @@ class GraphColoring(Graph, SATReducibleProblem):
                     [], [edge[0] * self.max_colors + j, edge[1] * self.max_colors + j]
                 )
 
-        # add clauses to satisfy inital colors
+        # add colors to satisfy symmetry 
+        
+        SYMM_CHOICE = True
+        temp_colors = []
+        
+        
+        #print("missing colors are:", missing_colors)
+        if SYMM_CHOICE:
+            missing_colors = self.find_missing_colors()
+            #print("I HAVEW ENETERED!!!!")
+            degrees = self.find_highest_degree_nodes()
+            colors = list(missing_colors)
+            
+            if len(colors) == self.max_colors:
+                temp_colors.append((degrees[0][1], 0))
+                self.colors[degrees[0][1]] = 0
+            '''
+            #print(f"the missing colors are {colors}")
+            cur_node = 0
+            cur_color = 0
+            #print("before:", self.colors)
+            while cur_node < self.max_colors and cur_color < len(colors):
+                if self.colors[degrees[cur_node][1]] == None:
+                    temp_colors.append((degrees[cur_node][1], cur_color))
+                    self.colors[degrees[cur_node][1]] = cur_color
+                    cur_color += 1
+                cur_node += 1
+            #print("after:", self.colors)
+            '''
+        
+        
+        #add clauses to satisfy initial colors
         for i in range(self.num_nodes):
             if self.colors[i] is None:
                 continue
@@ -136,6 +167,12 @@ class GraphColoring(Graph, SATReducibleProblem):
                     sat.addClause([i * self.max_colors + j], [])
                 else:
                     sat.addClause([], [i * self.max_colors + j])
+                    
+        #remove temporary color modifiers:
+        
+        for vertex, _ in temp_colors:
+            self.colors[vertex] = None
+        
         return sat
 
     # takes a solution from the reduction to a SAT problem and returns a solution to this problem
@@ -151,3 +188,21 @@ class GraphColoring(Graph, SATReducibleProblem):
                     answer[i] = j
                     break
         return answer
+    
+    def find_highest_degree_nodes(self) -> list[int]:
+        degrees = [[0, i] for i in range(self.num_nodes)]
+        for e in self.edges:
+            degrees[e[0]][0] += 1
+            degrees[e[1]][0] += 1
+        degrees.sort(key=lambda tup : tup[0])
+        return degrees
+    
+    def find_missing_colors(self) -> list[int]:
+        missing_colors = set(range(self.max_colors))
+        for v in self.colors:
+            if v is not None:
+                try:
+                    missing_colors.remove(v)
+                except:
+                    pass
+        return missing_colors

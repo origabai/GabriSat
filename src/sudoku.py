@@ -152,7 +152,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     
     
     @classmethod
-    def generate(self, size = 2, solver = DEFAULT_SOLVER):
+    def generate(self, size = 4, solver = DEFAULT_SOLVER):
         return self.initializeRandomly(size, satsolver=solver)
 
     # returns a new GraphColoring object with a reduction from the sudoku board

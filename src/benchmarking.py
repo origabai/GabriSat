@@ -5,10 +5,24 @@ from time_tester import test_time
 
 def benchmark_times():
     print("Starting time benchmark")
+    '''
     print(
-        "Average time to 20-color a 40 vertex graph:",
-        test_time(GraphColoring.generate(), 40),
+        "Average time to find a hamiltonian cycle on a 40 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 40),
     )
+    
+    print(
+        "Average time to 23-color a 45 vertex graph:",
+        test_time(GraphColoring.generate(), 45),
+    )
+    '''
+    print(
+        "Average time to solve a 16x16 sudoku:",
+        test_time(Sudoku.generate(), 16),
+    )
+    
+    print("no time for more tests lol")
+    '''
     print(
         "Average time to find a hamiltonian cycle on a 40 vertex graph:",
         test_time(HamiltonianCycle.generate(), 40),
@@ -17,6 +31,7 @@ def benchmark_times():
         "Average time to solve a 16x16 sudoku:",
         test_time(Sudoku.generate(), 16),
     )
+    '''
 
 def main():
     benchmark_times()
