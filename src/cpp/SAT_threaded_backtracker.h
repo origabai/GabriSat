@@ -23,7 +23,7 @@ std::mutex *solution_space_mutex;
 // the pid of the root process
 int rootpid;
 
-void sighandler(int){
+void solutionfound_handler(int){
     if (getpid() != rootpid){
         exit(0);
     }
@@ -43,7 +43,7 @@ class AbstractThreadedSolver : public AbstractSATSolver{
         solution_space = (int*)mmap(NULL, sizeof(int) * num_variables, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
         solution_space_mutex = (std::mutex*) mmap(NULL, sizeof(std::mutex), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
         rootpid = getpid();
-        signal(SIGUSR1, sighandler);
+        signal(SIGUSR1, solutionfound_handler);
     }
     
     
@@ -52,7 +52,8 @@ class AbstractThreadedSolver : public AbstractSATSolver{
         setpgid(0,0);
         if (fork() == 0){
             // child
-            bool fl = rec_solve();
+            rec_solve();
+            while (wait(0) > 0);
             exit(0);
         } else {
             // root process
@@ -67,10 +68,33 @@ class AbstractThreadedSolver : public AbstractSATSolver{
             return ans;
         }
     }
+
+    void rec_solve() {
+        auto [v1, v2] = handler->fork_variable(*num_processes);
+        int truthval = SAT_TRUE;
+        if (rand()%2==0) truthval = SAT_FALSE;
+        if (v1 != NO_NEXT_VAR){
+            // fork the assignments of variables
+            if (fork() == 0){
+                // child
+                (*num_processes)++;
+                assign_variable(v1, truthval);
+                (*num_processes)--;
+                while (wait(0) > 0);
+                exit(0);
+            } else {
+                // parent
+                assign_variable(v2, truthval);
+            }
+        } else {
+            // normal assignment
+            auto [curr_var, truthval] = handler->next_var();
+            assign_variable(curr_var, truthval);   
+        }
+    }
     
-    // returns whether a solution was found
-    bool rec_solve() {
-        auto [curr_var, truthval] = handler->next_var();
+    // assigns a variable both true and false
+    void assign_variable(int curr_var, int truthval){
         // base case
         if (curr_var == NO_NEXT_VAR){
             if (handler->valid()){
@@ -84,40 +108,14 @@ class AbstractThreadedSolver : public AbstractSATSolver{
                 kill(0, SIGUSR1);
                 exit(0);
             } else {
-                return false;
+                return;
             }
         }
-        if (handler->do_fork(*num_processes)){
-            return fork_assignment(curr_var);
-        } else {
-            return regular_assignment(curr_var, truthval);
-        }
-    }
-
-    bool fork_assignment(int curr_var){
-        if (*solution_found){
-            for (;;){
-                sched_yield();
-            }
-        }
-        int cpid = fork();
-        if (cpid == 0){
-            // child
-            (*num_processes)++;
-            handle_assignment(curr_var, SAT_FALSE);
-            (*num_processes)--;
-            exit(0);
-        } else {
-            // parent
-            handle_assignment(curr_var, SAT_TRUE);
-            // wait for all children to exit
-            while (wait(0) > 0);
-            return false;
-        }
+        regular_assignment(curr_var, truthval);
     }
 
     // regular single process assignment
-    bool regular_assignment(int curr_var, int truthval){
+    void regular_assignment(int curr_var, int truthval){
         // assigns suggested value
         handle_assignment(curr_var, truthval);
 
@@ -130,17 +128,17 @@ class AbstractThreadedSolver : public AbstractSATSolver{
 
         handle_assignment(curr_var, truthval);
 
-        return false;
+        return;
     }
 
     // returns whether a solution was found
-    bool handle_assignment(int curr_var, int truthval){
+    void handle_assignment(int curr_var, int truthval){
         handler->upd_assignment(curr_var, truthval);
         if (handler->valid()){
             rec_solve();
         }
         handler->rollback_assignment();
-        return false;
+        return;
     }
 };
 

@@ -226,9 +226,26 @@ class SATHandler_Threaded : public SATHandlingDS{
         return valid_bit;
     }
 
-    bool do_fork(int num_processes) override{
-        return (num_processes < MAX_PROCESSES);
-        // return false;
+    virtual pair<int,int> fork_variable(int num_processes){
+        if (num_processes >= MAX_PROCESSES) return {NO_NEXT_VAR, NO_NEXT_VAR};
+        if (big_active_clause_sizes.size() == 0){
+            // solve 2sat instead
+            return {NO_NEXT_VAR, NO_NEXT_VAR};
+        }
+        auto [i,v] = minqryds.getmin();
+        if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
+            // this means everything is already satisfied
+            return {NO_NEXT_VAR, NO_NEXT_VAR};
+        } if (clause_list[i].pos_variables.size() >= 2){
+            auto it = clause_list[i].pos_variables.begin();
+            ++it;
+            return {*clause_list[i].pos_variables.begin(), *it};
+        } else if (clause_list[i].neg_variables.size() >= 2){
+            auto it = clause_list[i].neg_variables.begin();
+            ++it;
+            return {*clause_list[i].neg_variables.begin(), *it};
+        }
+        return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
 };
 
