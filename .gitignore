@@ -1,5 +1,4 @@
 __pycache__/
 .vscode/
-src/cpp/communication.exe
 *.in
 *.out
