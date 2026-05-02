@@ -464,7 +464,7 @@ class UIUtils:
     
     def cyclic_positions_from_order(self, nodes_order):
         middle = [400, 250] # half of the graph box size
-        radius = 180 # a bit less then the minimum of middle x and y coordinates
+        radius = 18 * len(nodes_order) # a bit less then the minimum of middle x and y coordinates
         num_of_nodes = len(nodes_order)
         positions = dict()
         for i in range(num_of_nodes):
