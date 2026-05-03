@@ -6,7 +6,7 @@ from random import randint
 from graph_coloring import GraphColoring
 from sudoku import Sudoku
 from hamiltonian_cycle import HamiltonianCycle
-from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions
+from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOptions, SudokuBoxMiddle, SudokuCircleConstant
 from UI_layout import UILayout
 from uuid import uuid4
 from math import pi, sin, cos
@@ -463,15 +463,14 @@ class UIUtils:
     """
     
     def cyclic_positions_from_order(self, nodes_order):
-        middle = [400, 250] # half of the graph box size
-        radius = 18 * len(nodes_order) # a bit less then the minimum of middle x and y coordinates
+        radius = SudokuCircleConstant * len(nodes_order) # a bit less then the minimum of middle x and y coordinates
         num_of_nodes = len(nodes_order)
         positions = dict()
         for i in range(num_of_nodes):
             theta = 2 * i * pi / num_of_nodes
             x = radius * cos(theta)
             y = radius * sin(theta)
-            positions[nodes_order[i]] = [middle[0] + x, middle[1] + y]
+            positions[nodes_order[i]] = [SudokuBoxMiddle[0] + x, SudokuBoxMiddle[1] + y]
         return positions
 
     """
