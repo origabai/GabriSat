@@ -12,6 +12,7 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
 
     
     std::vector<int> solve() override {
+        std::cout << "cpp called solve\n";
         handler->initialize(num_variables, clauses);
         return rec_solve();
     }

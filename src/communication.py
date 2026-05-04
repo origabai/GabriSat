@@ -43,8 +43,8 @@ class CPP_SATSolver(AbstractSATSolver):
         # read output file
         sans = open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]
-        os.remove(fname + ".in")
-        os.remove(fname + ".out")
+        # os.remove(fname + ".in")
+        # os.remove(fname + ".out")
         if (sans[0] == "UNSAT"):
             return None
         else:

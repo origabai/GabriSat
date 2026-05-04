@@ -115,8 +115,10 @@ testcase_answers = [
 # returns true is success, false if failure
 def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
     try:
+        print("solver tried to call solve")
         sol = problem.solve()
     except Exception:
+        print("exception")
         return False
     if (sol is None):
         if (answer):

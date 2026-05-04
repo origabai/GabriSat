@@ -8,6 +8,7 @@ class AbstractBacktrackingSolver(AbstractSATSolver):
         self.clauses = []
     
     def solve(self) -> list[int] | None:
+        print("python called solved")
         self.handler = self.handler_type(self.num_variables,self.clauses)
         return self.rec_solve()
 
