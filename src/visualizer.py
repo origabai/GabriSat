@@ -62,7 +62,8 @@ class Visualizer:
         logging.getLogger('werkzeug').setLevel(logging.ERROR)
         
         #start the app
-        app = Dash(__name__)
+        app = Dash(__name__, title="gabrisat")
+        app._favicon = "favicon.png"
         helper = UIUtils(app, self)
         app.layout = helper.layout
         app.run()
