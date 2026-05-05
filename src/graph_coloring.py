@@ -118,7 +118,7 @@ class GraphColoring(Graph, SATReducibleProblem):
         return set(self.colors) == set([None])
     
     def calculate_max_clique(self, vertices):
-        return min(1, 10 - (vertices // 10))
+        return min(6, (max(1, 10 - (vertices // 10))))
     
     # reduces the problem to a SAT, returns a SAT solver of the type self has
     def reduce_to_SAT(self):
