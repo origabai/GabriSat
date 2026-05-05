@@ -108,6 +108,10 @@ class GraphColoring(Graph, SATReducibleProblem):
 
         return self.reconstruct_solution_from_reduction(solution)
 
+    
+    def check_colors(self):
+        return set(self.colors) == set([None])
+    
     # reduces the problem to a SAT, returns a SAT solver of the type self has
     def reduce_to_SAT(self):
         sat = self.solver(self.max_colors * self.num_nodes)
@@ -126,6 +130,10 @@ class GraphColoring(Graph, SATReducibleProblem):
                 sat.addClause(
                     [], [edge[0] * self.max_colors + j, edge[1] * self.max_colors + j]
                 )
+
+        #symmetry
+        
+        print(self.check_colors())
 
         # add clauses to satisfy inital colors
         for i in range(self.num_nodes):
