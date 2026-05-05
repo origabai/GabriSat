@@ -1,6 +1,8 @@
 from graph import Graph
-from constants import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER, SYMMETRY_TOGGLE, MAX_CLIQUE_SIZE
+from itertools import combinations
 from random import randint
+from tqdm import tqdm
 from SAT_reducible_problem import SATReducibleProblem
 
 
@@ -108,6 +110,9 @@ class GraphColoring(Graph, SATReducibleProblem):
 
         return self.reconstruct_solution_from_reduction(solution)
 
+    def remove_temporary_colors(self, temp):
+        for c in temp:
+            self.colors[c] = None
     
     def check_colors(self):
         return set(self.colors) == set([None])
@@ -133,8 +138,37 @@ class GraphColoring(Graph, SATReducibleProblem):
 
         #symmetry
         
-        print(self.check_colors())
+        #temporary color storage for removal after sat generation:
+        temporary_colors = []
+        
+        #clique search
+        if SYMMETRY_TOGGLE and self.check_colors():
+            
+            #parameter definitions - for common use
+            found_clique = False
+            clique = []
+            edges_set = set([tuple(e) for e in self.edges])
+            clique_size = min(self.max_colors, MAX_CLIQUE_SIZE)
+            
+            #search of cliques
+            while not found_clique:
+                potential_cliques = list(combinations(range(self.max_colors), clique_size))
+                for potential in potential_cliques:
+                    is_clique = True
+                    for e in combinations(potential, 2):
+                        if e not in edges_set:
+                            is_clique = False
+                    if is_clique:
+                        clique = potential
+                        found_clique = True
+                        break
+                if not found_clique:
+                    clique_size -= 1
 
+            for v in range(len(clique)):
+                self.colors[clique[v]] = v
+                temporary_colors.append(clique[v])
+        
         # add clauses to satisfy inital colors
         for i in range(self.num_nodes):
             if self.colors[i] is None:
@@ -144,6 +178,9 @@ class GraphColoring(Graph, SATReducibleProblem):
                     sat.addClause([i * self.max_colors + j], [])
                 else:
                     sat.addClause([], [i * self.max_colors + j])
+                    
+        self.remove_temporary_colors(temporary_colors)
+        
         return sat
 
     # takes a solution from the reduction to a SAT problem and returns a solution to this problem
