@@ -1,0 +1,36 @@
+body {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+body > div {
+  width: 100%;
+  max-width: 900px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#control-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+input[type="number"],
+input[type="text"] {
+  width: 150px !important;
+}
+
+#graph-wrapper, #graph-div {
+  width: 100%;
+}
+
+#interactive-graph {
+  width: 800px !important;
+}

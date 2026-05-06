@@ -69,7 +69,8 @@ class UILayout():
             Output('success_message', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
-            Input('btn-end', 'n_clicks'),
+            Input('btn-end1', 'n_clicks'),
+            Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'value'),
@@ -134,7 +135,7 @@ class UILayout():
             State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'children'),
             State({'type': 'sudoku-cell', 'row': MATCH, 'col': MATCH, 'version': MATCH}, 'style'),
             State('sudoku-size-selector', 'value'),
-            State('sudoku-num-input', 'value'),
+            State('sudoku-num-input', 'children'),
             prevent_initial_call=True
         )(helper_object.sudoku_cell_clicked)
 
@@ -174,17 +175,18 @@ class UILayout():
     this is default layout of the UI
     '''
     default_layout = html.Div([
-        html.H3("SAT solver UI"),
+        html.H1("SAT solver UI"),
         html.H3("welcome to SAT UI!", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
         dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
-        
+
+        # storage for current sudoku number
+        dcc.Store(id="sudoku_num", storage_type =  "memory", data = {'number': 0}),
 
         #do task selector and button
         html.Div([
-            html.Button('Do task', id='btn-end', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             html.Label("  Select task:"),
             dcc.Dropdown(
                 id='end-task-selector',
@@ -204,33 +206,31 @@ class UILayout():
         
         #everything graph related
         html.Div([
-            # add node button
-            html.Div([
-                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
-            ], style={'marginBottom': '10px'}),
             
             # Control Panel for Adding Edges
             html.Div([
-                dcc.Input(id='input-edge-source', type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                dcc.Input(id='input-edge-target', type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                dcc.Input(id='input-edge-source', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
+                dcc.Input(id='input-edge-target', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
                 html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], id='control-panel',style={'marginBottom': '20px'}),
             
             # random graph size input
-            dcc.Input(id='graph-size-input', type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
+            dcc.Input(id='graph-size-input', style={'width': '350px'},  type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
 
-            # erase and random button
+            # add, erase and random button
             html.Div([
+                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
-            ], style={'marginBottom': '20px'}),
-            
+            ], className='button-row', style={'marginBottom': '20px'}),
+
             #colors in colors control panel
             html.Div([
                 html.Label("colors in coloring", id = 'label_1'),
                 dcc.Dropdown(
                     id='color_num_selector',
+                    style={'width': '300px'},
                     options=[
                         # 'label' is what the user sees, 'value' is what Python receives
                         {'label': '1', 'value': '1'},
@@ -248,6 +248,7 @@ class UILayout():
                 html.Label("Change node color", id = 'label_2'),
                 dcc.Dropdown(
                     id='multi-colour-selector',
+                    style={'width': '300px'},
                     options = [{'label': 'None (none selected)', 'value': None},
                         {'label': 'grey (no colour)', 'value': 'grey'},
                         {'label': 'red (0)', 'value': 'red'},
@@ -256,7 +257,11 @@ class UILayout():
                     value=None, # The default selected array
                     multi=False,  # This strictly enforces multiple-choice behavior
                 ),
-            ], id='coloring-div', style={'display': 'none'}),
+            ], id='coloring-div', style={'display': 'none', 'marginBottom': '20px'}),
+
+            # do task button
+            html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
                 cyto.Cytoscape(
@@ -291,6 +296,7 @@ class UILayout():
                 persistence=True,
                 persistence_type='session',
             ),
+            
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
                 # a button for randomly initializing the board
@@ -303,15 +309,12 @@ class UILayout():
                 # the number choice for the sudoku
                 html.Div([
                     html.Label("number to place (0 for nothing)"),
-                    dcc.Input(
-                        id='sudoku-num-input',
-                        min=0,
-                        max=0, # a temporary value 
-                        step=1,
-                        type='number',
-                        placeholder='number to place',
-                    ),
+                    html.H3("7", id="sudoku-num-input"),
                 ], style={'width': '300px', 'marginTop': '20px'}),
+
+                # do task button
+                html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board', style={'display': 'none'})
             ], id='sudoku-board-div', style={'display': 'none'}),

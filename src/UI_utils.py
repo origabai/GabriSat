@@ -587,12 +587,12 @@ class UIUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
+    def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
         message: str # success message to return
         color: dict # color of message
         new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
-        if n_clicks == 0:
+        if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
             return "this is unusual...", {"color": "yellow"}, no_update, no_update
 
@@ -836,9 +836,9 @@ class UIUtils:
     def add_edge_input_changed(self, value, nodes_list):
         nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
         if value in nodes or value is None or value == "": # legal input
-            return {'color' : 'black'}
+            return {'color' : 'black', 'width': '200px'}
         else:
-            return {'color': 'red'}
+            return {'color': 'red', 'width': '200px'}
         
     # called when the list of graph nodes changes, and changes the max of the edge input fields
     def nodes_list_changed(self, nodes_list):
