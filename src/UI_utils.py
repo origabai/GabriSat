@@ -10,6 +10,7 @@ from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOpti
 from UI_layout import UILayout
 from uuid import uuid4
 from math import pi, sin, cos
+from time import time
 
 
 """
@@ -683,6 +684,17 @@ class UIUtils:
                 cell_style = { # creating the style for the cell
                         "fontSize": f"{27 / size}rem", 
                         "fontWeight": "bold",
+                        "fontFamily": "monospace",
+                        "width": "100%",
+                        "height": "100%",
+                        "minWidth": "0",
+                        "minHeight": "0",
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "whiteSpace": "nowrap",
+                        "textOverflow": "clip",
                         "aspect ratio": "1 / 1",
                         "font size": "{1px}",
                         "borderTop": "1px solid #ccc", # thin gray border
@@ -693,6 +705,7 @@ class UIUtils:
                         "margin": "0",
                         "padding": "0",
                         "color": "black",
+                        "boxSizing": "border-box",
                 }
                 # making the borders of the squares
                 if row % square_size == 0: # first of the row
@@ -780,6 +793,11 @@ class UIUtils:
         board_children = self.create_sudoku_board(int(size), sudoku.board)
         return message, color, board_children
     
+    def clear_sudoku_board(self, n_clicks, size: str):
+        sudoku = Sudoku([[None for i in range(int(size))] for j in range(int(size))])
+        board_children = self.create_sudoku_board(int(size), sudoku.board)
+        return board_children
+
     """
     takes a frontend sudoku board as a list of cells and the size of the board,
     and makes a backend board. treats non black cells as empty ones
@@ -877,4 +895,38 @@ class UIUtils:
                 {'selector': 'edge', 'style': {'curve-style': 'bezier', 'target-arrow-shape': 'none', 'line-color' : 'data(color)'}}
             ],
         )
+    
+    def select_problem(self, n_clicks_hamcycle, n_clicks_coloring, n_clicks_sudoku):
+        triggered = ctx.triggered_id
+        ham_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        col_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        sud_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        mapping = {
+            'btn-hamcycle': 'HAMPATH',
+            'btn-graphcoloring': 'COLOR',
+            'btn-sudoku': 'SUDOKU',
+        }
+        if (triggered == 'btn-hamcycle'):
+            ham_style['backgroundColor'] = 'green'
+        elif (triggered == 'btn-graphcoloring'):
+            col_style['backgroundColor'] = 'green'
+        elif (triggered == 'btn-sudoku'):
+            sud_style['backgroundColor'] = 'green'
+        else:
+            print("what")
+        return mapping.get(triggered, no_update), ham_style, col_style, sud_style
+
+    def handle_keypress_sudoku(self, current_num, n_events, event, last_modified, sudoku_size):
+        if event is None:
+            return current_num, last_modified
+        if 'key' not in event:
+            return current_num, last_modified
+        key = event['key']
+        if (key not in "0123456789"):
+            return current_num, last_modified
+        if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
+            return key, {'time': time()}
+        else:
+            return current_num + key, {'time': time()}
+        
         

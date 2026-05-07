@@ -1,4 +1,5 @@
 from dash import Dash, html, Input, Output, State, dcc, ALL, MATCH
+from dash_extensions import EventListener
 import dash_cytoscape as cyto
 
 class UILayout():
@@ -51,7 +52,7 @@ class UILayout():
             State('multi-colour-selector', 'value'),
             State('erase_toggled', 'data'),
             State('color_num_selector', 'value'),
-            State('end-task-selector', 'value'),
+            State('end-task-selector', 'data'),
             State('nodes-list', 'children'),
             prevent_initial_call=True
         )(helper_object.process_node_click)
@@ -73,7 +74,7 @@ class UILayout():
             Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('color_num_selector', 'value'),
-            State('end-task-selector', 'value'),
+            State('end-task-selector', 'data'),
             State('sudoku-board', 'children'),
             State('sudoku-size-selector', 'value'),
             prevent_initial_call=True
@@ -104,7 +105,7 @@ class UILayout():
             Output('sudoku-div', 'style', allow_duplicate=True),
             Output('coloring-div', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
-            Input('end-task-selector', 'value'),
+            Input('end-task-selector', 'data'),
             State('graph-div', 'style'),
             State('sudoku-div', 'style'),
             State('coloring-div', 'style'),
@@ -149,6 +150,13 @@ class UILayout():
         )(helper_object.generate_random_sudoku)
 
         helper_object.app.callback(
+            Output('sudoku-board', 'children', allow_duplicate=True),
+            Input('sudoku-board-clear', 'n_clicks'),
+            State('sudoku-size-selector', 'value'),
+            prevent_initial_call=True
+        )(helper_object.clear_sudoku_board)
+
+        helper_object.app.callback(
             Output('input-edge-source', 'style', allow_duplicate=True),
             Input('input-edge-source', 'value'),
             Input('nodes-list', 'children'),
@@ -169,39 +177,49 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.nodes_list_changed)
         
+        helper_object.app.callback(
+            Output('end-task-selector', 'data'),
+            Output('btn-hamcycle', 'style'),
+            Output('btn-graphcoloring', 'style'),
+            Output('btn-sudoku', 'style'),
+            Input('btn-hamcycle', 'n_clicks'),
+            Input('btn-graphcoloring', 'n_clicks'),
+            Input('btn-sudoku', 'n_clicks'),
+            prevent_initial_call=True
+        )(helper_object.select_problem)
+
+        helper_object.app.callback(
+            Output("sudoku-num-input", "children"),
+            Output('sudoku_num_last_modified', 'data'),
+            Input("sudoku-num-input", "children"),
+            Input('sudoku-keypress-listener', 'n_events'),
+            Input('sudoku-keypress-listener', 'event'),
+            State('sudoku_num_last_modified', 'data'),
+            State('sudoku-size-selector', 'value')
+        )(helper_object.handle_keypress_sudoku)
         
         
     '''
     this is default layout of the UI
     '''
     default_layout = html.Div([
-        html.H1("SAT solver UI"),
-        html.H3("welcome to SAT UI!", id='success_message' ,style = {'color' : 'black'}),
+        html.H1("SAT solver"),
+        html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
         dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
 
-        # storage for current sudoku number
-        dcc.Store(id="sudoku_num", storage_type =  "memory", data = {'number': 0}),
+        # storage for the last time the sudoku number changed
+        dcc.Store(id="sudoku_num_last_modified", storage_type='memory', data = {'time' : 0}),
 
         #do task selector and button
         html.Div([
-            html.Label("  Select task:"),
-            dcc.Dropdown(
-                id='end-task-selector',
-                options=[
-                    # 'label' is what the user sees, 'value' is what Python receives
-                    {'label': 'coloring', 'value': "COLOR"},
-                    {'label': 'hampath', 'value': "HAMPATH"},
-                    {'label': 'sudoku', 'value': "SUDOKU"},
-                    {'label': 'end simulation', 'value': "END"},
-                ],
-                
-                value="HAMPATH", # The default selected array
-                multi=False,  # This strictly enforces multiple-choice behavior
-                style={'width': '300px', 'marginTop': '5px'}
-            ),
+            html.Button('Hamiltonian Cycle', id='btn-hamcycle', n_clicks=0 ,style={ 'backgroundColor': 'green', 'color': 'black', 'padding': '10px'}),
+            html.Button('Graph Coloring', id='btn-graphcoloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
+            html.Button('Sudoku', id='btn-sudoku', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
+
+            dcc.Store(id='end-task-selector', data='HAMPATH')
         ], style={'marginBottom': '20px'}),
         
         #everything graph related
@@ -289,12 +307,12 @@ class UILayout():
                     {'label': '9x9', 'value': '9'},
                     {'label': '16x16', 'value': '16'},
                     {'label': '25x25', 'value': '25'},],
-                value=None, # The default selected array
+                value='0', # The default selected array
                 multi=False,  # This strictly enforces multiple-choice behavior
                 style={'width': '300px'},
                 clearable=False,
-                persistence=True,
-                persistence_type='session',
+                # persistence=True,
+                # persistence_type='session',
             ),
             
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
@@ -306,17 +324,30 @@ class UILayout():
                     n_clicks=0,
                     style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginTop': '20px'}
                 ),
+                # sudoku clear button
+                html.Button(
+                    'Clear board',
+                    id='sudoku-board-clear',
+                    n_clicks=0,
+                    style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginTop': '20px'}
+                ),
+                # do task button
+                html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 # the number choice for the sudoku
                 html.Div([
                     html.Label("number to place (0 for nothing)"),
-                    html.H3("7", id="sudoku-num-input"),
+                    html.H3("0", id="sudoku-num-input"),
                 ], style={'width': '300px', 'marginTop': '20px'}),
 
-                # do task button
-                html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                
 
                 # the sudoku board itself, initialized in UI_utils
-                html.Div(id='sudoku-board', style={'display': 'none'})
+                html.Div(id='sudoku-board', style={'display': 'none'}),
+                EventListener(
+                    id="sudoku-keypress-listener",
+                    events=[{"event": "keydown", "props": ["key", "code"]}]
+                ),
+
             ], id='sudoku-board-div', style={'display': 'none'}),
         ], id='sudoku-div', style={'display': 'none'}), # start hidden
     ])
