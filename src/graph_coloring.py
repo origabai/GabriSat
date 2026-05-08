@@ -1,5 +1,5 @@
 from graph import Graph
-from constants import DEFAULT_SOLVER, SYMMETRY_TOGGLE
+from constants import DEFAULT_SOLVER, SYMMETRY_TOGGLE, MAX_SYMMETRY_OPERATIONS
 from itertools import combinations
 from random import randint
 from tqdm import tqdm
@@ -110,15 +110,14 @@ class GraphColoring(Graph, SATReducibleProblem):
 
         return self.reconstruct_solution_from_reduction(solution)
 
+    #clear temporary colors
     def remove_temporary_colors(self, temp):
         for c in temp:
             self.colors[c] = None
     
+    #returns true if no colors present
     def check_colors(self):
         return set(self.colors) == set([None])
-    
-    def calculate_max_clique(self, vertices):
-        return min(6, (max(1, 10 - (vertices // 10))))
     
     # reduces the problem to a SAT, returns a SAT solver of the type self has
     def reduce_to_SAT(self):
@@ -151,7 +150,8 @@ class GraphColoring(Graph, SATReducibleProblem):
             found_clique = False
             clique = []
             edges_set = set([tuple(e) for e in self.edges])
-            clique_size = min(self.max_colors, self.calculate_max_clique(self.num_nodes))
+            max_size = int(MAX_SYMMETRY_OPERATIONS ** (1 / self.num_nodes))
+            clique_size = min(self.max_colors, max_size)
             
             #search of cliques
             while not found_clique:
