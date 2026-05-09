@@ -27,6 +27,7 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.add_node)
         
+        '''
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('success_message', 'children', allow_duplicate=True),
@@ -37,23 +38,31 @@ class UILayout():
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(helper_object.add_edge)
+        '''
         
         helper_object.app.callback(
-            Output('current_mode', 'data'),
-            Output('btn-erase', 'style'),
-            Input('btn-erase', 'n_clicks')
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-erase', 'style', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
+            Input('btn-erase', 'n_clicks'),
+            State('current_mode', 'data'),
+            prevent_initial_call=True
         )(helper_object.switch_erasing_mode)
         
-        '''
+        
         helper_object.app.callback(
-            Output('current_mode', 'data'),
-            Output('btn-add-edge', 'style'),
-            Input('btn-add-edge', 'n_clicks')
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-erase', 'style', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
+            Input('btn-add-edge', 'n_clicks'),
+            State('current_mode', 'data'),
+            prevent_initial_call=True
         )(helper_object.switch_adding_mode)
-        '''
+        
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
@@ -162,7 +171,8 @@ class UILayout():
             State('sudoku-size-selector', 'value'),
             prevent_initial_call=True
         )(helper_object.clear_sudoku_board)
-
+        
+        '''redundant
         helper_object.app.callback(
             Output('input-edge-source', 'style', allow_duplicate=True),
             Input('input-edge-source', 'value'),
@@ -176,6 +186,7 @@ class UILayout():
             Input('nodes-list', 'children'),
             prevent_initial_call=True
         )(helper_object.add_edge_input_changed)
+        '''
         
         helper_object.app.callback(
             Output('input-edge-source', 'max', allow_duplicate=True),
