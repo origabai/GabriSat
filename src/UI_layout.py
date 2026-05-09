@@ -244,9 +244,8 @@ class UILayout():
             html.Button('Hamiltonian Cycle', id='btn-hamcycle', n_clicks=0 ,style={ 'backgroundColor': 'green', 'color': 'black', 'padding': '10px'}),
             html.Button('Graph Coloring', id='btn-graphcoloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
             html.Button('Sudoku', id='btn-sudoku', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
-
             dcc.Store(id='end-task-selector', data='HAMPATH')
-        ], style={'marginBottom': '20px'}),
+        ], className='task-selector', style={'marginBottom': '20px'}),
         
         #everything graph related
         html.Div([
@@ -262,7 +261,7 @@ class UILayout():
             # control panel for everything else
             html.Div([
                 # random graph size input
-                dcc.Input(id='graph-size-input', style={'width': '200px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
+                dcc.Input(id='graph-size-input', style={'width': '250px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 #colors in colors control panel
@@ -321,7 +320,7 @@ class UILayout():
                     style={'width': '300px'},
                     clearable=False,
                 ),
-            ], style={'marginBottom': '20px'}),
+            ], className='sudoku-size-container', style={'marginBottom': '20px'}),
             
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
@@ -360,7 +359,7 @@ class UILayout():
 
             ], id='sudoku-board-div', style={'display': 'none'}),
         ], id='sudoku-div', style={'display': 'none'}), # start hidden
-    ])
+    ], id="default-layout")
 
     
     
