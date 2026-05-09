@@ -240,7 +240,8 @@ class UILayout():
             html.Div([
                 html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0)
+                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             ], className='button-row', style={'marginBottom': '20px'}),
 
             #colors in colors control panel
@@ -277,9 +278,6 @@ class UILayout():
                 ),
             ], id='coloring-div', style={'display': 'none', 'marginBottom': '20px'}),
 
-            # do task button
-            html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
                 cyto.Cytoscape(
@@ -298,48 +296,50 @@ class UILayout():
         # everything sudoku related
         html.Div([
             #label for the following dropdown
-            html.Label("Please choose a size for the sudoku:"),
-            #choice for size of sudoku
-            dcc.Dropdown(
-                id='sudoku-size-selector',
-                options = [{'label': 'None (none selected)', 'value': '0'},
-                    {'label': '4x4', 'value': '4'},
-                    {'label': '9x9', 'value': '9'},
-                    {'label': '16x16', 'value': '16'},
-                    {'label': '25x25', 'value': '25'},],
-                value='0', # The default selected array
-                multi=False,  # This strictly enforces multiple-choice behavior
-                style={'width': '300px'},
-                clearable=False,
-                # persistence=True,
-                # persistence_type='session',
-            ),
+            html.Div([
+                html.Label("Please choose a size for the sudoku:"),
+                #choice for size of sudoku
+                dcc.Dropdown(
+                    id='sudoku-size-selector',
+                    options = [{'label': 'None (none selected)', 'value': '0'},
+                        {'label': '4x4', 'value': '4'},
+                        {'label': '9x9', 'value': '9'},
+                        {'label': '16x16', 'value': '16'},
+                        {'label': '25x25', 'value': '25'},],
+                    value='0', # The default selected array
+                    multi=False,  # This strictly enforces multiple-choice behavior
+                    style={'width': '300px'},
+                    clearable=False,
+                ),
+            ], style={'marginBottom': '20px'}),
             
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
-                # a button for randomly initializing the board
-                html.Button(
-                    'Generate random board',
-                    id='generate-random-board',
-                    n_clicks=0,
-                    style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginTop': '20px'}
-                ),
-                # sudoku clear button
-                html.Button(
-                    'Clear board',
-                    id='sudoku-board-clear',
-                    n_clicks=0,
-                    style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginTop': '20px'}
-                ),
-                # do task button
-                html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                # the number choice for the sudoku
-                html.Div([
-                    html.Label("number to place (0 for nothing)"),
-                    html.H3("0", id="sudoku-num-input"),
-                ], style={'width': '300px', 'marginTop': '20px'}),
 
-                
+                html.Div([
+                    # a button for randomly initializing the board
+                    html.Button(
+                        'Generate random board',
+                        id='generate-random-board',
+                        n_clicks=0,
+                        style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight': '10px'}
+                    ),
+                    # sudoku clear button
+                    html.Button(
+                        'Clear board',
+                        id='sudoku-board-clear',
+                        n_clicks=0,
+                        style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight': '10px'}
+                    ),
+                    # do task button
+                    html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
+                    # the number choice for the sudoku
+                    html.Div([
+                        html.Label("current number:"),
+                        html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
+                    ]),
+
+                ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px'}),
 
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board', style={'display': 'none'}),
