@@ -262,9 +262,11 @@ class UILayout():
             html.Div([
                 # random graph size input
                 dcc.Input(id='graph-size-input', style={'width': '250px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
-                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'} ,n_clicks=0),
+                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
-                #colors in colors control panel
+                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
+                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
 
 
@@ -272,9 +274,6 @@ class UILayout():
 
             # add, erase and random button
             html.Div([
-                html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Div([
                     html.Button('Clear coloring', id='btn-clear-coloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'}),
                     dcc.Input(id='color_num_selector', style={'width': '200px', 'marginRight':'10px'},  type='number', min=1, max=9, step=1, placeholder='max colors'),
