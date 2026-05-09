@@ -13,6 +13,9 @@ CPP_BacktrackingSolver_V2
 SUDOKU_GEN_STATUS = "NEW_VARIABLE" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
 SUDOKU_GEN_LIMIT = 3
 
+SYMMETRY_TOGGLE = True
+MAX_SYMMETRY_OPERATIONS = 1000000 #lets say a million
+
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
 HAMCYCLE_GENERATION_CONST = 8
