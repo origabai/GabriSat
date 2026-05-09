@@ -27,7 +27,7 @@ class SATHandler_V3 : public SATHandlingDS{
     // one is for var_to_pos_clause_map and one for var_to_neg_clause_map
     PersistentVector<bool> pos_set_updated, neg_set_updated;
     // the ticket used to always rollback set_updated to the same starting point
-    int set_updated_ticket = 0;
+    const int set_updated_ticket = 0;
     // whether the current assignment can be extended
     bool valid_bit = true;
     // stack of assigned variables
@@ -84,16 +84,21 @@ class SATHandler_V3 : public SATHandlingDS{
         for (int var = 0; var < num_variables; var++) {
             literal l(var);
             l.has_value = false;
-            l.smallest_pos_clause_size = (*var_to_pos_clause_map[var].begin()).first;
-            l.largest_pos_clause_size = (*var_to_pos_clause_map[var].rbegin()).first;
-            l.smallest_neg_clause_size = (*var_to_neg_clause_map[var].begin()).first;
-            l.largest_neg_clause_size = (*var_to_neg_clause_map[var].rbegin()).first;
+            l.smallest_pos_clause_size = get_set_min_else(var_to_pos_clause_map[var], 1e9);
+            l.largest_pos_clause_size = get_set_max_else(var_to_pos_clause_map[var], 0);
+            l.smallest_neg_clause_size = get_set_min_else(var_to_neg_clause_map[var], 1e9);
+            l.largest_neg_clause_size = get_set_max_else(var_to_neg_clause_map[var], 0);
             l.pos_clauses = var_to_pos_clause_map[var].size();
             l.neg_clauses = var_to_neg_clause_map[var].size();
             minqryds.update(var, l);
         }
+        std::cout << "clause3:\n";
+        for (int i : clause_list[3].pos_variables) std::cout << i << ' ';
+        std::cout << '\n';
+        for (int i : clause_list[3].neg_variables) std::cout << i << ' ';
+        std::cout << '\n';
 
-        std::cout << "finished initialization correctly\n";
+        std::cout << "finished initialization correctly " << num_variables << "\n";
     }
 
     pair<int,int> handle_twosat_case(void){
@@ -121,12 +126,27 @@ class SATHandler_V3 : public SATHandlingDS{
     // returns a variable in the clause with the lowest score
     pair<int,int> next_var(void) override {
         std::cout << "hello\n";
+        if (active_clause_sizes.empty()) {
+            for (int var = 0; var < num_variables; var++) {////////////////////////////////////
+                if (assignment[var] == VARIABLE_UNSET) {
+                    valid_bit = false;
+                    std::cout << "amogus\n";
+                }
+            }
+            return {NO_NEXT_VAR, NO_NEXT_VAR};
+        }
         if (*active_clause_sizes.rbegin() <= 2) { // largest unsatisfied clause is at size at most 2
             return handle_twosat_case(); // solve a 2SAT instead
         }
         auto [i,v] = minqryds.getmin(); // the chosen literal var
         std::cout << i << ": ";
         if ((v == literal::literal_e()) || v.has_value) {
+            for (int var = 0; var < num_variables; var++) {////////////////////////////////////
+                if (assignment[var] == VARIABLE_UNSET) {
+                    valid_bit = false;
+                    std::cout << "amogus\n";
+                }
+            }
             return {NO_NEXT_VAR, NO_NEXT_VAR};
         }
         std::cout << i << '\n';
@@ -143,17 +163,21 @@ class SATHandler_V3 : public SATHandlingDS{
         pos_set_updated.rollback(set_updated_ticket);
         neg_set_updated.rollback(set_updated_ticket);
 
+        
+        // taking a ticket for all persistent data structures
+        issue_tickets(); 
+
         // update op stack and assignment
         op_stack.push_back({curr_var, value});
         assignment[curr_var] = value;
 
-        // taking a ticket for all persistent data structures
-        issue_tickets(); 
 
         // save that now curr_var has a value so we don't choose it in the future
         literal new_value = minqryds.get_value(curr_var);
         new_value.has_value = true;
         minqryds.update(curr_var, new_value);
+
+        // std::cout <<"a";
 
         // go over all unsatisfied clauses containing the current variable that it satisfies
         vector<PersistentSet<pair<int, int>>> &var_to_clause_map = var_to_pos_clause_map; // assuming value == SAT_TRUE
@@ -162,31 +186,37 @@ class SATHandler_V3 : public SATHandlingDS{
             var_to_clause_map = var_to_neg_clause_map;
             pos = false;
         }
+        std::cout<<"b";
         for (auto[clause_size, clause_ind] : vector<pair<int, int>>(var_to_clause_map[curr_var])) { // casting to a vector so we can delete elements and not worry about it
-            PersistentSATClause &clause = clause_list[clause_ind];
-            // if a clause is satisfied i don't care about it
-            if (clause.sat > 0){ // shouldn't happen, was in gabay's previous code, probably should be deleted after tests!!!
-                continue;
-            }
+            std::cout << clause_ind << " ttt\n";
+            // PersistentSATClause &clause = clause_list[clause_ind];
+            // // if a clause is satisfied i don't care about it
+            // if (clause.sat > 0){ // shouldn't happen, was in gabay's previous code, probably should be deleted after tests!!!
+            //     continue;
+            // }
             // the clause is now satisfied
 
             // erasing it's size from active_clause_sizes
             active_clause_sizes.erase(active_clause_sizes.find(clause_size));
-
+            // std::cout << "d";
             // stating with the positive variables of the clause
-            PersistentSet<int> &var_list = clause_list[clause_ind].pos_variables;
+            PersistentSet<int> var_list = clause_list[clause_ind].pos_variables;/////////////&
             vector<PersistentSet<pair<int, int>>> &var_to_value_clause_map = var_to_pos_clause_map;
+            // std::cout << "e";
             for (int var : var_list) {
+                std::cout << var << " in " << clause_ind << '\n';
                 if (var == curr_var) continue;
                 set_erase(var, true, pair<int, int>(clause_size, clause_ind));
+                // std::cout << "g";
                 literal new_value = minqryds.get_value(var);
                 // if (!pos) new_value.switch_pos_neg();
-                new_value.smallest_pos_clause_size = (*var_to_value_clause_map[var].begin()).first;
-                new_value.largest_pos_clause_size = (*var_to_value_clause_map[var].rbegin()).first;
+                new_value.smallest_pos_clause_size = get_set_min_else(var_to_value_clause_map[var], 1e9);
+                new_value.largest_pos_clause_size = get_set_max_else(var_to_value_clause_map[var], 0);
                 new_value.pos_clauses--;
                 // if (!pos) new_value.switch_pos_neg();
                 minqryds.update(var, new_value);
             }
+            // std::cout << "f";
 
             // now the negative variables of the clause
             var_list = clause_list[clause_ind].neg_variables;
@@ -196,8 +226,8 @@ class SATHandler_V3 : public SATHandlingDS{
                 set_erase(var, false, pair<int, int>(clause_size, clause_ind));
                 literal new_value = minqryds.get_value(var);
                 // if (!pos) new_value.switch_pos_neg();
-                new_value.smallest_neg_clause_size = (*var_to_value_clause_map[var].begin()).first;
-                new_value.largest_neg_clause_size = (*var_to_value_clause_map[var].rbegin()).first;
+                new_value.smallest_neg_clause_size = get_set_min_else(var_to_value_clause_map[var], 1e9);
+                new_value.largest_neg_clause_size = get_set_max_else(var_to_value_clause_map[var], 0);
                 new_value.neg_clauses--;
                 // if (!pos) new_value.switch_pos_neg();
                 minqryds.update(var, new_value);
@@ -206,6 +236,8 @@ class SATHandler_V3 : public SATHandlingDS{
 
             // clause_list[clause_ind].sat++;
         }
+
+        std::cout << "c";
         
         // now the second case 
         // go over all unsatisfied clauses containing the current variable that it doesn't satisfies
@@ -229,6 +261,11 @@ class SATHandler_V3 : public SATHandlingDS{
             // new size of the clause
             clause_size--;
             if (clause_size == 0) {
+                std::cout << "ass:\n";
+                for (int i : assignment) {
+                    std::cout << i << ' ';
+                }
+                std::cout << "\n and clause " << clause_ind << " is unsatisfied\n";
                 valid_bit = false;
                 return;
             }
@@ -240,15 +277,17 @@ class SATHandler_V3 : public SATHandlingDS{
             if (pos) { // curr_varr is positive in this clause
                 // before changing the clause set take a ticket to save it's state
                 this->tickets.top().push_back(clause_list[clause_ind].pos_variables.issue_ticket());
-                this->persistent_data_structures_stack.top().push_back((PersistentInterface*)&clause_list[clause_ind].pos_variables);
+                this->persistent_data_structures_stack.top().push_back((PersistentInterface*)(&(clause_list[clause_ind].pos_variables)));
                 // now we can erase curr_var with no worries
+                std::cout << "check pos: " << clause_list[clause_ind].pos_variables.count(curr_var) << '\n';
                 clause_list[clause_ind].pos_variables.erase(curr_var);
             }
             else {// curr_varr is negative in this clause
                 // before changing the clause set take a ticket to save it's state
                 this->tickets.top().push_back(clause_list[clause_ind].neg_variables.issue_ticket());
-                this->persistent_data_structures_stack.top().push_back((PersistentInterface*)&clause_list[clause_ind].neg_variables);
+                this->persistent_data_structures_stack.top().push_back((PersistentInterface*)(&(clause_list[clause_ind].neg_variables)));
                 // now we can erase curr_var with no worries
+                std::cout << "check neg: " << clause_list[clause_ind].neg_variables.count(curr_var) << '\n';
                 clause_list[clause_ind].neg_variables.erase(curr_var);
             }
 
@@ -262,14 +301,14 @@ class SATHandler_V3 : public SATHandlingDS{
                 set_insert(var, true, pair<int, int>(clause_size, clause_ind));
                 literal new_value = minqryds.get_value(var);
                 // if (!pos) new_value.switch_pos_neg();
-                new_value.smallest_pos_clause_size = (*var_to_value_clause_map[var].begin()).first;
-                new_value.largest_pos_clause_size = (*var_to_value_clause_map[var].rbegin()).first;
+                new_value.smallest_pos_clause_size = get_set_min_else(var_to_value_clause_map[var], 1e9);
+                new_value.largest_pos_clause_size = get_set_max_else(var_to_value_clause_map[var], 0);
                 // if (!pos) new_value.switch_pos_neg();
                 minqryds.update(var, new_value);
             }
 
             // now the negative variables of the clause
-            clause_list[clause_ind].neg_variables;
+            var_list = clause_list[clause_ind].neg_variables;
             var_to_value_clause_map = var_to_neg_clause_map;
             // if (!pos) { 
             //     var_list = clause_list[clause_ind].pos_variables;
@@ -281,18 +320,19 @@ class SATHandler_V3 : public SATHandlingDS{
                 set_insert(var, false, pair<int, int>(clause_size, clause_ind));
                 literal new_value = minqryds.get_value(var);
                 // if (!pos) new_value.switch_pos_neg();
-                new_value.smallest_neg_clause_size = (*var_to_value_clause_map[var].begin()).first;
-                new_value.largest_neg_clause_size = (*var_to_value_clause_map[var].rbegin()).first;
+                new_value.smallest_neg_clause_size = get_set_min_else(var_to_value_clause_map[var], 1e9);
+                new_value.largest_neg_clause_size = get_set_max_else(var_to_value_clause_map[var], 0);
                 // if (!pos) new_value.switch_pos_neg();
                 minqryds.update(var, new_value);
             }
         }
+        std::cout << "update assignment finished\n";
     }
 
     // rolls back the last variable assignment
     void rollback_assignment(void) override {
         // pop stack and update assignment
-        assignment[op_stack.back().first] = VARIABLE_UNSET;
+        // assignment[op_stack.back().first] = VARIABLE_UNSET;////////////////
         auto [curr_var, value] = op_stack.back();
         op_stack.pop_back();
         // the valid bit is always flipped just once, so rollbacking will always set it to True
@@ -326,6 +366,9 @@ class SATHandler_V3 : public SATHandlingDS{
         this->persistent_data_structures_stack.pop();
         int n = data_structures.size();
         for (int i = 0; i < n; ++i) {
+            if (data_structures[i] == ((PersistentInterface*)&clause_list[3].pos_variables)) {
+                std::cout << "oof\n";
+            }
             data_structures[i]->rollback(ticket_vec[i]);
         }
     }
@@ -336,6 +379,7 @@ class SATHandler_V3 : public SATHandlingDS{
     // called when you want to insert element e into ind index of the pos \ neg variant of var_to_pos_clause_map, where
     // a pos = true value denotes the pos variant, and pos = false denotes the neg variant
     void set_insert(int ind, bool pos, pair<int, int> e) {
+        std::cout << "insert " << ind << ' ' << pos << ' ' << e.first << ' ' << e.second << '\n';
         if (pos) {// pos case
             if (!pos_set_updated[ind]) {
                 pos_set_updated[ind] = true;
@@ -360,6 +404,7 @@ class SATHandler_V3 : public SATHandlingDS{
     // called when you want to erase element e from ind index of the pos \ neg variant of var_to_pos_clause_map, where
     // a pos = true value denotes the pos variant, and pos = false denotes the neg variant
     void set_erase(int ind, bool pos, pair<int, int> e) {
+        std::cout << "erase " << ind << ' ' << pos << ' ' << e.first << ' ' << e.second << '\n';
         if (pos) {// pos case
             if (!pos_set_updated[ind]) {
                 pos_set_updated[ind] = true;
@@ -383,6 +428,20 @@ class SATHandler_V3 : public SATHandlingDS{
     int choose_truth_val(int ind, literal l) {
         return SAT_TRUE;
         // return vector<int>({SAT_FALSE, SAT_TRUE})[rand() % 2];
+    }
+
+    int get_set_min_else(PersistentSet<pair<int, int>>& s, int e) {
+        if (!s.size()) {
+            return e;
+        }
+        return (*s.begin()).first;
+    }
+
+    int get_set_max_else(PersistentSet<pair<int, int>>& s, int e) {
+        if (!s.size()) {
+            return e;
+        }
+        return (*s.rbegin()).first;
     }
 };
 

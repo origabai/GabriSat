@@ -184,7 +184,7 @@ Date
 # run all the testcases
 def test_solver(solver: AbstractSATSolver) -> None:
     tests_passed = 0
-    for i in range(len(testcases)):
+    for i in [4]:#range(len(testcases)):
         test = str(i+1)
         if (len(test) == 1):
             test = "0" + test

@@ -72,7 +72,11 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
 // reads a SAT in a format as specified by readinput
 // outputs the solution array, or UNSAT if there is no solution
 int main(int argc, char *argv[]){
-    ios_base::sync_with_stdio(false);
+    // ios_base::sync_with_stdio(false);
+    argc = 4;
+    argv[1] = "C:\\Users\\orihi\\Documents\\SAT\\GabriSat\\src\\oigfasnufq.in";
+    argv[2] = "C:\\Users\\orihi\\Documents\\SAT\\GabriSat\\src\\oigfasnufq.out";
+    argv[3] = "BacktrackingSolver_V3";
     if (argc < 4){
         cerr << "invalid command arguments\n";
         return 1;
@@ -84,6 +88,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     AbstractSATSolver *solver = readinput(input_file, argv[3]);
+    std::cout << "cpp com called solve\n";
     vector<int> answer = solver->solve();
     if (answer.size() != 0){ // there is a solution
         for (int x : answer){

@@ -128,11 +128,11 @@ struct literal {
     bool operator==(const literal &other) const {
         return this->ind == other.ind;
     }
-    void switch_pos_neg() {
-        switch(pos_clauses, neg_clauses);
-        switch(smallest_pos_clause_size, smallest_neg_clause_size);
-        switch(largest_pos_clause_size, largest_neg_clause_size);
-    }
+    // void switch_pos_neg() {
+    //     switch(pos_clauses, neg_clauses);
+    //     switch(smallest_pos_clause_size, smallest_neg_clause_size);
+    //     switch(largest_pos_clause_size, largest_neg_clause_size);
+    // }
 };
 
 bool less_literal(literal l1, literal l2) {
