@@ -2,3 +2,4 @@ __pycache__/
 .vscode/
 *.in
 *.out
+communication.exe

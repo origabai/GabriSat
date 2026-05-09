@@ -793,6 +793,7 @@ class UIUtils:
         board_children = self.create_sudoku_board(int(size), sudoku.board)
         return message, color, board_children
     
+    # clears the board
     def clear_sudoku_board(self, n_clicks, size: str):
         sudoku = Sudoku([[None for i in range(int(size))] for j in range(int(size))])
         board_children = self.create_sudoku_board(int(size), sudoku.board)
@@ -904,7 +905,9 @@ class UIUtils:
                     del element['position']
         return new_graph
     
+    # change which problem we are solving
     def select_problem(self, n_clicks_hamcycle, n_clicks_coloring, n_clicks_sudoku):
+        # the button triggered
         triggered = ctx.triggered_id
         ham_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
         col_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
@@ -914,6 +917,7 @@ class UIUtils:
             'btn-graphcoloring': 'COLOR',
             'btn-sudoku': 'SUDOKU',
         }
+        # change to color to indicate that the button was selected
         if (triggered == 'btn-hamcycle'):
             ham_style['backgroundColor'] = 'green'
         elif (triggered == 'btn-graphcoloring'):
@@ -924,6 +928,7 @@ class UIUtils:
             print("what")
         return mapping.get(triggered, no_update), ham_style, col_style, sud_style
 
+    # handle sudoku input
     def handle_keypress_sudoku(self, current_num, n_events, event, last_modified, sudoku_size):
         if event is None:
             return current_num, last_modified
@@ -932,8 +937,11 @@ class UIUtils:
         key = event['key']
         if (key not in "0123456789"):
             return current_num, last_modified
+        # if it's been 3 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
+        # we set the input to the key pressed
         if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
             return key, {'time': time()}
+        # otherwise, we append it to the current number
         else:
             return current_num + key, {'time': time()}
         
