@@ -2,7 +2,7 @@ from graph import Graph
 from constants import DEFAULT_SOLVER, SYMMETRY_TOGGLE, MAX_SYMMETRY_OPERATIONS
 from itertools import combinations
 from random import randint
-from tqdm import tqdm
+from math import comb
 from SAT_reducible_problem import SATReducibleProblem
 
 
@@ -115,6 +115,13 @@ class GraphColoring(Graph, SATReducibleProblem):
         for c in temp:
             self.colors[c] = None
     
+    #calculate max clique
+    def calculate_max_clique(self, max_op):
+        for i in range(self.num_nodes):
+            if comb(self.num_nodes, i) > max_op:
+                return i-1
+        return self.num_nodes
+    
     #returns true if no colors present
     def check_colors(self):
         return set(self.colors) == set([None])
@@ -150,7 +157,7 @@ class GraphColoring(Graph, SATReducibleProblem):
             found_clique = False
             clique = []
             edges_set = set([tuple(e) for e in self.edges])
-            max_size = int(MAX_SYMMETRY_OPERATIONS ** (1 / self.num_nodes))
+            max_size = self.calculate_max_clique(MAX_SYMMETRY_OPERATIONS)
             clique_size = min(self.max_colors, max_size)
             
             #search of cliques
