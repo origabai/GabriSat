@@ -217,9 +217,6 @@ class UIUtils:
     """
 
     def handle_color_num_change(self, value, current_elements):
-        # options for colour selector - depending on colour.
-        next_options = ColourSelectorOptions[: int(value) + 2]
-
         # changes up the values of all nodes
         def compare_color(element):
             return self.check_element_color_compliance(element, value)
@@ -227,7 +224,7 @@ class UIUtils:
         new_elements = self.color_to_grey(current_elements, compare_color)
         new_graph = self.generate_frontend_graph_object(new_elements)
         # also changes the settings of the options
-        return next_options, new_graph
+        return new_graph
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -281,6 +278,11 @@ class UIUtils:
             return new_graph, nodes_list
         else:
             # check need to color depending on selected color
+
+            # handle erasing
+            if (selected_colour == "Erase"):
+                selected_colour = "grey"
+            
             trivial_conditions = current_mode != "COLOR" or selected_colour is None
             if (
                 trivial_conditions
@@ -654,7 +656,7 @@ class UIUtils:
             current_elements = self.color_to_grey(current_elements, self.is_node)
         if problem == "COLOR":
             graph_style['display'] = 'block' # show graph div
-            coloring_style['display'] = 'block' # within graph div show elements for coloring
+            coloring_style['display'] = 'flex' # within graph div show elements for coloring
             message = "Finding a coloring"
             color = {'color' : 'black'}
             # when switching to color we need to clear out all coloured edges
@@ -769,6 +771,10 @@ class UIUtils:
     called when a sudoku cell is clicked, if the number choice field is legal it writes that number there
     """
     def sudoku_cell_clicked(self, n_clicks, sudoku_cell, cell_style, size: str, number):
+        # handle erase correctly
+        if (number == "Erase"):
+            number = "0"
+        
         if not self.is_number_valid(number, size): # invalid number
             return no_update, no_update
 
@@ -930,6 +936,8 @@ class UIUtils:
 
     # handle sudoku input
     def handle_keypress_sudoku(self, current_num, n_events, event, last_modified, sudoku_size):
+        if (current_num == "Erase"):
+            current_num = "0"
         if event is None:
             return current_num, last_modified
         if 'key' not in event:
@@ -940,9 +948,24 @@ class UIUtils:
         # if it's been 3 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
         # we set the input to the key pressed
         if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
-            return key, {'time': time()}
+            if (key == "0"):
+                return "Erase", {'time': time()}
+            else:
+                return key, {'time': time()}
         # otherwise, we append it to the current number
         else:
             return current_num + key, {'time': time()}
         
-        
+    def handle_keypress_coloring(self, n_events, event, num_colors):
+        if event is None:
+            return no_update, no_update
+        if 'key' not in event:
+            return no_update, no_update
+        key = event['key']
+        if (key not in "0123456789"):
+            return no_update, no_update
+        if (key == "0" or num_colors is None):
+            return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+        if int(key) > int(num_colors):
+            return no_update, no_update
+        return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1]}

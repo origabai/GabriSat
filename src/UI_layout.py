@@ -49,7 +49,7 @@ class UILayout():
             Output('nodes-list', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
-            State('multi-colour-selector', 'value'),
+            State('multi-colour-selector', 'children'),
             State('erase_toggled', 'data'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'data'),
@@ -91,7 +91,6 @@ class UILayout():
         )(helper_object.generate_random_graph)
         
         helper_object.app.callback(
-            Output('multi-colour-selector', 'options'),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
@@ -198,6 +197,14 @@ class UILayout():
             State('sudoku-size-selector', 'value')
         )(helper_object.handle_keypress_sudoku)
         
+        helper_object.app.callback(
+            Output("multi-colour-selector", "children"),
+            Output("multi-colour-selector", "style"),
+            Input('coloring-keypress-listener', 'n_events'),
+            Input('coloring-keypress-listener', 'event'),
+            State('color_num_selector', 'value')
+        )(helper_object.handle_keypress_coloring)
+
         
     '''
     this is default layout of the UI
@@ -233,8 +240,42 @@ class UILayout():
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
             ], id='control-panel',style={'marginBottom': '20px'}),
             
-            # random graph size input
-            dcc.Input(id='graph-size-input', style={'width': '350px'},  type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
+            # control panel for everything else
+            html.Div([
+                # random graph size input
+                dcc.Input(id='graph-size-input', style={'width': '350px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
+                #colors in colors control panel
+                html.Div([
+                    html.Label("colors in coloring", id = 'label_1', style={'marginRight':'10px'}),
+                    dcc.Dropdown(
+                        id='color_num_selector',
+                        style={'width': '100px', 'marginRight':'10px'},
+                        options=[
+                            # 'label' is what the user sees, 'value' is what Python receives
+                            {'label': '1', 'value': '1'},
+                            {'label': '2', 'value': '2'},
+                            {'label': '3', 'value': '3'},
+                            {'label': '4', 'value': '4'},
+                            {'label': '5', 'value': '5'},
+                            {'label': '6', 'value': '6'},
+                            {'label': '7', 'value': '7'},
+                            {'label': '8', 'value': '8'},
+                            {'label': '9', 'value': '9'},
+                        ],
+                        value=str(3), # The default selected array
+                        multi=False,  # This strictly enforces multiple-choice behavior
+                    ),
+                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px'}),
+                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red'}),
+                    EventListener(
+                        id="coloring-keypress-listener",
+                        events=[{"event": "keydown", "props": ["key", "code"]}]
+                    ),
+                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px'}),
+            ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
+
+
+
 
             # add, erase and random button
             html.Div([
@@ -243,40 +284,6 @@ class UILayout():
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             ], className='button-row', style={'marginBottom': '20px'}),
-
-            #colors in colors control panel
-            html.Div([
-                html.Label("colors in coloring", id = 'label_1'),
-                dcc.Dropdown(
-                    id='color_num_selector',
-                    style={'width': '300px'},
-                    options=[
-                        # 'label' is what the user sees, 'value' is what Python receives
-                        {'label': '1', 'value': '1'},
-                        {'label': '2', 'value': '2'},
-                        {'label': '3', 'value': '3'},
-                        {'label': '4', 'value': '4'},
-                        {'label': '5', 'value': '5'},
-                        {'label': '6', 'value': '6'},
-                        {'label': '7', 'value': '7'},
-                        {'label': '8', 'value': '8'},
-                    ],
-                    value=str(3), # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                ),
-                html.Label("Change node color", id = 'label_2'),
-                dcc.Dropdown(
-                    id='multi-colour-selector',
-                    style={'width': '300px'},
-                    options = [{'label': 'None (none selected)', 'value': None},
-                        {'label': 'grey (no colour)', 'value': 'grey'},
-                        {'label': 'red (0)', 'value': 'red'},
-                        {'label': 'green (1)', 'value': 'green'},
-                        {'label': 'blue (2)', 'value': 'blue'}],
-                    value=None, # The default selected array
-                    multi=False,  # This strictly enforces multiple-choice behavior
-                ),
-            ], id='coloring-div', style={'display': 'none', 'marginBottom': '20px'}),
 
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
@@ -335,8 +342,7 @@ class UILayout():
                     html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
                     # the number choice for the sudoku
                     html.Div([
-                        html.Label("current number:"),
-                        html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
+                        html.H1("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
 
                 ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px'}),
