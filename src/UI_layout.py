@@ -39,18 +39,25 @@ class UILayout():
         )(helper_object.add_edge)
         
         helper_object.app.callback(
-            Output('erase_toggled', 'data'),
+            Output('current_mode', 'data'),
             Output('btn-erase', 'style'),
             Input('btn-erase', 'n_clicks')
         )(helper_object.switch_erasing_mode)
         
+        '''
+        helper_object.app.callback(
+            Output('current_mode', 'data'),
+            Output('btn-add-edge', 'style'),
+            Input('btn-add-edge', 'n_clicks')
+        )(helper_object.switch_adding_mode)
+        '''
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'value'),
-            State('erase_toggled', 'data'),
+            State('current_mode', 'data'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'data'),
             State('nodes-list', 'children'),
@@ -61,7 +68,7 @@ class UILayout():
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapEdgeData'),
             State('interactive-graph', 'elements'),
-            State('erase_toggled', 'data'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.process_edge_click)
         
@@ -207,8 +214,9 @@ class UILayout():
         html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
-        dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
+        dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
+
 
         # storage for the last time the sudoku number changed
         dcc.Store(id="sudoku_num_last_modified", storage_type='memory', data = {'time' : 0}),

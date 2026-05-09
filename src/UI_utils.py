@@ -147,18 +147,32 @@ class UIUtils:
 
     def switch_erasing_mode(self, n_clicks):
         if n_clicks % 2 == 0:
-            return {"toggled": False}, {
+            return {"current_mode": None, 'previous_click' : None}, {
                 "backgroundColor": "lightgray",
                 "color": "black",
                 "padding": "10px",
             }
         else:
-            return {"toggled": True}, {
+            return {"current_mode": "Erase", 'previous_click' : None}, {
                 "backgroundColor": "red",
                 "color": "black",
                 "padding": "10px",
             }
 
+    def switch_adding_mode(self, n_clicks):
+        if n_clicks % 2 == 0:
+            return {"current_mode": None, 'previous_click' : None}, {
+                "backgroundColor": "lightgray",
+                "color": "black",
+                "padding": "10px",
+            }
+        else:
+            return {"current_mode": "Add", 'previous_click' : None}, {
+                "backgroundColor": "blue",
+                "color": "black",
+                "padding": "10px",
+            }
+    
     """
     checks wether an element is an edge.
     """
@@ -258,7 +272,7 @@ class UIUtils:
         tapped_node,
         current_elements,
         selected_colour,
-        erase_mode,
+        mode_storage,
         max_num,
         current_mode,
         nodes_list,
@@ -268,7 +282,7 @@ class UIUtils:
             return no_update, no_update
 
         # if erasing:
-        if erase_mode["toggled"]:
+        if mode_storage["current_mode"] == "Erase":
             current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
             node_ind = None
             for ind, node in enumerate(nodes_list):
@@ -335,9 +349,9 @@ class UIUtils:
     function that is responsible for edge clicks. currently removes it if needed.
     """
 
-    def process_edge_click(self, tapped_edge, current_elements, erase_mode):
+    def process_edge_click(self, tapped_edge, current_elements, mode_storage):
         # remove edge if necessary
-        if tapped_edge is not None and erase_mode["toggled"]:
+        if tapped_edge is not None and mode_storage["current_mode"] == "Erase":
             current_elements = self.erase_edge(current_elements, tapped_edge["source"], tapped_edge["target"])
             new_graph = self.generate_frontend_graph_object(current_elements)
             return new_graph
