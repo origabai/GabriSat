@@ -216,15 +216,23 @@ class UIUtils:
     handles change of color number
     """
 
-    def handle_color_num_change(self, value, current_elements):
+    def handle_color_num_change(self, max_colors, current_elements, input_color):
+        # fix max colors
+        if (max_colors is None):
+            max_colors = 1
         # changes up the values of all nodes
         def compare_color(element):
-            return self.check_element_color_compliance(element, value)
+            return self.check_element_color_compliance(element, max_colors)
 
         new_elements = self.color_to_grey(current_elements, compare_color)
         new_graph = self.generate_frontend_graph_object(new_elements)
         # also changes the settings of the options
-        return new_graph
+        if input_color == "Erase":
+            input_color = "grey"
+        if self.vis_object.color_to_num(input_color) + 1 < max_colors:
+            return new_graph, no_update, no_update
+        else:
+            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -282,7 +290,10 @@ class UIUtils:
             # handle erasing
             if (selected_colour == "Erase"):
                 selected_colour = "grey"
-            
+            if (max_num is None):
+                max_num = 1
+
+
             trivial_conditions = current_mode != "COLOR" or selected_colour is None
             if (
                 trivial_conditions
@@ -605,7 +616,9 @@ class UIUtils:
             return "The program finished running. ", {"color": "blue"}, no_update, no_update
         
         if problem in ["COLOR", "HAMPATH"]:
-
+            # fix max colors
+            if max_colors is None:
+                max_colors = 1
             # now, for the interesting case:
             original_nodes, self.vis_object.graph = self.construct_graph_from_elements(
                 elements, int(max_colors)
@@ -867,6 +880,8 @@ class UIUtils:
         
     # called when the list of graph nodes changes, and changes the max of the edge input fields
     def nodes_list_changed(self, nodes_list):
+        if (len(nodes_list) == 0):
+            return 0,0
         nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
         max_node = max(nodes)
         return max_node, max_node
@@ -964,8 +979,28 @@ class UIUtils:
         key = event['key']
         if (key not in "0123456789"):
             return no_update, no_update
-        if (key == "0" or num_colors is None):
+        if num_colors is None:
+            num_colors = 1
+        if (key == "0"):
             return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+        if (int(num_colors) < 1):
+            return no_update, no_update
         if int(key) > int(num_colors):
             return no_update, no_update
         return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1]}
+
+    # clears the graph    
+    def clear_graph(self, n_clicks):
+        if (n_clicks == 0):
+            return no_update, no_update
+        self.vis_object.graph = GraphColoring(0, [], [], 0)
+
+        return self.generate_frontend_graph_object([]), []
+    
+    # clears the colors
+    def clear_coloring(self, n_clicks, elements):
+        if (n_clicks == 0):
+            return no_update
+        new_elements = self.color_to_grey(elements, lambda x : True)
+        new_graph = self.generate_frontend_graph_object(new_elements)
+        return new_graph

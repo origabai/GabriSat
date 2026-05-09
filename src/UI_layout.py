@@ -92,8 +92,11 @@ class UILayout():
         
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
+            Output('multi-colour-selector', 'children'),
+            Output('multi-colour-selector', 'style'),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
+            State('multi-colour-selector', 'children'),
             prevent_initial_call=True
         )(helper_object.handle_color_num_change)
 
@@ -177,10 +180,10 @@ class UILayout():
         )(helper_object.nodes_list_changed)
         
         helper_object.app.callback(
-            Output('end-task-selector', 'data'),
-            Output('btn-hamcycle', 'style'),
-            Output('btn-graphcoloring', 'style'),
-            Output('btn-sudoku', 'style'),
+            Output('end-task-selector', 'data', allow_duplicate=True),
+            Output('btn-hamcycle', 'style', allow_duplicate=True),
+            Output('btn-graphcoloring', 'style', allow_duplicate=True),
+            Output('btn-sudoku', 'style', allow_duplicate=True),
             Input('btn-hamcycle', 'n_clicks'),
             Input('btn-graphcoloring', 'n_clicks'),
             Input('btn-sudoku', 'n_clicks'),
@@ -188,24 +191,40 @@ class UILayout():
         )(helper_object.select_problem)
 
         helper_object.app.callback(
-            Output("sudoku-num-input", "children"),
-            Output('sudoku_num_last_modified', 'data'),
+            Output("sudoku-num-input", "children", allow_duplicate=True),
+            Output('sudoku_num_last_modified', 'data', allow_duplicate=True),
             Input("sudoku-num-input", "children"),
             Input('sudoku-keypress-listener', 'n_events'),
             Input('sudoku-keypress-listener', 'event'),
             State('sudoku_num_last_modified', 'data'),
-            State('sudoku-size-selector', 'value')
+            State('sudoku-size-selector', 'value'),
+            prevent_initial_call=True,
         )(helper_object.handle_keypress_sudoku)
         
         helper_object.app.callback(
-            Output("multi-colour-selector", "children"),
-            Output("multi-colour-selector", "style"),
+            Output("multi-colour-selector", "children", allow_duplicate=True),
+            Output("multi-colour-selector", "style", allow_duplicate=True),
             Input('coloring-keypress-listener', 'n_events'),
             Input('coloring-keypress-listener', 'event'),
-            State('color_num_selector', 'value')
+            State('color_num_selector', 'value'),
+            prevent_initial_call=True
         )(helper_object.handle_keypress_coloring)
 
-        
+        helper_object.app.callback(
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Output('nodes-list', 'children', allow_duplicate=True),
+            Input('btn-clear-graph', 'n_clicks'),
+            prevent_initial_call=True
+        )(helper_object.clear_graph)
+
+        helper_object.app.callback(
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Input('btn-clear-coloring', 'n_clicks'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(helper_object.clear_coloring)
+
+
     '''
     this is default layout of the UI
     '''
@@ -243,35 +262,10 @@ class UILayout():
             # control panel for everything else
             html.Div([
                 # random graph size input
-                dcc.Input(id='graph-size-input', style={'width': '350px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='Size of the random generated graph'),
+                dcc.Input(id='graph-size-input', style={'width': '200px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
+                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'} ,n_clicks=0),
+                html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 #colors in colors control panel
-                html.Div([
-                    html.Label("colors in coloring", id = 'label_1', style={'marginRight':'10px'}),
-                    dcc.Dropdown(
-                        id='color_num_selector',
-                        style={'width': '100px', 'marginRight':'10px'},
-                        options=[
-                            # 'label' is what the user sees, 'value' is what Python receives
-                            {'label': '1', 'value': '1'},
-                            {'label': '2', 'value': '2'},
-                            {'label': '3', 'value': '3'},
-                            {'label': '4', 'value': '4'},
-                            {'label': '5', 'value': '5'},
-                            {'label': '6', 'value': '6'},
-                            {'label': '7', 'value': '7'},
-                            {'label': '8', 'value': '8'},
-                            {'label': '9', 'value': '9'},
-                        ],
-                        value=str(3), # The default selected array
-                        multi=False,  # This strictly enforces multiple-choice behavior
-                    ),
-                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px'}),
-                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red'}),
-                    EventListener(
-                        id="coloring-keypress-listener",
-                        events=[{"event": "keydown", "props": ["key", "code"]}]
-                    ),
-                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px'}),
             ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
 
 
@@ -281,8 +275,17 @@ class UILayout():
             html.Div([
                 html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Div([
+                    html.Button('Clear coloring', id='btn-clear-coloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'}),
+                    dcc.Input(id='color_num_selector', style={'width': '200px', 'marginRight':'10px'},  type='number', min=1, max=9, step=1, placeholder='max colors'),
+                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px'}),
+                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red'}),
+                    EventListener(
+                        id="coloring-keypress-listener",
+                        events=[{"event": "keydown", "props": ["key", "code"]}]
+                    ),
+                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px'}),
             ], className='button-row', style={'marginBottom': '20px'}),
 
             # the canvas - for graph display
@@ -342,7 +345,8 @@ class UILayout():
                     html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
                     # the number choice for the sudoku
                     html.Div([
-                        html.H1("1", id="sudoku-num-input", style={'margin':'0'}),
+                        html.Label("current number", id="sudoku-num-input-label", style={'margin':'0'}),
+                        html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
 
                 ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px'}),
