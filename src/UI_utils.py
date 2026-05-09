@@ -10,6 +10,7 @@ from constants import RandomGraphMinSize, RandomGraphMaxSize, ColourSelectorOpti
 from UI_layout import UILayout
 from uuid import uuid4
 from math import pi, sin, cos
+from time import time
 
 
 """
@@ -586,12 +587,12 @@ class UIUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
+    def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
         message: str # success message to return
         color: dict # color of message
         new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
-        if n_clicks == 0:
+        if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
             return "this is unusual...", {"color": "yellow"}, no_update, no_update
 
@@ -683,6 +684,17 @@ class UIUtils:
                 cell_style = { # creating the style for the cell
                         "fontSize": f"{27 / size}rem", 
                         "fontWeight": "bold",
+                        "fontFamily": "monospace",
+                        "width": "100%",
+                        "height": "100%",
+                        "minWidth": "0",
+                        "minHeight": "0",
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "overflow": "hidden",
+                        "whiteSpace": "nowrap",
+                        "textOverflow": "clip",
                         "aspect ratio": "1 / 1",
                         "font size": "{1px}",
                         "borderTop": "1px solid #ccc", # thin gray border
@@ -693,6 +705,7 @@ class UIUtils:
                         "margin": "0",
                         "padding": "0",
                         "color": "black",
+                        "boxSizing": "border-box",
                 }
                 # making the borders of the squares
                 if row % square_size == 0: # first of the row
@@ -780,6 +793,12 @@ class UIUtils:
         board_children = self.create_sudoku_board(int(size), sudoku.board)
         return message, color, board_children
     
+    # clears the board
+    def clear_sudoku_board(self, n_clicks, size: str):
+        sudoku = Sudoku([[None for i in range(int(size))] for j in range(int(size))])
+        board_children = self.create_sudoku_board(int(size), sudoku.board)
+        return board_children
+
     """
     takes a frontend sudoku board as a list of cells and the size of the board,
     and makes a backend board. treats non black cells as empty ones
@@ -836,9 +855,9 @@ class UIUtils:
     def add_edge_input_changed(self, value, nodes_list):
         nodes = [int(node['props']['value']) for node in nodes_list] # actual node numbers of the graph
         if value in nodes or value is None or value == "": # legal input
-            return {'color' : 'black'}
+            return {'color' : 'black', 'width': '200px'}
         else:
-            return {'color': 'red'}
+            return {'color': 'red', 'width': '200px'}
         
     # called when the list of graph nodes changes, and changes the max of the edge input fields
     def nodes_list_changed(self, nodes_list):
@@ -885,4 +904,45 @@ class UIUtils:
                 if 'position' in element:
                     del element['position']
         return new_graph
+    
+    # change which problem we are solving
+    def select_problem(self, n_clicks_hamcycle, n_clicks_coloring, n_clicks_sudoku):
+        # the button triggered
+        triggered = ctx.triggered_id
+        ham_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        col_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        sud_style = { 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}
+        mapping = {
+            'btn-hamcycle': 'HAMPATH',
+            'btn-graphcoloring': 'COLOR',
+            'btn-sudoku': 'SUDOKU',
+        }
+        # change to color to indicate that the button was selected
+        if (triggered == 'btn-hamcycle'):
+            ham_style['backgroundColor'] = 'green'
+        elif (triggered == 'btn-graphcoloring'):
+            col_style['backgroundColor'] = 'green'
+        elif (triggered == 'btn-sudoku'):
+            sud_style['backgroundColor'] = 'green'
+        else:
+            print("what")
+        return mapping.get(triggered, no_update), ham_style, col_style, sud_style
+
+    # handle sudoku input
+    def handle_keypress_sudoku(self, current_num, n_events, event, last_modified, sudoku_size):
+        if event is None:
+            return current_num, last_modified
+        if 'key' not in event:
+            return current_num, last_modified
+        key = event['key']
+        if (key not in "0123456789"):
+            return current_num, last_modified
+        # if it's been 3 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
+        # we set the input to the key pressed
+        if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
+            return key, {'time': time()}
+        # otherwise, we append it to the current number
+        else:
+            return current_num + key, {'time': time()}
+        
         
