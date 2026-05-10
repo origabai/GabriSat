@@ -39,13 +39,12 @@ class CPP_SATSolver(AbstractSATSolver):
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
         # run the solver
-        print(f"python cpp solver called the cpp solver with {self.solver_name}")
         os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
         # read output file
-        sans = open(fname + ".out").read().split(" ")
+        sans= open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]
-        # os.remove(fname + ".in")
-        # os.remove(fname + ".out")
+        os.remove(fname + ".in")
+        os.remove(fname + ".out")
         if (sans[0] == "UNSAT"):
             return None
         else:

@@ -11,8 +11,8 @@ CPP_ImprovedBacktracker
 CPP_BacktrackingSolver_V2
 CPP_BacktrackingSolver_V3
 
-SUDOKU_GEN_STATUS = "NEW_VARIABLE" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
-SUDOKU_GEN_LIMIT = 3
+SUDOKU_GEN_STATUS = "NEW_seed" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
+SUDOKU_GEN_LIMIT = 4
 
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13

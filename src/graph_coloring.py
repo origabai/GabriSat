@@ -102,12 +102,9 @@ class GraphColoring(Graph, SATReducibleProblem):
 
     # returns an array of numbers representing colors of a valid coloring, or None if none exists
     def solve(self) -> list[int] | None:
-        print("coloring called solve()")
         sat = self.reduce_to_SAT()
-        print("reduction to sat worked, now calling python solve")
 
         solution: list[bool] | None = sat.solve()
-        print("python got a solution")
 
         return self.reconstruct_solution_from_reduction(solution)
 
@@ -156,6 +153,5 @@ class GraphColoring(Graph, SATReducibleProblem):
                         break
             return answer
         except:
-            print("fucking error taking the solution and doing something with it wtf")
-            print(solution)
+            print("exception occurred1")
             return None

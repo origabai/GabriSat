@@ -115,10 +115,9 @@ testcase_answers = [
 # returns true is success, false if failure
 def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
     try:
-        print("solver tried to call solve")
         sol = problem.solve()
     except Exception:
-        print("exception")
+        print("exception occurred2")
         return False
     if (sol is None):
         if (answer):
@@ -184,7 +183,7 @@ Date
 # run all the testcases
 def test_solver(solver: AbstractSATSolver) -> None:
     tests_passed = 0
-    for i in [4]:#range(len(testcases)):
+    for i in range(13):#range(len(testcases)):
         test = str(i+1)
         if (len(test) == 1):
             test = "0" + test

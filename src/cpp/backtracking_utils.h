@@ -9,6 +9,7 @@
 #include <set>
 #include <stack>
 #include <utility>
+#include <algorithm>
 using std::vector, std::set, std::pair, std::multiset, std::function;
 
 struct BetterSATClause {
@@ -128,18 +129,54 @@ struct literal {
     bool operator==(const literal &other) const {
         return this->ind == other.ind;
     }
-    // void switch_pos_neg() {
-    //     switch(pos_clauses, neg_clauses);
-    //     switch(smallest_pos_clause_size, smallest_neg_clause_size);
-    //     switch(largest_pos_clause_size, largest_neg_clause_size);
-    // }
 };
 
+// how good is this literal? should be an integer, larger is better
+int score_literal(literal l) {
+    int score = 0;
+    // score -= std::min(l.smallest_neg_clause_size, l.smallest_pos_clause_size);
+    score -= std::min(l.pos_clauses, l.neg_clauses);
+    // score += rand() % 2;
+    return score;
+}
+
+// a major part of the heuristic. should return true if it's better to choose l1 before l2, and false otherwise
+// preferably should be O(1) because it's called a lot. can use random
 bool less_literal(literal l1, literal l2) {
     if (l1.has_value) return false;
     if (l2.has_value) return true;
-    // if (rand() % 2) return true;
-    return true;
+    if (l1.smallest_neg_clause_size == 1 || l1.smallest_pos_clause_size == 1) return true;
+    if (l2.smallest_neg_clause_size == 1 || l2.smallest_pos_clause_size == 1) return false;
+    if (l1.pos_clauses == 0 || l1.neg_clauses == 0) return true;
+    if (l2.pos_clauses == 0 || l2.neg_clauses == 0) return false;
+    // do not change anything up to here, it's independent of heuristic
+    if (score_literal(l1) >= score_literal(l2)) return true;
+    return false;
+
+    // int pos = l1.pos_clauses + l2.pos_clauses;
+    // int neg = l1.neg_clauses + l2.neg_clauses;
+    // int r = rand() % (pos + neg);
+    // if (r < pos) {// big step
+    //     if (std::min(l1.pos_clauses, l1.neg_clauses) >= std::min(l2.pos_clauses , l2.neg_clauses)) return true;
+    //     return false;
+    // }
+    // else {//small step
+    //     if (std::min(l1.pos_clauses, l1.neg_clauses) <= std::min(l2.pos_clauses, l2.neg_clauses)) return true;
+    //     return false;
+    // }
+    
+
+    // if (std::max(l1.smallest_pos_clause_size, l1.smallest_neg_clause_size) <= std::max(l2.smallest_pos_clause_size, l2.smallest_neg_clause_size)) return true;
+    // return false;
+
+    // if (std::min(l1.pos_clauses, l1.neg_clauses) + rand() % 2 >= std::min(l2.pos_clauses, l2.neg_clauses) + rand() % 2) return true;
+    // return false;
+
+    // if (std::min(l1.pos_clauses, l1.neg_clauses) >= std::min(l2.pos_clauses, l2.neg_clauses)) return true;
+    // return false;
+
+    // if (std::min(l1.smallest_neg_clause_size, l1.smallest_pos_clause_size) <= std::min(l2.smallest_neg_clause_size, l2.smallest_pos_clause_size)) return true;
+    // return false;
 }
 
 bool lesscomp(int l, int r) {return l < r;}

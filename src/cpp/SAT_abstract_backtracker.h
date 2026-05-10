@@ -12,23 +12,18 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
 
     
     std::vector<int> solve() override {
-        std::cout << "cpp called solve\n";
         handler->initialize(num_variables, clauses);
-        std::cout << "cpp called rec_solve\n";
         return rec_solve();
     }
 
     std::vector<int> rec_solve() {
-        std::cout << "rec_solve here haha\n";
         auto [curr_var, truthval] = handler->next_var();
         // base case
         if (curr_var == NO_NEXT_VAR){
             if (handler->valid()) {
-                std::cout << "found sol3\n";
                 return handler->current_assignment();
             }
             else {
-                std::cout << "didnt found a sol1\n";
                 return {};
             }
         }
@@ -37,7 +32,6 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
         if (handler->valid()){
             std::vector<int> sol = rec_solve();
             if (sol.size() != 0){
-                std::cout << "found sol1\n";
                 return sol;
             }
         }
@@ -53,12 +47,10 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
         if (handler->valid()){
             std::vector<int> sol = rec_solve();
             if (sol.size() != 0){
-                std::cout << "found sol2\n";
                 return sol;
             }
         }
         handler->rollback_assignment();
-        std::cout << "didnt find a sol2\n";
         return {};
     }
 };
