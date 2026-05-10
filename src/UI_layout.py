@@ -44,8 +44,10 @@ class UILayout():
             Output('current_mode', 'data', allow_duplicate=True),
             Output('btn-erase', 'style', allow_duplicate=True),
             Output('btn-add-edge', 'style', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('btn-erase', 'n_clicks'),
             State('current_mode', 'data'),
+            State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(helper_object.switch_erasing_mode)
         
@@ -54,8 +56,10 @@ class UILayout():
             Output('current_mode', 'data', allow_duplicate=True),
             Output('btn-erase', 'style', allow_duplicate=True),
             Output('btn-add-edge', 'style', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('btn-add-edge', 'n_clicks'),
             State('current_mode', 'data'),
+            State('interactive-graph', 'elements'),
             prevent_initial_call=True
         )(helper_object.switch_adding_mode)
         
@@ -93,6 +97,7 @@ class UILayout():
             State('end-task-selector', 'data'),
             State('sudoku-board', 'children'),
             State('sudoku-size-selector', 'value'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.do_task)
         
@@ -225,7 +230,7 @@ class UILayout():
         html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
-        dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None}),
+        dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None, 'previous_color' : None}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
 
 
