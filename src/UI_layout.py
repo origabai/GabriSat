@@ -90,6 +90,8 @@ class UILayout():
             Output('success_message', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-end1', 'n_clicks'),
             Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -104,6 +106,8 @@ class UILayout():
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('graph-size-input', 'value'),
@@ -115,9 +119,11 @@ class UILayout():
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('multi-colour-selector', 'children'),
             Output('multi-colour-selector', 'style'),
+            Output('current_mode', 'data', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'children'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.handle_color_num_change)
 
@@ -220,6 +226,8 @@ class UILayout():
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-clear-graph', 'n_clicks'),
             prevent_initial_call=True
         )(helper_object.clear_graph)

@@ -26,6 +26,14 @@ class UIUtils:
         self.vis_object = vis_object
         self.app = app
         self.layout = UILayout(self).default_layout
+        
+        self.clean_button_style = {
+                "backgroundColor": "lightgray",
+                "color": "black",
+                "padding": "10px",
+            }
+        
+        self.clean_mode = {"current_mode": None, 'previous_click' : None, 'previous_color' : None}
 
     """
     generates initial graph element data. makes them accordingly to self.
@@ -115,25 +123,13 @@ class UIUtils:
             new_graph = self.generate_frontend_graph_object(current_elements)
             
         if cur_mode["current_mode"] == "Erase":
-            return {"current_mode": None, 'previous_click' : None, 'previous_color' : None}, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px"
-            }, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px",
-            }, new_graph
+            return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
         else:
             return {"current_mode": "Erase", 'previous_click' : None, 'previous_color' : None},{
                 "backgroundColor": "red",
                 "color": "black",
                 "padding": "10px"
-            }, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px",
-            }, new_graph
+            }, self.clean_button_style, new_graph
 
     def switch_adding_mode(self, n_clicks, cur_mode, current_elements):
         new_graph = no_update
@@ -142,22 +138,10 @@ class UIUtils:
             new_graph = self.generate_frontend_graph_object(current_elements)
         
         if cur_mode["current_mode"] == "Add":
-            return {"current_mode": None, 'previous_click' : None, 'previous_color' : None}, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px",
-            }, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px"
-            }, new_graph
+            return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
             
         else:
-            return {"current_mode": "Add", 'previous_click' : None, 'previous_color' : None}, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px",
-            }, {
+            return {"current_mode": "Add", 'previous_click' : None, 'previous_color' : None}, self.clean_button_style, {
                 "backgroundColor": "blue",
                 "color": "black",
                 "padding": "10px"
@@ -220,7 +204,7 @@ class UIUtils:
     handles change of color number
     """
 
-    def handle_color_num_change(self, max_colors, current_elements, input_color):
+    def handle_color_num_change(self, max_colors, current_elements, input_color, cur_mode):
         # fix max colors
         if (max_colors is None):
             max_colors = 1
@@ -228,15 +212,30 @@ class UIUtils:
         def compare_color(element):
             return self.check_element_color_compliance(element, max_colors)
 
+        #deals with add_edge elements:
+        if cur_mode["previous_click"] is not None:
+            current_elements = self.recolor_node(current_elements, cur_mode["previous_color"], cur_mode["previous_click"])
+        
         new_elements = self.color_to_grey(current_elements, compare_color)
+        
+        #updates pressed element
+        for element in new_elements:
+            if self.is_node(element) and element["data"]["id"] == cur_mode["previous_click"]:
+                cur_mode["previous_color"] = element["data"]["color"]
+        
+        #return previous color
+        if cur_mode["previous_click"] is not None:
+            new_elements = self.recolor_node(new_elements, "teal", cur_mode["previous_click"])
+        
         new_graph = self.generate_frontend_graph_object(new_elements)
+        
         # also changes the settings of the options
         if input_color == "Erase":
             input_color = "grey"
         if self.vis_object.color_to_num(input_color) + 1 < max_colors:
-            return new_graph, no_update, no_update
+            return new_graph, no_update, no_update, cur_mode
         else:
-            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}, cur_mode
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -350,7 +349,6 @@ class UIUtils:
             ):
                 return no_update, no_update, no_update
             # now, recolor when needed:
-            print("coloring")
             current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
             new_graph = self.generate_frontend_graph_object(current_elements)
             return new_graph, no_update, no_update
@@ -374,7 +372,7 @@ class UIUtils:
         nodes_list = [html.Option(value=str(n)) for n in range(size)]
         elements = self.generate_initial_graph_data(missing_nodes=[])
         new_graph = self.generate_frontend_graph_object(elements)
-        return new_graph, nodes_list
+        return new_graph, nodes_list, self.clean_mode, self.clean_button_style
 
     """
     function that checks wether edge is connecting between id1 and id2.
@@ -654,20 +652,21 @@ class UIUtils:
         message: str # success message to return
         color: dict # color of message
         
-        if cur_mode['current_mode'] == "Add":
-            return "please finish editing the graph before submission.", {"color": "red"}, no_update, no_update
+        #getting rid of selection colour before parsing
+        if cur_mode['current_mode'] == "Add" and cur_mode["previous_click"] is not None:
+            elements = self.recolor_node(elements, cur_mode["previous_color"], cur_mode["previous_click"])
         
         new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, no_update, no_update
+            return "this is unusual...", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, no_update, no_update
+            return "The program finished running. ", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
         
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
@@ -703,7 +702,7 @@ class UIUtils:
                 color = {"color": "green"}
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, new_graph, sudoku_board
+        return message, color, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -1050,7 +1049,7 @@ class UIUtils:
             return no_update, no_update
         self.vis_object.graph = GraphColoring(0, [], [], 0)
 
-        return self.generate_frontend_graph_object([]), []
+        return self.generate_frontend_graph_object([]), [], self.clean_mode, self.clean_button_style
     
     # clears the colors
     def clear_coloring(self, n_clicks, elements):
