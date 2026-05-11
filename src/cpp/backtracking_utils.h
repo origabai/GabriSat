@@ -6,6 +6,7 @@
 #include "SAT_abstract_backtracker.h"
 #include "SAT_abstract_handling_DS.h"
 #include "persistent_set.h"
+#include "persistent_vector.h"
 #include <set>
 #include <stack>
 #include <utility>
@@ -31,13 +32,13 @@ struct BetterSATClause {
 struct PersistentSATClause {
     PersistentSet<int> pos_variables, neg_variables;
     // num of satisfying variables
-    int sat = 0;
+    PersistentVector<int> sat;
 
-    PersistentSATClause(): pos_variables(PersistentSet<int>()), neg_variables(PersistentSet<int>()) {}
+    PersistentSATClause(): pos_variables(PersistentSet<int>()), neg_variables(PersistentSet<int>()), sat(PersistentVector<int>(1, 0)) {}
     
-    PersistentSATClause(set<int> pos, set<int> neg) : pos_variables(pos), neg_variables(neg) {}
+    PersistentSATClause(set<int> pos, set<int> neg) : pos_variables(pos), neg_variables(neg), sat(PersistentVector<int>(1, 0)) {}
 
-    PersistentSATClause(SATClause &clause) : pos_variables(clause.pos_variables), neg_variables(clause.neg_variables) {}
+    PersistentSATClause(SATClause &clause) : pos_variables(clause.pos_variables), neg_variables(clause.neg_variables), sat(PersistentVector<int>(1, 0)) {}
 
     int size(){
         return pos_variables.size() + neg_variables.size();
@@ -131,12 +132,10 @@ struct literal {
     }
 };
 
-// how good is this literal? should be an integer, larger is better
+// a major part of the heuristic, how good is this literal? should be an integer, larger is better
 int score_literal(literal l) {
     int score = 0;
-    // score -= std::min(l.smallest_neg_clause_size, l.smallest_pos_clause_size);
     score -= std::min(l.pos_clauses, l.neg_clauses);
-    // score += rand() % 2;
     return score;
 }
 
@@ -150,33 +149,11 @@ bool less_literal(literal l1, literal l2) {
     if (l1.pos_clauses == 0 || l1.neg_clauses == 0) return true;
     if (l2.pos_clauses == 0 || l2.neg_clauses == 0) return false;
     // do not change anything up to here, it's independent of heuristic
+
     if (score_literal(l1) >= score_literal(l2)) return true;
     return false;
-
-    // int pos = l1.pos_clauses + l2.pos_clauses;
-    // int neg = l1.neg_clauses + l2.neg_clauses;
-    // int r = rand() % (pos + neg);
-    // if (r < pos) {// big step
-    //     if (std::min(l1.pos_clauses, l1.neg_clauses) >= std::min(l2.pos_clauses , l2.neg_clauses)) return true;
-    //     return false;
-    // }
-    // else {//small step
-    //     if (std::min(l1.pos_clauses, l1.neg_clauses) <= std::min(l2.pos_clauses, l2.neg_clauses)) return true;
-    //     return false;
-    // }
-    
-
-    // if (std::max(l1.smallest_pos_clause_size, l1.smallest_neg_clause_size) <= std::max(l2.smallest_pos_clause_size, l2.smallest_neg_clause_size)) return true;
-    // return false;
-
-    // if (std::min(l1.pos_clauses, l1.neg_clauses) + rand() % 2 >= std::min(l2.pos_clauses, l2.neg_clauses) + rand() % 2) return true;
-    // return false;
-
-    // if (std::min(l1.pos_clauses, l1.neg_clauses) >= std::min(l2.pos_clauses, l2.neg_clauses)) return true;
-    // return false;
-
-    // if (std::min(l1.smallest_neg_clause_size, l1.smallest_pos_clause_size) <= std::min(l2.smallest_neg_clause_size, l2.smallest_pos_clause_size)) return true;
-    // return false;
+    // in order to change the heuristic you can either change the score_literal function,
+    // or change this function, if you do so change only the two line above
 }
 
 bool lesscomp(int l, int r) {return l < r;}

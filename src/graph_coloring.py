@@ -142,16 +142,12 @@ class GraphColoring(Graph, SATReducibleProblem):
     def reconstruct_solution_from_reduction(
         self, solution: list[bool] | None
     ) -> list[int] | None:
-        try:
-            if solution is None:
-                return None
-            answer = self.colors
-            for i in range(self.num_nodes):
-                for j in range(self.max_colors):
-                    if solution[i * self.max_colors + j]:
-                        answer[i] = j
-                        break
-            return answer
-        except:
-            print("exception occurred1")
+        if solution is None:
             return None
+        answer = self.colors
+        for i in range(self.num_nodes):
+            for j in range(self.max_colors):
+                if solution[i * self.max_colors + j]:
+                    answer[i] = j
+                    break
+        return answer

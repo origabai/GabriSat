@@ -94,7 +94,7 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
     PersistentVector() {}
     PersistentVector(int size) : vec(size) {}
     PersistentVector(int size, T value) : vec(size, value) {}
-    PersistentVector(vector<T> v) : vec(v) {}
+    PersistentVector(std::vector<T> v) : vec(v) {}
 
     // returns an Element object that will call change() whenever it's changed
     Element operator[](int ind) {

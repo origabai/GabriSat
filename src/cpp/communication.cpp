@@ -73,10 +73,7 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
 // outputs the solution array, or UNSAT if there is no solution
 int main(int argc, char *argv[]){
     ios_base::sync_with_stdio(false);
-    // argc = 4;
-    // argv[1] = "C:\\Users\\orihi\\Documents\\SAT\\GabriSat\\src\\gqptczikxl.in";
-    // argv[2] = "C:\\Users\\orihi\\Documents\\SAT\\GabriSat\\src\\gqptczikxl.out";
-    // argv[3] = "BacktrackingSolver_V3";
+
     if (argc < 4){
         cerr << "invalid command arguments\n";
         return 1;

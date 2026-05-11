@@ -44,6 +44,8 @@ class Sudoku(SATReducibleProblem):
             row = []
             col = []
             for j in range(len(board)):
+                if board[i][j] is None:
+                    raise KeyError("wtf ahi")
                 row.append(board[i][j])
                 col.append(board[i][j])
             row.sort()
@@ -84,7 +86,6 @@ class Sudoku(SATReducibleProblem):
                         for y in range(sq):
                             square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
                     sat_reduction.addClause(square, [])
-
 
         solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         if solution is None:

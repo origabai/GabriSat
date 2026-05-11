@@ -82,6 +82,8 @@ class SATHandler_V3 : public SATHandlingDS{
         // for every clause, add it to the map for all variables containing it, while updating the minqueryds
         var_to_pos_clause_map.resize(num_variables);
         var_to_neg_clause_map.resize(num_variables);
+        
+        // initialising the map from variables to pos/neg clauses they're in, and active_clause_sizes
         for (int i=0; i<clause_list.size(); i++){
             for (int x : clause_list[i].neg_variables){
                 var_to_neg_clause_map[x].insert({clause_list[i].size(), i});
@@ -106,10 +108,11 @@ class SATHandler_V3 : public SATHandlingDS{
         }
     }
 
+    // called when in a 2SAT, it solves it via a 2SAT solver, 
     pair<int,int> handle_twosat_case(void){
         TwoSATSolver solver(num_variables);
         for (PersistentSATClause &clause : clause_list){
-            if (clause.sat) continue;
+            if (clause.sat[0]) continue;
             solver.addClause(set<int>(clause.pos_variables), set<int>(clause.neg_variables));
         }
         for (int i=0; i<num_variables; i++){
@@ -123,16 +126,14 @@ class SATHandler_V3 : public SATHandlingDS{
         if (sol.size() == 0){
             valid_bit = false;
         } else {
-            assignment = sol;
+            assignment = PersistentVector<int>(sol);
         }
         return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
 
     // returns a variable in the clause with the lowest score
     pair<int,int> next_var(void) override {
-        if (active_clause_sizes.empty()) {
-            return {NO_NEXT_VAR, NO_NEXT_VAR};
-        }
+        // if you want do disable solving 2SAT with a 2SAT solver you can just comment out the following 3 lines
         if (*active_clause_sizes.rbegin() <= 2) { // largest unsatisfied clause is at size at most 2
             return handle_twosat_case(); // solve a 2SAT instead
         }
@@ -176,11 +177,19 @@ class SATHandler_V3 : public SATHandlingDS{
         {
             vector<PersistentSet<pair<int, int>>> &var_to_clause_map = (value == SAT_TRUE) ? var_to_pos_clause_map : var_to_neg_clause_map;
             for (auto[clause_size, clause_ind] : vector<pair<int, int>>(var_to_clause_map[curr_var])) { // casting to a vector so we can delete elements and not worry about it
+                if (clause_list[clause_ind].sat[0]) { // clause already satisfied
+                    continue;
+                }
+
                 // the clause is now satisfied
+                tickets.top().push_back(clause_list[clause_ind].sat.issue_ticket());
+                persistent_data_structures_stack.top().push_back((PersistentInterface*)(&clause_list[clause_ind].sat));
+                clause_list[clause_ind].sat[0] = 1;
 
                 // erasing it's size from active_clause_sizes
                 active_clause_sizes.erase(active_clause_sizes.find(clause_size));
                 
+                // update all positive variables in the clause
                 for (int var : clause_list[clause_ind].pos_variables) {
                     if (var == curr_var) continue;
                     set_erase(var, true, pair<int, int>(clause_size, clause_ind));
@@ -192,8 +201,6 @@ class SATHandler_V3 : public SATHandlingDS{
                 }
 
                 // now the negative variables of the clause
-                // var_list = clause_list[clause_ind].neg_variables;
-                // var_to_value_clause_map = var_to_neg_clause_map;
                 for (int var : clause_list[clause_ind].neg_variables) {
                     if (var == curr_var) continue;
                     set_erase(var, false, pair<int, int>(clause_size, clause_ind));
@@ -209,9 +216,13 @@ class SATHandler_V3 : public SATHandlingDS{
         // now the second case 
         // go over all unsatisfied clauses containing the current variable that it doesn't satisfies
         {
-            vector<PersistentSet<pair<int, int>>> &var_to_clause_map = (value == SAT_FALSE) ? var_to_pos_clause_map : var_to_neg_clause_map; // assuming value == SAT_TRUE
+            vector<PersistentSet<pair<int, int>>> &var_to_clause_map = (value == SAT_FALSE) ? var_to_pos_clause_map : var_to_neg_clause_map;
             bool pos = (value == SAT_FALSE);
             for (auto[clause_size, clause_ind] : vector<pair<int, int>>(var_to_clause_map[curr_var])) { // casting to a vector so we can delete elements and not worry about it
+                if (clause_list[clause_ind].sat[0]) { // clause already satisfied
+                    continue;
+                }
+
                 // the clause is still unsatisfied
 
                 // erasing it's size from active_clause_sizes
@@ -227,7 +238,8 @@ class SATHandler_V3 : public SATHandlingDS{
                 // inserting the new size
                 active_clause_sizes.insert(clause_size);
 
-
+                // erasing curr_var from this clause, wasn't needed in the second case because the
+                // clause was already satisfied
                 if (pos) { // curr_varr is positive in this clause
                     // before changing the clause set take a ticket to save it's state
                     this->tickets.top().push_back(clause_list[clause_ind].pos_variables.issue_ticket());
@@ -363,15 +375,9 @@ class SATHandler_V3 : public SATHandlingDS{
         if (l.neg_clauses == 0) return SAT_TRUE;
         // do not change, all of this is necessary regardless of heuristic
 
-        // if (l.pos_clauses > l.neg_clauses) return SAT_TRUE;
-        // return SAT_FALSE;
-
         int r = rand() % (l.pos_clauses + l.neg_clauses);
         if (r < l.pos_clauses) return SAT_TRUE;
         return SAT_FALSE;
-
-        // if (l.smallest_neg_clause_size <= l.smallest_pos_clause_size) return SAT_FALSE;
-        // return SAT_TRUE;
     }
 
     int get_set_min_else(PersistentSet<pair<int, int>>& s, int e) {
