@@ -17,7 +17,6 @@ from time import time
 provides utils for visualizer.py
 """
 
-
 class UIUtils:
     """
     here are all of the functions that the UI uses.
@@ -93,43 +92,6 @@ class UIUtils:
         nodes_list.append(html.Option(value=next_id)) # updating the nodes list
 
         return new_graph, nodes_list
-
-    # TODO: replace with better add edge capabilities.
-    """
-    currently handles edge addition. TEMPORARY!
-    """
-    '''redundant:
-    def add_edge(self, n_clicks, source_id, target_id, current_elements):
-        return no_update, "ignore this lol", {"color" : "yellow"}
-        source_id = str(source_id)
-        target_id = str(target_id)
-        node_ids = [
-            element["data"]["id"]
-            for element in current_elements
-            if self.is_node(element)
-        ]
-        if (
-            not source_id
-            or not target_id
-            or source_id not in node_ids
-            or target_id not in node_ids
-            or source_id == target_id
-        ):
-            return no_update, "Invalid input!", {"color": "red"}
-            # Do nothing if source/target are empty or not real, or self edge
-
-        # Construct the new edge dictionary and append it to the state
-        new_edge = {"data": {"source": source_id, "target": target_id, "color": "grey"}}
-        if all(
-            not self.are_edges_equal(new_edge, element) for element in current_elements
-        ):
-            current_elements.append(new_edge)
-        else:
-            return no_update, "Edge already exists!", {"color": "red"}
-        
-        new_graph = self.generate_frontend_graph_object(current_elements)
-        return new_graph, "Edge added successfully!", {"color": "green"}
-    '''
     """
     returns true iff edge1 and edge 2 are equivalent up to order, id and color
     """

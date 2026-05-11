@@ -177,22 +177,6 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.clear_sudoku_board)
         
-        '''redundant
-        helper_object.app.callback(
-            Output('input-edge-source', 'style', allow_duplicate=True),
-            Input('input-edge-source', 'value'),
-            Input('nodes-list', 'children'),
-            prevent_initial_call=True
-        )(helper_object.add_edge_input_changed)
-        
-        helper_object.app.callback(
-            Output('input-edge-target', 'style', allow_duplicate=True),
-            Input('input-edge-target', 'value'),
-            Input('nodes-list', 'children'),
-            prevent_initial_call=True
-        )(helper_object.add_edge_input_changed)
-        '''
-        
         helper_object.app.callback(
             Output('input-edge-source', 'max', allow_duplicate=True),
             Output('input-edge-target', 'max', allow_duplicate=True),
