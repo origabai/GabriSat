@@ -274,7 +274,6 @@ class UIUtils:
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
             return no_update, no_update, no_update
-
         # if erasing:
         if mode_storage["current_mode"] == "Erase":
             current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
@@ -333,7 +332,6 @@ class UIUtils:
             
             
         else:
-            print("this is default mode")
             # check need to color depending on selected color
 
             # handle erasing
@@ -348,10 +346,8 @@ class UIUtils:
                 trivial_conditions
                 or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1
             ):
-                print("so we are here", selected_colour)
                 return no_update, no_update, no_update
             # now, recolor when needed:
-            print("trying to recolour")
             current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
             new_graph = self.generate_frontend_graph_object(current_elements)
             return new_graph, no_update, no_update

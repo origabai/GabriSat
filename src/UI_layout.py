@@ -27,19 +27,6 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.add_node)
         
-        '''
-        helper_object.app.callback(
-            Output('graph-wrapper', 'children', allow_duplicate=True),
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
-            Input('btn-add-edge', 'n_clicks'),
-            State('input-edge-source', 'value'),
-            State('input-edge-target', 'value'),
-            State('interactive-graph', 'elements'),
-            prevent_initial_call=True
-        )(helper_object.add_edge)
-        '''
-        
         helper_object.app.callback(
             Output('current_mode', 'data', allow_duplicate=True),
             Output('btn-erase', 'style', allow_duplicate=True),
@@ -69,7 +56,7 @@ class UILayout():
             Output('current_mode', 'data', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
-            State('multi-colour-selector', 'value'),
+            State('multi-colour-selector', 'children'),
             State('current_mode', 'data'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'data'),
