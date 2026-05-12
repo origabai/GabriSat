@@ -80,6 +80,10 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
             parent.change(ind, new_value); // report change
             return old_value;
         }
+        // a size function
+        size_t size() {
+            return parent.vec[ind].size();
+        }
         // a cast to the actual type
         operator T() const {
             return parent.vec[ind];
@@ -90,6 +94,7 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
     PersistentVector() {}
     PersistentVector(int size) : vec(size) {}
     PersistentVector(int size, T value) : vec(size, value) {}
+    PersistentVector(std::vector<T> v) : vec(v) {}
 
     // returns an Element object that will call change() whenever it's changed
     Element operator[](int ind) {
@@ -122,6 +127,10 @@ class PersistentVector : public AbstractPersistentDT<std::pair<int, T>>{
     auto begin() { return vec.begin(); }
 
     auto end() { return vec.end(); }
+
+    operator std::vector<T>() {
+        return vec;
+    }
 };
 
 #endif

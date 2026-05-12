@@ -117,6 +117,7 @@ def run_test(problem: SATReducibleProblem, answer: bool) -> bool:
     try:
         sol = problem.solve()
     except Exception:
+        print("exception occurred")
         return False
     if (sol is None):
         if (answer):

@@ -7,12 +7,13 @@
 #include <stack>
 #include <utility>
 #include <stdexcept>
+using std::pair;
 
 // a wrapper for multiset that supports rollbacks
 // use the issue_ticket() method to get an identifier, and then you can call rollback with that
 // ticket, and rollback to that very point. you can also use the undo() method to undo the last change
 // be careful when changing elements via reference, as such changes won't affect the rollback functionality
-template<class T, T e, bool (*comp)(T, T)>
+template<class T, T (*e)(), bool (*comp)(T, T)>
 class PersistentGeneralSegmentTreeDS : public AbstractPersistentDT<std::pair<int, T>>{
     private:
     GeneralSegmentTreeDS<T, e, comp> seg;
