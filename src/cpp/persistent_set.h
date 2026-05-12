@@ -19,10 +19,10 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
     public:
     PersistentSet() {}
 
-    template <typename... Args>// cpp dark python like magic
-    auto insert(Args&&... args) {
-        // still black magic, forwarding the arguments
-        auto res = st.insert(std::forward<Args>(args)...);
+    PersistentSet(std::set<T> st) : st(st) {}
+
+    auto insert(const T& value) {
+        auto res = st.insert(value);
         if (res.second) {// if was actually added
             // true for inserting, res.first is an iterator to the element added
             this->changes.push(std::pair<bool, T>(true, *res.first));
@@ -81,6 +81,14 @@ class PersistentSet : public AbstractPersistentDT<std::pair<bool, T>>{
     auto upper_bound(T key) { return st.upper_bound(key); }
 
     auto rbegin() { return st.rbegin(); }
+
+    operator std::set<T>() {
+        return st;
+    }
+
+    operator std::vector<T>() {
+        return std::vector<T>(st.begin(), st.end());
+    }
 };
 
 #endif

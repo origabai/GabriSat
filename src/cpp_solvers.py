@@ -8,3 +8,8 @@ class CPP_BacktrackingSolver_V2(CPP_SATSolver):
     def __init__(self, num_variables):
         super().__init__(num_variables, "BacktrackingSolver_V2")
         
+        
+class CPP_BacktrackingSolver_V3(CPP_SATSolver):
+    def __init__(self, num_variables):
+        super().__init__(num_variables, "BacktrackingSolver_V3")
+        

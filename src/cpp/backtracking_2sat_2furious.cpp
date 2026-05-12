@@ -118,7 +118,7 @@ class SATHandler_V2 : public SATHandlingDS{
         // go over all clauses containing the current variable(even satisfied ones)
         for (int cl : var_to_clause_map[curr_var]){
             BetterSATClause &clause = clause_list[cl];
-            // if a clause is satisifed i don't care about it
+            // if a clause is satisfied i don't care about it
             if (clause.sat > 0){
                 continue;
             }
@@ -134,7 +134,7 @@ class SATHandler_V2 : public SATHandlingDS{
                     // set it's score to מלאנתלאפים so it doesn't come up in next_var
                     minqryds.update(cl, minqryds_MAXVAL);
                 } else {
-                    // the clause isn't satisifed immediately
+                    // the clause isn't satisfied immediately
                     // if this is the only variable in the clause, theres a contradiction! save it
                     if (clause.size() == 1){
                         valid_bit = false;

@@ -39,6 +39,9 @@ class PersistentMultiset : public AbstractPersistentDT<std::pair<bool, T>>{
     }
 
     auto erase(typename std::set<T>::iterator it) { // erase by iterator
+        if (it == st.end()) {
+            throw std::runtime_error("trying to erase the end of a multiset!");
+        }
         T value = *it; // a copy because we will erase it
         auto nextIt = st.erase(it);
         // false for erasing
