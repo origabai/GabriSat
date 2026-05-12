@@ -34,8 +34,6 @@ class AbstractPersistentDT : PersistentInterface {
 
     void rollback(int ticket) override {
         if (ticket > (int)changes.size()) {
-            // std::cout << ticket << ' ' << changes.size() << '\n';
-            // for (S s : changes) std::cout << s.first << "," << s.second << ' '; std::cout << '\n';
             throw std::invalid_argument("ticket used for rollback is too large!");
         }
         while (ticket < changes.size()) {

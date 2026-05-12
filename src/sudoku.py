@@ -44,8 +44,6 @@ class Sudoku(SATReducibleProblem):
             row = []
             col = []
             for j in range(len(board)):
-                if board[i][j] is None:
-                    raise KeyError("wtf ahi")
                 row.append(board[i][j])
                 col.append(board[i][j])
             row.sort()

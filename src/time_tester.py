@@ -6,8 +6,6 @@ from time import time
 def test_time(problem: SATReducibleProblem, problem_size: int, trials = 10, satsolver = DEFAULT_SOLVER):
     sm = 0
     for _ in range(trials):
-        print(_)
-        print(sm / (_ + 1))
         problem = problem.generate(problem_size, satsolver)
         start = time()
         problem.solve()
