@@ -22,11 +22,29 @@ int *solution_space;
 std::mutex *solution_space_mutex;
 // the pid of the root process
 int rootpid;
+// the pids of all children of the current process
+vector<int> children;
 
 void solutionfound_handler(int){
     if (getpid() != rootpid){
         exit(0);
     }
+}
+
+// kills the entire subtree of a process
+void murder_subtree(int){
+    kill(0, SIGUSR1);
+    exit(0);
+    // for (int pid : children){
+    //     kill(pid, SIGUSR2);
+    // }
+    // exit(0);
+}
+
+void quit_handler(int){
+    printf("cpp pytzov\n");
+    kill(0, SIGUSR1);
+    exit(0);
 }
 
 // abstract multiprocess backtracking solver using the handler DS
@@ -44,12 +62,14 @@ class AbstractThreadedSolver : public AbstractSATSolver{
         solution_space_mutex = (std::mutex*) mmap(NULL, sizeof(std::mutex), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
         rootpid = getpid();
         signal(SIGUSR1, solutionfound_handler);
+        signal(SIGUSR2, murder_subtree);
+        signal(SIGINT, quit_handler);
+        setpgid(0,0);
     }
     
     
     std::vector<int> solve() override {
         handler->initialize(num_variables, clauses);
-        setpgid(0,0);
         if (fork() == 0){
             // child
             rec_solve();

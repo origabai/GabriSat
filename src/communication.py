@@ -9,6 +9,9 @@ see communication.cpp for the list of names/solvers
 from SAT import AbstractSATSolver
 from random import choice
 import os
+
+cpid = 0
+
 """
 A class for communicating with a satsolver written in c++
 """
@@ -39,7 +42,12 @@ class CPP_SATSolver(AbstractSATSolver):
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
         # run the solver
-        os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
+        cpid = os.fork()
+        if (cpid == 0):
+            # child
+            os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
+        os.waitpid(cpid, 0)
+        # os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
         # read output file
         sans = open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]
