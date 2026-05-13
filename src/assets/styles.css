@@ -211,3 +211,62 @@ h3,
 label {
     text-align: center;
 }
+
+.legend-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.legend-btn {
+    padding: 10px 16px;
+    background: lightgray;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+    width: fit-content;
+}
+
+.legend-popup {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background: white;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 120px;
+    pointer-events: none;
+}
+
+.legend-wrap:hover .legend-popup {
+    display: block;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+}
+
+.color-box {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    border: 1px solid #333;
+}
+
+.grey { background: grey; }
+.red { background: red; }
+.green { background: green; }
+.blue { background: blue; }
+.yellow { background: yellow; }
+.purple { background: purple; }
+.pink { background: pink; }
+.magenta { background: magenta; }
+.lime { background: lime; }
+.cyan { background: cyan; }

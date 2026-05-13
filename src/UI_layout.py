@@ -70,6 +70,7 @@ class UILayout():
             Output('success_message', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
+            Output('fail-message', 'children', allow_duplicate=True),
             Input('btn-end1', 'n_clicks'),
             Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -265,26 +266,46 @@ class UILayout():
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Erase', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
 
-
-
-
-            # add, erase and random button
+            # coloring stuff
             html.Div([
                 html.Div([
                     html.Button('Clear coloring', id='btn-clear-coloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'}),
                     dcc.Input(id='color_num_selector', style={'width': '200px', 'marginRight':'10px'},  type='number', min=1, max=9, step=1, placeholder='max colors'),
-                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px'}),
-                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red'}),
+                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px', 'marginBottom':'0'}),
+                    html.H2("1", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red', 'marginBottom':'0'}),
+                    html.Div(
+                        [
+                            html.Button("Legend", id="legend-btn", className="legend-btn"),
+                            html.Div(
+                                [
+                                    html.Div([html.Span(className="color-box grey"), "Erase"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box red"), "1"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box green"), "2"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box blue"), "3"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box yellow"), "4"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box purple"), "5"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box pink"), "6"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box magenta"), "7"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box lime"), "8"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box cyan"), "9"], className="legend-row"),
+                                ],
+                                className="legend-popup",
+                            ),
+                        ],
+                        className="legend-wrap",
+                    ),
                     EventListener(
                         id="coloring-keypress-listener",
                         events=[{"event": "keydown", "props": ["key", "code"]}]
                     ),
-                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px'}),
-            ], className='button-row', style={'marginBottom': '20px'}),
+                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px', 'marginBottom': '0px'}),
+            ], className='button-row', style={'margin':'0','marginBottom': '0px'}),
+
+            html.H3("", id='fail-message' ,style = {'color' : 'red', 'marginTop': '5px', 'marginBottom': '10px'}),
 
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
@@ -320,7 +341,7 @@ class UILayout():
                     clearable=False,
                 ),
             ], className='sudoku-size-container', style={'marginBottom': '20px'}),
-            
+
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
 

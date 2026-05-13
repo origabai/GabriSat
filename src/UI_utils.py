@@ -607,14 +607,14 @@ class UIUtils:
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, no_update, no_update
+            return "this is unusual...", {"color": "yellow"}, no_update, no_update, no_update
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, no_update, no_update
-        
+            return "The program finished running. ", {"color": "blue"}, no_update, no_update, no_update
+        fail_message = ""
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
             if max_colors is None:
@@ -631,9 +631,11 @@ class UIUtils:
 
             if found_solution:
                 message = "Everything good, proceed!"
+                fail_message = ""
                 color = {"color": "green"}
             else:
-                message = "No solution found!"
+                message = ""
+                fail_message = "No solution found!"
                 color = {"color": "red"}
         
         if problem == "SUDOKU":
@@ -642,14 +644,16 @@ class UIUtils:
             sudoku = Sudoku(board)
             solution = sudoku.solve() # backend solving
             if solution is None: # no solution
-                message = "No solution found!"
+                message = ""
+                fail_message = "No solution found!"
                 color = {"color": "red"}
             else: # solution found
                 message = "Everything good, proceed!"
+                fail_message = ""
                 color = {"color": "green"}
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, new_graph, sudoku_board
+        return message, color, new_graph, sudoku_board, fail_message
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -960,9 +964,9 @@ class UIUtils:
         key = event['key']
         if (key not in "0123456789"):
             return current_num, last_modified
-        # if it's been 3 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
+        # if it's been 2 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
         # we set the input to the key pressed
-        if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
+        if (time() - last_modified['time'] > 2 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
             if (key == "0"):
                 return "Erase", {'time': time()}
             else:
