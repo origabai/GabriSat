@@ -276,7 +276,7 @@ class UILayout():
                     html.Button('Clear coloring', id='btn-clear-coloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'}),
                     dcc.Input(id='color_num_selector', style={'width': '200px', 'marginRight':'10px'},  type='number', min=1, max=9, step=1, placeholder='max colors'),
                     html.Label("Change node color", id = 'label_2', style={'marginRight':'10px', 'marginBottom':'0'}),
-                    html.H2("1", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red', 'marginBottom':'0'}),
+                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red', 'marginBottom':'0'}),
                     html.Div(
                         [
                             html.Button("Legend", id="legend-btn", className="legend-btn"),
