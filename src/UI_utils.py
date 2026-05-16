@@ -27,6 +27,7 @@ class UIUtils:
         self.app = app
         self.layout = UILayout(self).default_layout
         
+        #DRY
         self.clean_button_style = {
                 "backgroundColor": "lightgray",
                 "color": "black",
@@ -113,15 +114,17 @@ class UIUtils:
         return nodes1 == nodes2
 
     """
-    handles press of erase button.
+    handles press of erase button. removes selected nodes and changes button colors
     """
 
     def switch_erasing_mode(self, n_clicks, cur_mode, current_elements):
+        #removal of selected color
         new_graph = no_update
         if cur_mode['previous_color'] is not None:
             current_elements = self.recolor_node(current_elements,cur_mode["previous_color"], cur_mode["previous_click"])
             new_graph = self.generate_frontend_graph_object(current_elements)
-            
+        
+        #change erase button style and state
         if cur_mode["current_mode"] == "Erase":
             return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
         else:
@@ -131,15 +134,21 @@ class UIUtils:
                 "padding": "10px"
             }, self.clean_button_style, new_graph
 
+    
+    """
+    handles press of add node button. removes selected nodes and changes button colors
+    """
+    
     def switch_adding_mode(self, n_clicks, cur_mode, current_elements):
+        #clear selected node
         new_graph = no_update
         if cur_mode['previous_color'] is not None:
             current_elements = self.recolor_node(current_elements,cur_mode["previous_color"], cur_mode["previous_click"])
             new_graph = self.generate_frontend_graph_object(current_elements)
         
+        #change button style and state
         if cur_mode["current_mode"] == "Add":
             return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
-            
         else:
             return {"current_mode": "Add", 'previous_click' : None, 'previous_color' : None}, self.clean_button_style, {
                 "backgroundColor": "blue",
