@@ -962,12 +962,16 @@ class UIUtils:
     if eliminate_positions is given as True, all nodes manual set positions will be deleted (this is the default behavior)
     """
     def generate_frontend_graph_object(self, elements, eliminate_positions: bool = True):
+        num_nodes = sum(1 for e in elements if not self.is_edge(e))
+        graph_engine = "cose"
+        if num_nodes > 20:
+            graph_engine = "grid"
         new_graph = cyto.Cytoscape(
             # key=str(uuid4()),
             id='interactive-graph',
             elements=elements,
             layout = {
-                'name': 'random',
+                'name': graph_engine,
                 'fit': True,
                 'padding': 60,
                 'animate': False,
