@@ -10,8 +10,6 @@ from SAT import AbstractSATSolver
 from random import choice
 import os
 
-cpid = 0
-
 """
 A class for communicating with a satsolver written in c++
 """

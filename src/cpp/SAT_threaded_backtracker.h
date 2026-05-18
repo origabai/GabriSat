@@ -13,6 +13,8 @@
 using std::set;
 
 // the total number of processes currently running. shared memory between all processes
+// theres a race condition with checking/incrementing this value - it's not very accurate
+// in practice this means the actual number of processes will be ~2-3x of num_processes
 std::atomic<int> *num_processes;
 // whether a solution was found, shared memory between all processes
 std::atomic<bool> *solution_found;
@@ -20,30 +22,17 @@ std::atomic<bool> *solution_found;
 int *solution_space;
 // solution space write lock, shared memory between all processes
 std::mutex *solution_space_mutex;
-// the pid of the root process
-int rootpid;
-// the pids of all children of the current process
-vector<int> children;
+// the pid of the recursion root process
+// this is not the root process, but his son
+int recursion_root_pid = -1;
 
-void solutionfound_handler(int){
-    if (getpid() != rootpid){
-        exit(0);
-    }
-}
-
-// kills the entire subtree of a process
-void murder_subtree(int){
-    kill(0, SIGUSR1);
-    exit(0);
-    // for (int pid : children){
-    //     kill(pid, SIGUSR2);
-    // }
-    // exit(0);
-}
 
 void quit_handler(int){
-    printf("cpp pytzov\n");
-    kill(0, SIGUSR1);
+    printf("cpp quitting\n");
+    printf("%d\n", recursion_root_pid);
+    printf("%d\n", getpgid(recursion_root_pid));
+    fflush(stdin);
+    if (recursion_root_pid > 0) kill(getpgid(recursion_root_pid), SIGKILL);
     exit(0);
 }
 
@@ -60,18 +49,16 @@ class AbstractThreadedSolver : public AbstractSATSolver{
         *solution_found = false;
         solution_space = (int*)mmap(NULL, sizeof(int) * num_variables, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
         solution_space_mutex = (std::mutex*) mmap(NULL, sizeof(std::mutex), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-        rootpid = getpid();
-        signal(SIGUSR1, solutionfound_handler);
-        signal(SIGUSR2, murder_subtree);
         signal(SIGINT, quit_handler);
-        setpgid(0,0);
     }
     
     
     std::vector<int> solve() override {
         handler->initialize(num_variables, clauses);
-        if (fork() == 0){
+        recursion_root_pid = fork();
+        if (recursion_root_pid == 0){
             // child
+            setpgid(0,0);
             rec_solve();
             while (wait(0) > 0);
             exit(0);
@@ -125,7 +112,7 @@ class AbstractThreadedSolver : public AbstractSATSolver{
                     solution_space[i] = ans[i];
                 }
                 // a solution was found, murder everyone
-                kill(0, SIGUSR1);
+                kill(0, SIGKILL);
                 exit(0);
             } else {
                 return;
