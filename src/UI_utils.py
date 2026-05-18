@@ -967,11 +967,10 @@ class UIUtils:
             id='interactive-graph',
             elements=elements,
             layout = {
-                'name': 'cose', 
+                'name': 'random',
                 'fit': True,
+                'padding': 60,
                 'animate': False,
-                'padding':30,
-                'stop': 'function(event){ event.cy.resize(); }', # ui magic
             },
             style= {'width': '800px', 'height': '500px', 'border': '1px solid black'},
             stylesheet=[

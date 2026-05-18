@@ -308,7 +308,12 @@ class UILayout():
                 cyto.Cytoscape(
                     id='interactive-graph',
                     elements=[],
-                    layout={'name': 'cose'}, # Force-directed physics layout
+                    layout = {
+                        'name': 'random',
+                        'fit': True,
+                        'padding': 60,
+                        'animate': False,
+                    },
                     style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
                     stylesheet=[
                         # Basic styling to make labels visible
