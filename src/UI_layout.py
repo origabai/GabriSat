@@ -28,29 +28,36 @@ class UILayout():
         )(helper_object.add_node)
         
         helper_object.app.callback(
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-erase', 'style', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
-            Input('btn-add-edge', 'n_clicks'),
-            State('input-edge-source', 'value'),
-            State('input-edge-target', 'value'),
+            Input('btn-erase', 'n_clicks'),
+            State('current_mode', 'data'),
             State('interactive-graph', 'elements'),
             prevent_initial_call=True
-        )(helper_object.add_edge)
+        )(helper_object.switch_erasing_mode)
+        
         
         helper_object.app.callback(
-            Output('erase_toggled', 'data'),
-            Output('btn-erase', 'style'),
-            Input('btn-erase', 'n_clicks')
-        )(helper_object.switch_erasing_mode)
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-erase', 'style', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
+            Output('graph-wrapper', 'children', allow_duplicate=True),
+            Input('btn-add-edge', 'n_clicks'),
+            State('current_mode', 'data'),
+            State('interactive-graph', 'elements'),
+            prevent_initial_call=True
+        )(helper_object.switch_adding_mode)
         
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
             Input('interactive-graph', 'tapNodeData'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'children'),
-            State('erase_toggled', 'data'),
+            State('current_mode', 'data'),
             State('color_num_selector', 'value'),
             State('end-task-selector', 'data'),
             State('nodes-list', 'children'),
@@ -61,7 +68,7 @@ class UILayout():
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Input('interactive-graph', 'tapEdgeData'),
             State('interactive-graph', 'elements'),
-            State('erase_toggled', 'data'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.process_edge_click)
         
@@ -70,7 +77,8 @@ class UILayout():
             Output('success_message', 'style', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
-            Output('fail-message', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-end1', 'n_clicks'),
             Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
@@ -78,12 +86,15 @@ class UILayout():
             State('end-task-selector', 'data'),
             State('sudoku-board', 'children'),
             State('sudoku-size-selector', 'value'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.do_task)
         
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-random', 'n_clicks'),
             State('interactive-graph', 'elements'),
             State('graph-size-input', 'value'),
@@ -95,9 +106,11 @@ class UILayout():
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('multi-colour-selector', 'children'),
             Output('multi-colour-selector', 'style'),
+            Output('current_mode', 'data', allow_duplicate=True),
             Input('color_num_selector', 'value'),
             State('interactive-graph', 'elements'),
             State('multi-colour-selector', 'children'),
+            State('current_mode', 'data'),
             prevent_initial_call=True
         )(helper_object.handle_color_num_change)
 
@@ -158,20 +171,6 @@ class UILayout():
             State('sudoku-size-selector', 'value'),
             prevent_initial_call=True
         )(helper_object.clear_sudoku_board)
-
-        helper_object.app.callback(
-            Output('input-edge-source', 'style', allow_duplicate=True),
-            Input('input-edge-source', 'value'),
-            Input('nodes-list', 'children'),
-            prevent_initial_call=True
-        )(helper_object.add_edge_input_changed)
-        
-        helper_object.app.callback(
-            Output('input-edge-target', 'style', allow_duplicate=True),
-            Input('input-edge-target', 'value'),
-            Input('nodes-list', 'children'),
-            prevent_initial_call=True
-        )(helper_object.add_edge_input_changed)
         
         helper_object.app.callback(
             Output('input-edge-source', 'max', allow_duplicate=True),
@@ -214,6 +213,8 @@ class UILayout():
         helper_object.app.callback(
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('nodes-list', 'children', allow_duplicate=True),
+            Output('current_mode', 'data', allow_duplicate=True),
+            Output('btn-add-edge', 'style', allow_duplicate=True),
             Input('btn-clear-graph', 'n_clicks'),
             prevent_initial_call=True
         )(helper_object.clear_graph)
@@ -234,8 +235,9 @@ class UILayout():
         html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
-        dcc.Store(id="erase_toggled", storage_type='memory', data = {'toggled' : False}),
+        dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None, 'previous_color' : None}),
         dcc.Store(id="color_current", storage_type='memory', data = {'colour' : None}),
+
 
         # storage for the last time the sudoku number changed
         dcc.Store(id="sudoku_num_last_modified", storage_type='memory', data = {'time' : 0}),
@@ -250,14 +252,7 @@ class UILayout():
         
         #everything graph related
         html.Div([
-            
-            # Control Panel for Adding Edges
-            html.Div([
-                dcc.Input(id='input-edge-source', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                dcc.Input(id='input-edge-target', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
-                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
-            ], id='control-panel',style={'marginBottom': '20px'}),
+            html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
             
             # control panel for everything else
             html.Div([
@@ -266,6 +261,7 @@ class UILayout():
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
+                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
             ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),

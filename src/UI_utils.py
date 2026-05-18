@@ -17,7 +17,6 @@ from time import time
 provides utils for visualizer.py
 """
 
-
 class UIUtils:
     """
     here are all of the functions that the UI uses.
@@ -27,6 +26,15 @@ class UIUtils:
         self.vis_object = vis_object
         self.app = app
         self.layout = UILayout(self).default_layout
+        
+        #DRY
+        self.clean_button_style = {
+                "backgroundColor": "lightgray",
+                "color": "black",
+                "padding": "10px",
+            }
+        
+        self.clean_mode = {"current_mode": None, 'previous_click' : None, 'previous_color' : None}
 
     """
     generates initial graph element data. makes them accordingly to self.
@@ -93,42 +101,6 @@ class UIUtils:
         nodes_list.append(html.Option(value=next_id)) # updating the nodes list
 
         return new_graph, nodes_list
-
-    # TODO: replace with better add edge capabilities.
-    """
-    currently handles edge addition. TEMPORARY!
-    """
-
-    def add_edge(self, n_clicks, source_id, target_id, current_elements):
-        source_id = str(source_id)
-        target_id = str(target_id)
-        node_ids = [
-            element["data"]["id"]
-            for element in current_elements
-            if self.is_node(element)
-        ]
-        if (
-            not source_id
-            or not target_id
-            or source_id not in node_ids
-            or target_id not in node_ids
-            or source_id == target_id
-        ):
-            return no_update, "Invalid input!", {"color": "red"}
-            # Do nothing if source/target are empty or not real, or self edge
-
-        # Construct the new edge dictionary and append it to the state
-        new_edge = {"data": {"source": source_id, "target": target_id, "color": "grey"}}
-        if all(
-            not self.are_edges_equal(new_edge, element) for element in current_elements
-        ):
-            current_elements.append(new_edge)
-        else:
-            return no_update, "Edge already exists!", {"color": "red"}
-        
-        new_graph = self.generate_frontend_graph_object(current_elements)
-        return new_graph, "Edge added successfully!", {"color": "green"}
-
     """
     returns true iff edge1 and edge 2 are equivalent up to order, id and color
     """
@@ -142,23 +114,48 @@ class UIUtils:
         return nodes1 == nodes2
 
     """
-    handles press of erase button.
+    handles press of erase button. removes selected nodes and changes button colors
     """
 
-    def switch_erasing_mode(self, n_clicks):
-        if n_clicks % 2 == 0:
-            return {"toggled": False}, {
-                "backgroundColor": "lightgray",
-                "color": "black",
-                "padding": "10px",
-            }
+    def switch_erasing_mode(self, n_clicks, cur_mode, current_elements):
+        #removal of selected color
+        new_graph = no_update
+        if cur_mode['previous_color'] is not None:
+            current_elements = self.recolor_node(current_elements,cur_mode["previous_color"], cur_mode["previous_click"])
+            new_graph = self.generate_frontend_graph_object(current_elements)
+        
+        #change erase button style and state
+        if cur_mode["current_mode"] == "Erase":
+            return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
         else:
-            return {"toggled": True}, {
+            return {"current_mode": "Erase", 'previous_click' : None, 'previous_color' : None},{
                 "backgroundColor": "red",
                 "color": "black",
-                "padding": "10px",
-            }
+                "padding": "10px"
+            }, self.clean_button_style, new_graph
 
+    
+    """
+    handles press of add node button. removes selected nodes and changes button colors
+    """
+    
+    def switch_adding_mode(self, n_clicks, cur_mode, current_elements):
+        #clear selected node
+        new_graph = no_update
+        if cur_mode['previous_color'] is not None:
+            current_elements = self.recolor_node(current_elements,cur_mode["previous_color"], cur_mode["previous_click"])
+            new_graph = self.generate_frontend_graph_object(current_elements)
+        
+        #change button style and state
+        if cur_mode["current_mode"] == "Add":
+            return self.clean_mode, self.clean_button_style, self.clean_button_style, new_graph
+        else:
+            return {"current_mode": "Add", 'previous_click' : None, 'previous_color' : None}, self.clean_button_style, {
+                "backgroundColor": "blue",
+                "color": "black",
+                "padding": "10px"
+            }, new_graph
+    
     """
     checks wether an element is an edge.
     """
@@ -216,7 +213,7 @@ class UIUtils:
     handles change of color number
     """
 
-    def handle_color_num_change(self, max_colors, current_elements, input_color):
+    def handle_color_num_change(self, max_colors, current_elements, input_color, cur_mode):
         # fix max colors
         if (max_colors is None):
             max_colors = 1
@@ -224,15 +221,30 @@ class UIUtils:
         def compare_color(element):
             return self.check_element_color_compliance(element, max_colors)
 
+        #deals with add_edge elements:
+        if cur_mode["previous_click"] is not None:
+            current_elements = self.recolor_node(current_elements, cur_mode["previous_color"], cur_mode["previous_click"])
+        
         new_elements = self.color_to_grey(current_elements, compare_color)
+        
+        #updates pressed element
+        for element in new_elements:
+            if self.is_node(element) and element["data"]["id"] == cur_mode["previous_click"]:
+                cur_mode["previous_color"] = element["data"]["color"]
+        
+        #return previous color
+        if cur_mode["previous_click"] is not None:
+            new_elements = self.recolor_node(new_elements, "teal", cur_mode["previous_click"])
+        
         new_graph = self.generate_frontend_graph_object(new_elements)
+        
         # also changes the settings of the options
         if input_color == "Erase":
             input_color = "grey"
         if self.vis_object.color_to_num(input_color) + 1 < max_colors:
-            return new_graph, no_update, no_update
+            return new_graph, no_update, no_update, cur_mode
         else:
-            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey', 'marginBottom':'0'}, cur_mode
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -263,17 +275,16 @@ class UIUtils:
         tapped_node,
         current_elements,
         selected_colour,
-        erase_mode,
+        mode_storage,
         max_num,
         current_mode,
         nodes_list,
     ):
         # Base case: The app just loaded, and no node has been clicked yet.
         if tapped_node is None:
-            return no_update, no_update
-
+            return no_update, no_update, no_update
         # if erasing:
-        if erase_mode["toggled"]:
+        if mode_storage["current_mode"] == "Erase":
             current_elements = self.remove_adjacent_edges(tapped_node["id"], current_elements)
             node_ind = None
             for ind, node in enumerate(nodes_list):
@@ -283,7 +294,52 @@ class UIUtils:
             if node_ind is not None:
                 nodes_list.pop(node_ind)
             new_graph = self.generate_frontend_graph_object(current_elements)
-            return new_graph, nodes_list
+            return new_graph, nodes_list, no_update
+
+        elif mode_storage["current_mode"] == "Add":
+            
+            #if clicked first time recolor and move on with life
+            if mode_storage["previous_click"] is None:
+                #only need to update known previous edge
+                current_elements = self.recolor_node(current_elements, "teal", tapped_node["id"])
+                new_graph = self.generate_frontend_graph_object(current_elements)
+                return new_graph, no_update, {"current_mode" : "Add", "previous_click" : tapped_node["id"], 'previous_color' : tapped_node['color']}
+            
+            #now, we have two clicks. check if edge addition is a valid operation:
+            source_id = mode_storage["previous_click"]
+            target_id = tapped_node["id"]
+            node_ids = [
+                element["data"]["id"]
+                for element in current_elements
+                if self.is_node(element)
+            ]
+            #the invalid source/target or self edge case:
+            if (
+                not source_id
+                or not target_id
+                or source_id not in node_ids
+                or target_id not in node_ids
+                or source_id == target_id
+            ):  
+                if source_id and source_id in node_ids:
+                    current_elements = self.recolor_node(current_elements, mode_storage["previous_color"], mode_storage["previous_click"])
+                    new_graph = self.generate_frontend_graph_object(current_elements)
+                    return new_graph, no_update, {"current_mode" : "Add", "previous_click" : None, 'previous_color' : None}
+                
+                return no_update, no_update, {"current_mode" : "Add", "previous_click" : None, 'previous_color' : None}
+                # Do nothing if source/target are empty or not real, or self edge
+
+            # Construct the new edge dictionary and append it to the state
+            new_edge = {"data": {"source": source_id, "target": target_id, "color": "grey"}}
+            current_elements = self.recolor_node(current_elements, mode_storage["previous_color"], mode_storage["previous_click"])
+            if all(
+                not self.are_edges_equal(new_edge, element) for element in current_elements
+            ):
+                current_elements.append(new_edge)
+            new_graph = self.generate_frontend_graph_object(current_elements)
+            return new_graph, no_update, {"current_mode" : "Add", "previous_click" : None, 'previous_color' : None}
+            
+            
         else:
             # check need to color depending on selected color
 
@@ -299,11 +355,11 @@ class UIUtils:
                 trivial_conditions
                 or self.vis_object.color_to_num(selected_colour) > int(max_num) - 1
             ):
-                return no_update, no_update
+                return no_update, no_update, no_update
             # now, recolor when needed:
             current_elements = self.recolor_node(current_elements, selected_colour, tapped_node["id"])
             new_graph = self.generate_frontend_graph_object(current_elements)
-            return new_graph, no_update
+            return new_graph, no_update, no_update
 
     """
     generates random graph - returns elements accordingly and updates graph in self.
@@ -324,7 +380,7 @@ class UIUtils:
         nodes_list = [html.Option(value=str(n)) for n in range(size)]
         elements = self.generate_initial_graph_data(missing_nodes=[])
         new_graph = self.generate_frontend_graph_object(elements)
-        return new_graph, nodes_list
+        return new_graph, nodes_list, self.clean_mode, self.clean_button_style
 
     """
     function that checks wether edge is connecting between id1 and id2.
@@ -348,9 +404,9 @@ class UIUtils:
     function that is responsible for edge clicks. currently removes it if needed.
     """
 
-    def process_edge_click(self, tapped_edge, current_elements, erase_mode):
+    def process_edge_click(self, tapped_edge, current_elements, mode_storage):
         # remove edge if necessary
-        if tapped_edge is not None and erase_mode["toggled"]:
+        if tapped_edge is not None and mode_storage["current_mode"] == "Erase":
             current_elements = self.erase_edge(current_elements, tapped_edge["source"], tapped_edge["target"])
             new_graph = self.generate_frontend_graph_object(current_elements)
             return new_graph
@@ -600,21 +656,26 @@ class UIUtils:
     besides that, updates the graph with reduced elements.
     """
 
-    def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str):
+    def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str, cur_mode):
         message: str # success message to return
         color: dict # color of message
+        
+        #getting rid of selection colour before parsing
+        if cur_mode['current_mode'] == "Add" and cur_mode["previous_click"] is not None:
+            elements = self.recolor_node(elements, cur_mode["previous_color"], cur_mode["previous_click"])
+        
         new_graph = self.generate_frontend_graph_object(elements)
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, no_update, no_update, no_update
+            return "this is unusual...", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, no_update, no_update, no_update
-        fail_message = ""
+            return "The program finished running. ", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
+        
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
             if max_colors is None:
@@ -631,11 +692,9 @@ class UIUtils:
 
             if found_solution:
                 message = "Everything good, proceed!"
-                fail_message = ""
                 color = {"color": "green"}
             else:
-                message = ""
-                fail_message = "No solution found!"
+                message = "No solution found!"
                 color = {"color": "red"}
         
         if problem == "SUDOKU":
@@ -644,16 +703,14 @@ class UIUtils:
             sudoku = Sudoku(board)
             solution = sudoku.solve() # backend solving
             if solution is None: # no solution
-                message = ""
-                fail_message = "No solution found!"
+                message = "No solution found!"
                 color = {"color": "red"}
             else: # solution found
                 message = "Everything good, proceed!"
-                fail_message = ""
                 color = {"color": "green"}
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, new_graph, sudoku_board, fail_message
+        return message, color, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -873,6 +930,7 @@ class UIUtils:
         number = int(number) # make it an int
         return lower_bound <= number <= upper_bound
     
+    ''' redundant
     # called when one of the two add edge input fields changed or the list of nodes changed
     # checks if they input field is legal and changes its color accordingly
     def add_edge_input_changed(self, value, nodes_list):
@@ -881,7 +939,7 @@ class UIUtils:
             return {'color' : 'black', 'width': '200px'}
         else:
             return {'color': 'red', 'width': '200px'}
-        
+    '''
     # called when the list of graph nodes changes, and changes the max of the edge input fields
     def nodes_list_changed(self, nodes_list):
         if (len(nodes_list) == 0):
@@ -908,14 +966,14 @@ class UIUtils:
             # key=str(uuid4()),
             id='interactive-graph',
             elements=elements,
-            layout={
-                'name': 'cose',
+            layout = {
+                'name': 'cose', 
                 'fit': True,
                 'animate': False,
-                'padding': 30,
+                'padding':30,
                 'stop': 'function(event){ event.cy.resize(); }', # ui magic
             },
-            style= {'width': '800px', 'height': '400px', 'border': '1px solid black'},
+            style= {'width': '800px', 'height': '500px', 'border': '1px solid black'},
             stylesheet=[
                 # Basic styling to make labels visible
                 {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
@@ -986,12 +1044,12 @@ class UIUtils:
         if num_colors is None:
             num_colors = 1
         if (key == "0"):
-            return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+            return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey', 'marginBottom':'0'}
         if (int(num_colors) < 1):
             return no_update, no_update
         if int(key) > int(num_colors):
             return no_update, no_update
-        return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1]}
+        return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1], 'marginBottom':'0'}
 
     # clears the graph    
     def clear_graph(self, n_clicks):
@@ -999,7 +1057,7 @@ class UIUtils:
             return no_update, no_update
         self.vis_object.graph = GraphColoring(0, [], [], 0)
 
-        return self.generate_frontend_graph_object([]), []
+        return self.generate_frontend_graph_object([]), [], self.clean_mode, self.clean_button_style
     
     # clears the colors
     def clear_coloring(self, n_clicks, elements):
