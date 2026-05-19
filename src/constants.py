@@ -1,22 +1,29 @@
 from SAT_trivial import TrivialSATSolver
 from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
-from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_ThreadedSolver
+from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_ThreadedSolver, CPP_BacktrackingSolver_V3
 
-DEFAULT_SOLVER = CPP_ThreadedSolver
+DEFAULT_SOLVER = CPP_BacktrackingSolver_V3
 TrivialSATSolver
 TrivialBacktrackingSolver
 ImproverBacktrackingSolver
 CPP_ImprovedBacktracker
 CPP_BacktrackingSolver_V2
+CPP_BacktrackingSolver_V3
 CPP_ThreadedSolver
 
 SUDOKU_GEN_STATUS = "NEW_seed" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
 SUDOKU_GEN_LIMIT = 3
 
+SYMMETRY_TOGGLE = True
+MAX_SYMMETRY_OPERATIONS = 1000000 #lets say a million
+
 RandomGraphMinSize = 5
 RandomGraphMaxSize = 13
 HAMCYCLE_GENERATION_CONST = 8
+
+SudokuBoxMiddle = [400, 250] # half of the graph box size
+SudokuCircleConstant = 18
 
 ColourSelectorOptions = [
                         # 'label' is what the user sees, 'value' is what Python receives

@@ -14,10 +14,18 @@ def benchmark_times():
     #     test_time(HamiltonianCycle.generate(), 40),
     # )
     print(
-        # "Average time to solve a 16x16 sudoku:",
-        test_time(Sudoku.generate(), 25, trials=1),
+        "Average time to 20-color a 40 vertex graph:",
+        test_time(GraphColoring.generate(), 40),
     )
-
+    print(
+        "Average time to find a hamiltonian cycle on a 40 vertex graph:",
+        test_time(HamiltonianCycle.generate(), 40),
+    )
+    print(
+        "Average time to solve a 16x16 sudoku:",
+        test_time(Sudoku.generate(), 16, trials=10),
+    )
+    
 def main():
     benchmark_times()
 

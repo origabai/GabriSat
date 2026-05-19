@@ -20,8 +20,12 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
         auto [curr_var, truthval] = handler->next_var();
         // base case
         if (curr_var == NO_NEXT_VAR){
-            if (handler->valid()) return handler->current_assignment();
-            else return {};
+            if (handler->valid()) {
+                return handler->current_assignment();
+            }
+            else {
+                return {};
+            }
         }
         // assigns suggested value
         handler->upd_assignment(curr_var, truthval);
@@ -47,7 +51,6 @@ class AbstractBacktrackingSolver : public AbstractSATSolver{
             }
         }
         handler->rollback_assignment();
-        
         return {};
     }
 };

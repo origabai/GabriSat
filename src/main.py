@@ -4,7 +4,7 @@ from sudoku import Sudoku
 from visualizer import Visualizer
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
-from pynput.keyboard import Controller, Key 
+# from pynput.keyboard import Controller, Key 
 from sys import setrecursionlimit
 
 from webbrowser import open as webopen

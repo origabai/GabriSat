@@ -11,6 +11,7 @@ the executable should be named communication.exe
 #include "improved_backtracking.cpp"
 #include "backtracking_2sat_2furious.cpp"
 #include "backtracking_threaded.cpp"
+#include "general_backtracking.cpp"
 using namespace std;
 
 
@@ -19,6 +20,7 @@ using namespace std;
 map<string, function<AbstractSATSolver*(int)>> name_to_solver_map = {
     {"ImprovedBacktrackingSolver", [](int n){return new ImprovedBacktrackingSolver(n);}},
     {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}},
+    {"BacktrackingSolver_V3", [](int n){return new BacktrackingSolver_V3(n);}},
     {"ThreadedSolver", [](int n){return new ThreadedSolver(n);}},
 };
 
@@ -73,9 +75,7 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
 // outputs the solution array, or UNSAT if there is no solution
 int main(int argc, char *argv[]){
     ios_base::sync_with_stdio(false);
-    // argc = 4;
-    // const char *aaa[] = {"communication", "/home/origabai/GabriSat/src/lyqndderry.in","/home/origabai/GabriSat/src/lyqndderry.out","ThreadedSolver"};
-    // argv = const_cast<char**>(aaa);
+
     if (argc < 4){
         cerr << "invalid command arguments\n";
         return 1;
@@ -95,5 +95,6 @@ int main(int argc, char *argv[]){
     } else {
         output_file << "UNSAT";
     }
-    
+    input_file.close();
+    output_file.close();
 }

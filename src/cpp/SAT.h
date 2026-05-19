@@ -2,6 +2,7 @@
 #define SAT_H
 #include<vector>
 #include<set>
+#include <iostream>
 
 struct SATClause {
     std::set<int> pos_variables;

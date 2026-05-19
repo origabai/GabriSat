@@ -27,6 +27,10 @@ class CPP_SATSolver(AbstractSATSolver):
         self.solver_name = solver_name
         
     def solve(self):
+        # if the executable doesnt exist
+        if not os.path.isfile(self.object_path):
+            os.chdir(os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp")
+            os.system(os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "compilation.sh")
         letters = "abcdefghijklmnopqrstuvwxyz"
         # create input file with the correct format
         fname = os.path.dirname(os.path.abspath(__file__)) + os.sep + "".join([choice(letters) for i in range(10)])
@@ -47,7 +51,7 @@ class CPP_SATSolver(AbstractSATSolver):
         os.waitpid(cpid, 0)
         # os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
         # read output file
-        sans = open(fname + ".out").read().split(" ")
+        sans= open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]
         os.remove(fname + ".in")
         os.remove(fname + ".out")

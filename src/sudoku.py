@@ -89,7 +89,6 @@ class Sudoku(SATReducibleProblem):
                             square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
                     sat_reduction.addClause(square, [])
 
-
         solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         if solution is None:
             return None
