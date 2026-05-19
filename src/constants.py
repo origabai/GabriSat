@@ -1,17 +1,18 @@
 from SAT_trivial import TrivialSATSolver
 from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
-from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_BacktrackingSolver_V3
+from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_BacktrackingSolver_V3, CPP_IDsolver
 
-DEFAULT_SOLVER = CPP_BacktrackingSolver_V3
+DEFAULT_SOLVER = CPP_IDsolver
 TrivialSATSolver
 TrivialBacktrackingSolver
 ImproverBacktrackingSolver
 CPP_ImprovedBacktracker
 CPP_BacktrackingSolver_V2
 CPP_BacktrackingSolver_V3
+CPP_IDsolver
 
-SUDOKU_GEN_STATUS = "NEW" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
+SUDOKU_GEN_STATUS = "NEW_seed" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
 SUDOKU_GEN_LIMIT = 3
 
 SYMMETRY_TOGGLE = True

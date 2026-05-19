@@ -9,6 +9,9 @@ see communication.cpp for the list of names/solvers
 from SAT import AbstractSATSolver
 from random import choice
 import os
+from multiprocessing import Event
+import signal
+from time import time, sleep
 """
 A class for communicating with a satsolver written in c++
 """
@@ -54,3 +57,70 @@ class CPP_SATSolver(AbstractSATSolver):
         else:
             return ans
 
+"""
+A class for communicating with a satsolver written in c++, via iterative deepening
+"""
+class CPP_IDsolver(AbstractSATSolver):
+    """
+    creates the class.
+    receives as parameters the number of variables,
+    as well as a the name of the cpp solver which will be used
+    as defined in communication.cpp
+    """
+    def __init__(self, num_variables, solver_name):
+        super().__init__(num_variables)
+        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication"
+        self.solver_name = solver_name
+        
+    def solve(self):
+        # if the executable doesnt exist
+        if not os.path.isfile(self.object_path):
+            os.chdir(os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp")
+            os.system(os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "compilation.sh")
+        letters = "abcdefghijklmnopqrstuvwxyz"
+        # create input file with the correct format
+        fname = os.path.dirname(os.path.abspath(__file__)) + os.sep + "".join([choice(letters) for i in range(10)])
+        with open(fname + ".in", "w") as f:
+            print(self.num_variables, len(self.clauses), file = f)
+            for i in range(len(self.clauses)):
+                print(len(self.clauses[i].pos_variables),file = f)
+                for x in self.clauses[i].pos_variables:
+                    print(x, file = f)
+                print(len(self.clauses[i].neg_variables),file = f)
+                for x in self.clauses[i].neg_variables:
+                    print(x, file = f)
+        
+        success_flag = Event()
+        stop_time = 2
+        while True:
+            print("aaa")
+            cpid = os.fork()
+            print("bbb")
+            if (cpid == 0):
+                # child
+                if (os.fork() == 0):
+                    os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
+                os.wait()
+                success_flag.set()
+                exit()
+
+            start_time = time()
+            while (time() - start_time < stop_time and not success_flag.is_set):
+                os.sched_yield()
+            if (success_flag.is_set):
+                # found solution
+                break
+            else:
+                # didnt find solution
+                os.kill(cpid, signal.SIGINT)
+                stop_time += 2
+                
+        # read output file
+        sans= open(fname + ".out").read().split(" ")
+        ans = [(x == "1") for x in sans]
+        os.remove(fname + ".in")
+        os.remove(fname + ".out")
+        if (sans[0] == "UNSAT"):
+            return None
+        else:
+            return ans
