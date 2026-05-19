@@ -2,13 +2,8 @@
     "tasks": [
         {
             "type": "cppbuild",
-<<<<<<< HEAD
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
-=======
-            "label": "C/C++: g++.exe build active file",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
->>>>>>> main
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
