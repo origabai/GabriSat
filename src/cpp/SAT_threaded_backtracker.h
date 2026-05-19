@@ -28,11 +28,7 @@ int recursion_root_pid = -1;
 
 
 void quit_handler(int){
-    printf("cpp quitting\n");
-    printf("%d\n", recursion_root_pid);
-    printf("%d\n", getpgid(recursion_root_pid));
-    fflush(stdin);
-    if (recursion_root_pid > 0) kill(getpgid(recursion_root_pid), SIGKILL);
+    if (recursion_root_pid > 0) kill(-getpgid(recursion_root_pid), SIGKILL);
     exit(0);
 }
 
