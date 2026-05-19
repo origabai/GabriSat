@@ -4,6 +4,7 @@ from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
 from SAT import AbstractSATSolver
+import time
 #from sudoku_generate import generate_sudoku_seed
 
 """
@@ -118,10 +119,11 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     @classmethod
     # creates a new random Sudoku object of size board_size
     def initializeRandomly(self, board_size: int, satsolver = DEFAULT_SOLVER):
-        
         #board = self.generateTrivialBoard(board_size)
         #this is a shinier version!
-        
+        if (isqrt(board_size)**2 != board_size):
+            print("has to be square number!!!!!!! defaulting to 4.")
+            board_size = 4
         #handle board creation - old vs new
         if SUDOKU_GEN_STATUS == "OLD" or (SUDOKU_GEN_STATUS == "NEW_VARIABLE" and board_size > SUDOKU_GEN_LIMIT**2):
             #old board creation
@@ -151,7 +153,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     
     
     @classmethod
-    def generate(self, size = 2, solver = DEFAULT_SOLVER):
+    def generate(self, size = 4, solver = DEFAULT_SOLVER):
         return self.initializeRandomly(size, satsolver=solver)
 
     # returns a new GraphColoring object with a reduction from the sudoku board
