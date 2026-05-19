@@ -4,7 +4,6 @@ from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
 from SAT import AbstractSATSolver
-import time
 #from sudoku_generate import generate_sudoku_seed
 
 """
