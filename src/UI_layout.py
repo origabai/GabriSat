@@ -73,8 +73,8 @@ class UILayout():
         )(helper_object.process_edge_click)
         
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
+            Output('fail-message', 'children', allow_duplicate=True),
+            Output('sudoku-fail-message', 'children', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('current_mode', 'data', allow_duplicate=True),
@@ -115,8 +115,6 @@ class UILayout():
         )(helper_object.handle_color_num_change)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('graph-div', 'style', allow_duplicate=True),
             Output('sudoku-div', 'style', allow_duplicate=True),
             Output('coloring-div', 'style', allow_duplicate=True),
@@ -130,8 +128,6 @@ class UILayout():
         )(helper_object.switch_problem)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('sudoku-board-div', 'style', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('sudoku-board', 'style', allow_duplicate=True),
@@ -157,8 +153,6 @@ class UILayout():
         )(helper_object.sudoku_cell_clicked)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Input('generate-random-board', 'n_clicks'),
             State('sudoku-size-selector', 'value'),
@@ -226,13 +220,20 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.clear_coloring)
 
+        helper_object.app.callback(
+            Output('fail-message', 'children', allow_duplicate=True),
+            Output('sudoku-fail-message', 'children', allow_duplicate=True),
+            Input('graph-wrapper', 'children'),
+            Input('sudoku-board', 'children'),
+            prevent_initial_call=True
+        )(helper_object.clear_fail_message)
+
 
     '''
     this is default layout of the UI
     '''
     default_layout = html.Div([
         html.H1("SAT solver"),
-        html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
         dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None, 'previous_color' : None}),
@@ -256,7 +257,6 @@ class UILayout():
             
             # control panel for everything else
             html.Div([
-                # random graph size input
                 dcc.Input(id='graph-size-input', style={'width': '250px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
@@ -264,8 +264,8 @@ class UILayout():
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-            ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
-
+                html.Div("",id='fail-message',style={'color': 'red','minWidth': '180px','height': '40px','display': 'flex','alignItems': 'center','fontWeight': 'bold','justifyContent': 'flex-start','position': 'absolute','right': '100px'})
+            ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px',}),
             # coloring stuff
             html.Div([
                 html.Div([
@@ -278,7 +278,7 @@ class UILayout():
                             html.Button("Legend", id="legend-btn", className="legend-btn"),
                             html.Div(
                                 [
-                                    html.Div([html.Span(className="color-box grey"), "Erase"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box grey"), "0 - Erase"], className="legend-row"),
                                     html.Div([html.Span(className="color-box red"), "1"], className="legend-row"),
                                     html.Div([html.Span(className="color-box green"), "2"], className="legend-row"),
                                     html.Div([html.Span(className="color-box blue"), "3"], className="legend-row"),
@@ -299,9 +299,7 @@ class UILayout():
                         events=[{"event": "keydown", "props": ["key", "code"]}]
                     ),
                 ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px', 'marginBottom': '0px'}),
-            ], className='button-row', style={'margin':'0','marginBottom': '0px'}),
-
-            html.H3("", id='fail-message' ,style = {'color' : 'red', 'marginTop': '5px', 'marginBottom': '10px'}),
+            ], className='button-row', style={'margin':'0','marginBottom': '10px'}),
 
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
@@ -368,8 +366,9 @@ class UILayout():
                         html.Label("current number", id="sudoku-num-input-label", style={'margin':'0'}),
                         html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
+                    html.Div("",id='sudoku-fail-message',style={'color': 'red','minWidth': '180px','height': '40px','display': 'flex','alignItems': 'center','fontWeight': 'bold','justifyContent': 'flex-start','position': 'absolute','right': '290px'})
+                ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px','justifyContent': 'center',}),
 
-                ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px'}),
 
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board', style={'display': 'none'}),

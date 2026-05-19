@@ -657,8 +657,7 @@ class UIUtils:
     """
 
     def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str, cur_mode):
-        message: str # success message to return
-        color: dict # color of message
+        message: str # fail message to return
         
         #getting rid of selection colour before parsing
         if cur_mode['current_mode'] == "Add" and cur_mode["previous_click"] is not None:
@@ -668,13 +667,13 @@ class UIUtils:
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
         
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
@@ -691,11 +690,9 @@ class UIUtils:
                 # new_graph.elements = elements
 
             if found_solution:
-                message = "Everything good, proceed!"
-                color = {"color": "green"}
+                message = ""
             else:
-                message = "No solution found!"
-                color = {"color": "red"}
+                message = "No solution found"
         
         if problem == "SUDOKU":
             # making a backend_board
@@ -703,14 +700,15 @@ class UIUtils:
             sudoku = Sudoku(board)
             solution = sudoku.solve() # backend solving
             if solution is None: # no solution
-                message = "No solution found!"
-                color = {"color": "red"}
+                message = "No solution found"
             else: # solution found
-                message = "Everything good, proceed!"
-                color = {"color": "green"}
+                message = ""
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
+        if message == "No solution found":
+            return message,message, no_update, no_update, self.clean_mode, self.clean_button_style
+        else:
+            return message,message, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -745,7 +743,7 @@ class UIUtils:
             color = {'color' : 'black'}
         
         new_graph = self.generate_frontend_graph_object(current_elements)
-        return message, color, graph_style, sudoku_style, coloring_style, new_graph
+        return graph_style, sudoku_style, coloring_style, new_graph
     
     """
     creates html elements of an empty sudoku board of size x size, initialized with board
@@ -833,7 +831,7 @@ class UIUtils:
             # a unique key for different board sizes, fixes a caching issue
             board_key = f"sudoku-board-{size}"
             
-        return message, color, board_div, board_children, board_style, board_key, (int)(size)
+        return board_div, board_children, board_style, board_key, (int)(size)
     
     """
     checks if number is legal in a sudoku board of size size
@@ -871,7 +869,7 @@ class UIUtils:
         sudoku = Sudoku.initializeRandomly(int(size))
         # creating the html board
         board_children = self.create_sudoku_board(int(size), sudoku.board)
-        return message, color, board_children
+        return board_children
     
     # clears the board
     def clear_sudoku_board(self, n_clicks, size: str):
@@ -1069,3 +1067,6 @@ class UIUtils:
         new_elements = self.color_to_grey(elements, lambda x : True)
         new_graph = self.generate_frontend_graph_object(new_elements)
         return new_graph
+    
+    def clear_fail_message(self, _1, _2):
+        return "",""
