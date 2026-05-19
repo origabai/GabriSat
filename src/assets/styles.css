@@ -270,3 +270,11 @@ label {
 .magenta { background: magenta; }
 .lime { background: lime; }
 .cyan { background: cyan; }
+
+/* Position fail-message to the right of the centered button row */
+#fail-message {
+    position: absolute !important;
+    left: calc(50% + 500px); /* Start from center, then offset by gap */
+    transform: translateX(0);
+    margin-left: 0 !important;
+}

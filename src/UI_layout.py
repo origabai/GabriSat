@@ -264,8 +264,8 @@ class UILayout():
                 html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Erase', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-                html.Div("",id='fail-message',style={'color': 'red','minWidth': '180px','height': '40px','display': 'flex','alignItems': 'center','fontWeight': 'bold','justifyContent': 'flex-start','position': 'absolute','right': '100px'})
-            ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px',}),
+                html.Div("", id='fail-message', style={'color': 'red', 'minWidth': '180px', 'height': '40px', 'display': 'flex', 'alignItems': 'center', 'fontWeight': 'bold', 'position': 'absolute', 'marginLeft': '12px'})
+            ], id='control-panel2', style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px', 'position': 'relative'}),
             # coloring stuff
             html.Div([
                 html.Div([
