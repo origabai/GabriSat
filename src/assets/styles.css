@@ -278,3 +278,10 @@ label {
     transform: translateX(0);
     margin-left: 0 !important;
 }
+
+#sudoku-fail-message {
+    position: absolute !important;
+    left: calc(50% + 300px); /* Start from center, then offset by gap */
+    transform: translateX(0);
+    margin-left: 0 !important;
+}

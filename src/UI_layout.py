@@ -366,8 +366,8 @@ class UILayout():
                         html.Label("current number", id="sudoku-num-input-label", style={'margin':'0'}),
                         html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
-                    html.Div("",id='sudoku-fail-message',style={'color': 'red','minWidth': '180px','height': '40px','display': 'flex','alignItems': 'center','fontWeight': 'bold','justifyContent': 'flex-start','position': 'absolute','right': '290px'})
-                ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px','justifyContent': 'center',}),
+                    html.Div("", id='sudoku-fail-message', style={'color': 'red', 'minWidth': '180px', 'height': '40px', 'display': 'flex', 'alignItems': 'center', 'fontWeight': 'bold', 'position': 'absolute', 'marginLeft': '12px'})
+                ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px', 'position': 'relative'}),
 
 
                 # the sudoku board itself, initialized in UI_utils
