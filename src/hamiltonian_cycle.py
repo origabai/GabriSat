@@ -87,7 +87,9 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
 
     # generates a SAT problem with the initial constraints for the cool reduction
     # and returns it
+    # returns None if there is a vertex of degree 0/1
     def generate_initial_cool_reduction(self):
+        self.normalize_edges()
         self.generate_adjacency_matrix()
         s = self.solver(len(self.edges))
 
@@ -96,6 +98,11 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
             e = self.edges[i]
             adj_list[e[0]].append(i)
             adj_list[e[1]].append(i)
+        
+        # check that there are no isolated/degree 1 nodes
+        for i in range(self.num_nodes):
+            if (len(adj_list[i]) <= 1):
+                return None
 
         for v in range(self.num_nodes):
             # there are strictly less than three חבר'ה connected to every vertex
@@ -123,6 +130,9 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
             return None
         # ok it's connected 👍
         s = self.generate_initial_cool_reduction()
+        # if there is a vertex of degree 0/1
+        if s is None:
+            return None
         # start back-and-forth with the satsolver
         while True:
             sol = s.solve()

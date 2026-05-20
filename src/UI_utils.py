@@ -244,7 +244,7 @@ class UIUtils:
         if self.vis_object.color_to_num(input_color) + 1 < max_colors:
             return new_graph, no_update, no_update, cur_mode
         else:
-            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}, cur_mode
+            return new_graph, "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey', 'marginBottom':'0'}, cur_mode
 
     """
     removes edges adjacent to a node (and the node itself)
@@ -657,8 +657,7 @@ class UIUtils:
     """
 
     def do_task(self, n_clicks_1, n_clicks_2, elements, max_colors, problem, sudoku_board, size_of_sudoku: str, cur_mode):
-        message: str # success message to return
-        color: dict # color of message
+        message: str # fail message to return
         
         #getting rid of selection colour before parsing
         if cur_mode['current_mode'] == "Add" and cur_mode["previous_click"] is not None:
@@ -668,13 +667,13 @@ class UIUtils:
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "this is unusual...", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "The program finished running. ", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
         
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
@@ -691,11 +690,9 @@ class UIUtils:
                 # new_graph.elements = elements
 
             if found_solution:
-                message = "Everything good, proceed!"
-                color = {"color": "green"}
+                message = ""
             else:
-                message = "No solution found!"
-                color = {"color": "red"}
+                message = "No solution!"
         
         if problem == "SUDOKU":
             # making a backend_board
@@ -703,14 +700,15 @@ class UIUtils:
             sudoku = Sudoku(board)
             solution = sudoku.solve() # backend solving
             if solution is None: # no solution
-                message = "No solution found!"
-                color = {"color": "red"}
+                message = "No solution!"
             else: # solution found
-                message = "Everything good, proceed!"
-                color = {"color": "green"}
+                message = ""
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        return message, color, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
+        if message == "No solution!":
+            return message,message, no_update, no_update, self.clean_mode, self.clean_button_style
+        else:
+            return message,message, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
@@ -745,7 +743,7 @@ class UIUtils:
             color = {'color' : 'black'}
         
         new_graph = self.generate_frontend_graph_object(current_elements)
-        return message, color, graph_style, sudoku_style, coloring_style, new_graph
+        return graph_style, sudoku_style, coloring_style, new_graph
     
     """
     creates html elements of an empty sudoku board of size x size, initialized with board
@@ -833,7 +831,7 @@ class UIUtils:
             # a unique key for different board sizes, fixes a caching issue
             board_key = f"sudoku-board-{size}"
             
-        return message, color, board_div, board_children, board_style, board_key, (int)(size)
+        return board_div, board_children, board_style, board_key, (int)(size)
     
     """
     checks if number is legal in a sudoku board of size size
@@ -871,7 +869,7 @@ class UIUtils:
         sudoku = Sudoku.initializeRandomly(int(size))
         # creating the html board
         board_children = self.create_sudoku_board(int(size), sudoku.board)
-        return message, color, board_children
+        return board_children
     
     # clears the board
     def clear_sudoku_board(self, n_clicks, size: str):
@@ -962,18 +960,21 @@ class UIUtils:
     if eliminate_positions is given as True, all nodes manual set positions will be deleted (this is the default behavior)
     """
     def generate_frontend_graph_object(self, elements, eliminate_positions: bool = True):
+        num_nodes = sum(1 for e in elements if not self.is_edge(e))
+        graph_engine = "cose"
+        if num_nodes > 20:
+            graph_engine = "grid"
         new_graph = cyto.Cytoscape(
             # key=str(uuid4()),
             id='interactive-graph',
             elements=elements,
-            layout={
-                'name': 'cose',
+            layout = {
+                'name': graph_engine,
                 'fit': True,
+                'padding': 60,
                 'animate': False,
-                'padding': 30,
-                'stop': 'function(event){ event.cy.resize(); }', # ui magic
             },
-            style= {'width': '800px', 'height': '400px', 'border': '1px solid black'},
+            style= {'width': '800px', 'height': '500px', 'border': '1px solid black'},
             stylesheet=[
                 # Basic styling to make labels visible
                 {'selector': 'node', 'style': {'label': 'data(id)', 'text-valign': 'center', 'background-color': 'data(color)'}},
@@ -1022,9 +1023,9 @@ class UIUtils:
         key = event['key']
         if (key not in "0123456789"):
             return current_num, last_modified
-        # if it's been 3 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
+        # if it's been 2 seconds since the last modification, or the current number is 0, or adding the current pressed input would go over the size limit
         # we set the input to the key pressed
-        if (time() - last_modified['time'] > 3 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
+        if (time() - last_modified['time'] > 2 or current_num == '0' or int(current_num + key) > int(sudoku_size)):
             if (key == "0"):
                 return "Erase", {'time': time()}
             else:
@@ -1044,12 +1045,12 @@ class UIUtils:
         if num_colors is None:
             num_colors = 1
         if (key == "0"):
-            return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey'}
+            return "Erase", {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'grey', 'marginBottom':'0'}
         if (int(num_colors) < 1):
             return no_update, no_update
         if int(key) > int(num_colors):
             return no_update, no_update
-        return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1]}
+        return self.vis_object.COLORS[int(key) - 1], {'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color':self.vis_object.COLORS[int(key) - 1], 'marginBottom':'0'}
 
     # clears the graph    
     def clear_graph(self, n_clicks):
@@ -1066,3 +1067,6 @@ class UIUtils:
         new_elements = self.color_to_grey(elements, lambda x : True)
         new_graph = self.generate_frontend_graph_object(new_elements)
         return new_graph
+    
+    def clear_fail_message(self, _1, _2):
+        return "",""
