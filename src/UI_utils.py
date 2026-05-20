@@ -368,7 +368,7 @@ class UIUtils:
     def generate_random_graph(self, n_clicks, current_elements, size, nodes_list):
         # handles automatic activation at creation
         if n_clicks == 0:
-            return no_update, no_update
+            return no_update, no_update, no_update
         # bad size input
         if not size: # make it random
             size = randint(RandomGraphMinSize, RandomGraphMaxSize)
