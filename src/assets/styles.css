@@ -239,6 +239,7 @@ label {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     min-width: 120px;
+    white-space: nowrap;
     pointer-events: none;
 }
 
@@ -281,7 +282,7 @@ label {
 
 #sudoku-fail-message {
     position: absolute !important;
-    left: calc(50% + 300px); /* Start from center, then offset by gap */
+    left: calc(50% + 320px); /* Start from center, then offset by gap */
     transform: translateX(0);
     margin-left: 0 !important;
 }

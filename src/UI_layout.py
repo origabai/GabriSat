@@ -359,13 +359,25 @@ class UILayout():
                         n_clicks=0,
                         style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight': '10px'}
                     ),
-                    # do task button
-                    html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
                     # the number choice for the sudoku
                     html.Div([
                         html.Label("current number", id="sudoku-num-input-label", style={'margin':'0'}),
                         html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
+                    html.Div(
+                        [
+                            html.Button("Info", id="legend-btn2", className="legend-btn"),
+                            html.Div(
+                                [
+                                    html.Div("Type 0 to erase"),
+                                    html.Div("Type any other number to input it"),
+                                ],
+                                className="legend-popup",
+                            )
+                        ],
+                        className="legend-wrap",
+                    ),
+                    html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
                     html.Div("", id='sudoku-fail-message', style={'color': 'red', 'minWidth': '180px', 'height': '40px', 'display': 'flex', 'alignItems': 'center', 'fontWeight': 'bold', 'position': 'absolute', 'marginLeft': '12px'})
                 ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px', 'position': 'relative'}),
 

@@ -692,7 +692,7 @@ class UIUtils:
             if found_solution:
                 message = ""
             else:
-                message = "No solution found"
+                message = "No solution!"
         
         if problem == "SUDOKU":
             # making a backend_board
@@ -700,12 +700,12 @@ class UIUtils:
             sudoku = Sudoku(board)
             solution = sudoku.solve() # backend solving
             if solution is None: # no solution
-                message = "No solution found"
+                message = "No solution!"
             else: # solution found
                 message = ""
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
-        if message == "No solution found":
+        if message == "No solution!":
             return message,message, no_update, no_update, self.clean_mode, self.clean_button_style
         else:
             return message,message, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
