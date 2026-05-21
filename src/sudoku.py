@@ -4,8 +4,6 @@ from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
 from SAT import AbstractSATSolver
-import time
-#from sudoku_generate import generate_sudoku_seed
 
 """
 Sudoku class
@@ -288,11 +286,9 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         solved_board: list[list[int]] = [
             [0 for _ in range(self.board_size)] for _ in range(self.board_size)
         ]
-        #solution = solution[:self.board_size**3]
         for id, color in enumerate(solution):
             i, j = self.idToCoordinate(id)
             solved_board[i][j] = color
-        #print("solved_board: ", solved_board)
         return solved_board
 
     # takes a coordinate in the sudoku board and returns the id of the node in the reduction graph
