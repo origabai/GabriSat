@@ -77,8 +77,10 @@ class Sudoku(SATReducibleProblem):
             for i in range(self.board_size):
                     # collumns
                     sat_reduction.addClause([(i*self.board_size + j)*self.board_size + color for j in range(self.board_size)],[])
+                    #self.exactly_one_true(sat_reduction, [(i*self.board_size + j)*self.board_size + color for j in range(self.board_size)])
                     # rows
                     sat_reduction.addClause([(j*self.board_size + i)*self.board_size + color for j in range(self.board_size)],[])
+                    #self.exactly_one_true(sat_reduction, [(j*self.board_size + i)*self.board_size + color for j in range(self.board_size)])
             # squares
             for i in range(sq):
                 for j in range(sq):
@@ -87,6 +89,7 @@ class Sudoku(SATReducibleProblem):
                         for y in range(sq):
                             square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
                     sat_reduction.addClause(square, [])
+                    #self.exactly_one_true(sat_reduction, square)
                 #lines
         if TOGGLE_LINES:
                 #extension of problem
@@ -123,20 +126,30 @@ class Sudoku(SATReducibleProblem):
                     for c in range(self.board_size):
                         clause_set_col = [self.row_coordinates_to_index(False, sq_x, sq_y, i, c) for i in range(sq)]
                         clause_set_row = [self.row_coordinates_to_index(True, sq_x, sq_y, i, c) for i in range(sq)]
-                        print(clause_set_col, clause_set_row)
+                        #print(clause_set_col, clause_set_row)
                         self.exactly_one_true(sat_reduction, clause_set_col)
                         self.exactly_one_true(sat_reduction, clause_set_row)
+                        
+            for height in range(self.board_size):
+                for c in range(self.board_size):
+                    inner = height % sq
+                    sq_dist = height // sq
+                    clause_set_row = [self.row_coordinates_to_index(True, sq_x, sq_dist, inner, c) for sq_x in range(sq)]
+                    clause_set_col = [self.row_coordinates_to_index(False, sq_dist, sq_y, inner, c) for sq_y in range(sq)]
+                    self.exactly_one_true(sat_reduction, clause_set_col)
+                    self.exactly_one_true(sat_reduction, clause_set_row)
+                
             
             print("done generating!")
             #unique_indices.sort()
             #print(unique_indices)
-        print(len(sat_reduction.clauses), sat_reduction.num_variables)
+        #print(len(sat_reduction.clauses), sat_reduction.num_variables)
         print("started thinking")
         solution = sat_reduction.solve()
         print("done!")
         #print("solution is: ", solution)
         solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(solution)
-        print("solution is: ", solution)
+        #print("solution is: ", solution)
         print("reconstructed")
         if solution is None:
             return None
@@ -153,7 +166,7 @@ class Sudoku(SATReducibleProblem):
     
     def cell_coordinates_to_index(self, row_x, row_y, pos_x, pos_y, color):
         true_x = row_x * isqrt(self.board_size) + pos_x
-        true_y = row_y + isqrt(self.board_size) + pos_y
+        true_y = row_y * isqrt(self.board_size) + pos_y
         #here might be a mistake!
         return (true_x*self.board_size + true_y)*self.board_size + color
     
