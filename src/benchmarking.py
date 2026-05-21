@@ -5,6 +5,14 @@ from time_tester import test_time
 
 def benchmark_times():
     print("Starting time benchmark")
+    # print(
+    #     "Average time to 20-color a 40 vertex graph:",
+    #     test_time(GraphColoring.generate(), 40),
+    # )
+    # print(
+    #     "Average time to find a hamiltonian cycle on a 40 vertex graph:",
+    #     test_time(HamiltonianCycle.generate(), 40),
+    # )
     print(
         "Average time to 20-color a 40 vertex graph:",
         test_time(GraphColoring.generate(), 40),
