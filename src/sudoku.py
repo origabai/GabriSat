@@ -12,6 +12,7 @@ the board is an N x N list of ints, representing the colors(0-indexed)
 or None if no color is set. N must be a square number
 """
 
+TOGGLE_LINES = True
 
 class Sudoku(SATReducibleProblem):
     def __init__(self, board: list[list[int | None]], solver = DEFAULT_SOLVER) -> None:
@@ -84,12 +85,43 @@ class Sudoku(SATReducibleProblem):
                         for y in range(sq):
                             square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
                     sat_reduction.addClause(square, [])
+            #lines
+            if TOGGLE_LINES:
+                #extension of problem
+                sat_reduction.num_variables += 2 * self.board_size * self.board_size * sq
+                #declaration of connection to real variables:
+                for sq_x in range(sq):
+                    for sq_y in range(sq):
+                        for inner in range(sq):
+                            for color in range(self.board_size):
+                                #ROWS:
+                                or_all = [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color) for x in range(sq)]
+                                sat_reduction.addClause(or_all, [self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)])
+                                for x in range(sq):
+                                    sat_reduction.addClause([self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color)])
+                                
+                                #COLLUMNS:
+                                or_all = [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color) for y in range(sq)]
+                                sat_reduction.addClause(or_all, [self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)])
+                                for y in range(sq):
+                                    sat_reduction.addClause([self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color)])
+                                
 
         solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         if solution is None:
             return None
         return self.reconstructSolutionFromReduction(solution)
 
+    #takes descriptive information of a row/column variable and returns the index of the clause.
+    def row_coordinates_to_index(self, is_row, pos_x, pos_y, inner, color):
+        return self.board_size**3 + (is_row + 1) * (((pos_x * isqrt(self.board_size) + pos_y) * isqrt(self.board_size) + inner) * self.board_size + color)
+    
+    def cell_coordinates_to_index(self, row_x, row_y, pos_x, pos_y, color):
+        true_x = row_x * isqrt(self.board_size) + pos_x
+        true_y = row_y + isqrt(self.board_size) + pos_y
+        #here might be a mistake!
+        return (true_y*self.board_size + true_x)*self.board_size + color
+        
     @classmethod
     # creates a new Sudoku object from input
     def initializeFromInput(self):
