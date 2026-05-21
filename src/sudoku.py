@@ -121,8 +121,9 @@ class Sudoku(SATReducibleProblem):
             for sq_x in range(sq):
                 for sq_y in range(sq):
                     for c in range(self.board_size):
-                        clause_set_col = [self.row_coordinates_to_index(False, sq_x, sq_y, inner, c) for inner in range(sq)]
-                        clause_set_row = [self.row_coordinates_to_index(True, sq_x, sq_y, inner, c) for inner in range(sq)]
+                        clause_set_col = [self.row_coordinates_to_index(False, sq_x, sq_y, i, c) for i in range(sq)]
+                        clause_set_row = [self.row_coordinates_to_index(True, sq_x, sq_y, i, c) for i in range(sq)]
+                        print(clause_set_col, clause_set_row)
                         self.exactly_one_true(sat_reduction, clause_set_col)
                         self.exactly_one_true(sat_reduction, clause_set_row)
             
@@ -133,8 +134,9 @@ class Sudoku(SATReducibleProblem):
         print("started thinking")
         solution = sat_reduction.solve()
         print("done!")
+        #print("solution is: ", solution)
+        solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(solution)
         print("solution is: ", solution)
-        solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
         print("reconstructed")
         if solution is None:
             return None
@@ -160,6 +162,7 @@ class Sudoku(SATReducibleProblem):
         for c1 in range(len(clauses)):
             for c2 in range(c1 + 1, len(clauses)):
                 sat.addClause([], [clauses[c1], clauses[c2]])
+                #print("adding ", clauses[c1], clauses[c2])
         
     @classmethod
     # creates a new Sudoku object from input
