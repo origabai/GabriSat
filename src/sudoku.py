@@ -4,6 +4,7 @@ from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
 from constants import DEFAULT_SOLVER, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
 from SAT import AbstractSATSolver
+import time
 #from sudoku_generate import generate_sudoku_seed
 
 """
@@ -71,6 +72,7 @@ class Sudoku(SATReducibleProblem):
         graph_reduction: GraphColoring = self.reduceToGraphColoring()
         sat_reduction: AbstractSATSolver = graph_reduction.reduce_to_SAT()
         sq = isqrt(self.board_size)
+        print("started generating")
         for color in range(self.board_size):
             for i in range(self.board_size):
                     # collumns
@@ -85,42 +87,79 @@ class Sudoku(SATReducibleProblem):
                         for y in range(sq):
                             square.append(((sq*i+x)*self.board_size + (sq*j+y))*self.board_size + color)
                     sat_reduction.addClause(square, [])
-            #lines
-            if TOGGLE_LINES:
+                #lines
+        if TOGGLE_LINES:
                 #extension of problem
-                sat_reduction.num_variables += 2 * self.board_size * self.board_size * sq
-                #declaration of connection to real variables:
-                for sq_x in range(sq):
-                    for sq_y in range(sq):
-                        for inner in range(sq):
-                            for color in range(self.board_size):
-                                #ROWS:
-                                or_all = [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color) for x in range(sq)]
-                                sat_reduction.addClause(or_all, [self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)])
-                                for x in range(sq):
-                                    sat_reduction.addClause([self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color)])
-                                
-                                #COLLUMNS:
-                                or_all = [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color) for y in range(sq)]
-                                sat_reduction.addClause(or_all, [self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)])
-                                for y in range(sq):
-                                    sat_reduction.addClause([self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color)])
-                                
-
+            sat_reduction.num_variables += 2 * self.board_size * self.board_size * sq
+            #declaration of connection to real variables:
+            unique_indices = []
+            for sq_x in range(sq):
+                for sq_y in range(sq):
+                    for inner in range(sq):
+                        for color in range(self.board_size):
+                            #ROWS:
+                            or_all = [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color) for x in range(sq)]
+                            sat_reduction.addClause(or_all, [self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)])
+                            for x in range(sq):
+                                sat_reduction.addClause([self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, x, inner, color)])
+                                pass
+                            #print(f"adding {self.row_coordinates_to_index(True, sq_x, sq_y, inner, color)} as {(True, sq_x, sq_y, inner, color)}")
+                            #unique_indices.append(self.row_coordinates_to_index(True, sq_x, sq_y, inner, color))
+                            #COLLUMNS:
+                            or_all = [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color) for y in range(sq)]
+                            sat_reduction.addClause(or_all, [self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)])
+                            #print(f"ADDED COLLUMN{or_all, sq}")
+                            #time.sleep(1)
+                            #print(f"adding {self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)} as {(False, sq_x, sq_y, inner, color)}")
+                            #unique_indices.append(self.row_coordinates_to_index(False, sq_x, sq_y, inner, color))
+                            for y in range(sq):
+                                sat_reduction.addClause([self.row_coordinates_to_index(False, sq_x, sq_y, inner, color)], [self.cell_coordinates_to_index(sq_x, sq_y, inner, y, color)])
+                                pass
+            #adding relations of rows/collumns:
+            #inside squares
+            
+            for sq_x in range(sq):
+                for sq_y in range(sq):
+                    for c in range(self.board_size):
+                        clause_set_col = [self.row_coordinates_to_index(False, sq_x, sq_y, inner, c) for inner in range(sq)]
+                        clause_set_row = [self.row_coordinates_to_index(True, sq_x, sq_y, inner, c) for inner in range(sq)]
+                        self.exactly_one_true(sat_reduction, clause_set_col)
+                        self.exactly_one_true(sat_reduction, clause_set_row)
+            
+            print("done generating!")
+            #unique_indices.sort()
+            #print(unique_indices)
+        print(len(sat_reduction.clauses), sat_reduction.num_variables)
+        print("started thinking")
+        solution = sat_reduction.solve()
+        print("done!")
+        print("solution is: ", solution)
         solution: list[int] | None = graph_reduction.reconstruct_solution_from_reduction(sat_reduction.solve())
+        print("reconstructed")
         if solution is None:
             return None
         return self.reconstructSolutionFromReduction(solution)
 
     #takes descriptive information of a row/column variable and returns the index of the clause.
     def row_coordinates_to_index(self, is_row, pos_x, pos_y, inner, color):
-        return self.board_size**3 + (is_row + 1) * (((pos_x * isqrt(self.board_size) + pos_y) * isqrt(self.board_size) + inner) * self.board_size + color)
+        #print(f"evaluating for {is_row, pos_x, pos_y, inner, color}")
+        #print(f"value is {self.board_size**3 + (is_row + 1) * (((pos_x * isqrt(self.board_size) + pos_y) * isqrt(self.board_size) + inner) * self.board_size + color)}")
+        square_ind = pos_x * isqrt(self.board_size) + pos_y
+        position_ind = (square_ind) * isqrt(self.board_size) + inner
+        unique_ind = (position_ind * self.board_size + color)
+        return self.board_size**3 + 2*unique_ind + is_row
     
     def cell_coordinates_to_index(self, row_x, row_y, pos_x, pos_y, color):
         true_x = row_x * isqrt(self.board_size) + pos_x
         true_y = row_y + isqrt(self.board_size) + pos_y
         #here might be a mistake!
-        return (true_y*self.board_size + true_x)*self.board_size + color
+        return (true_x*self.board_size + true_y)*self.board_size + color
+    
+    def exactly_one_true(self, sat, clauses):
+        sat.addClause(clauses, [])
+        for c1 in range(len(clauses)):
+            for c2 in range(c1 + 1, len(clauses)):
+                sat.addClause([], [clauses[c1], clauses[c2]])
         
     @classmethod
     # creates a new Sudoku object from input
@@ -155,6 +194,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         if (isqrt(board_size)**2 != board_size):
             print("has to be square number!!!!!!! defaulting to 4.")
             board_size = 4
+        self.board_size = board_size
         #handle board creation - old vs new
         if SUDOKU_GEN_STATUS == "OLD" or (SUDOKU_GEN_STATUS == "NEW_VARIABLE" and board_size > SUDOKU_GEN_LIMIT**2):
             #old board creation
@@ -184,7 +224,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     
     
     @classmethod
-    def generate(self, size = 4, solver = DEFAULT_SOLVER):
+    def generate(self, size = 9, solver = DEFAULT_SOLVER):
         return self.initializeRandomly(size, satsolver=solver)
 
     # returns a new GraphColoring object with a reduction from the sudoku board
@@ -255,9 +295,11 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         solved_board: list[list[int]] = [
             [0 for _ in range(self.board_size)] for _ in range(self.board_size)
         ]
+        #solution = solution[:self.board_size**3]
         for id, color in enumerate(solution):
             i, j = self.idToCoordinate(id)
             solved_board[i][j] = color
+        #print("solved_board: ", solved_board)
         return solved_board
 
     # takes a coordinate in the sudoku board and returns the id of the node in the reduction graph
