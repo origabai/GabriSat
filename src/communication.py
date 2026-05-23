@@ -9,9 +9,8 @@ see communication.cpp for the list of names/solvers
 from SAT import AbstractSATSolver
 from random import choice
 import os
-from multiprocessing import Event
 import signal
-from time import time, sleep
+from time import time
 from pathlib import Path
 """
 A class for communicating with a satsolver written in c++
@@ -96,16 +95,18 @@ class CPP_IDsolver(AbstractSATSolver):
         while True:
             cpid = os.fork()
             if (cpid == 0):
+                # son becomes a solver
                 os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
             start_time = time()
+            # wait stop_time, or until a solution is found
             while (time() - start_time < stop_time and not Path(fname+".out").exists()):
                 os.sched_yield()
             if (Path(fname+".out").exists()):
-                # found solution
+                # found solution, wait for son to finish
                 os.waitpid(cpid, 0)
                 break
             else:
-                # didnt find solution
+                # didnt find solution, murder son
                 os.kill(cpid, signal.SIGINT)
                 stop_time += 2
                 
