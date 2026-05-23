@@ -307,9 +307,9 @@ class SATHandler_V3 : public SATHandlingDS{
             i2 = rand() % num_variables;
             if (!minqryds.get_value(i2).has_value) break;
         }
-        // if (!minqryds.get_value(i2).has_value) {
-        //     return {i1, i2};
-        // }
+        if (!minqryds.get_value(i2).has_value) {
+            return {i1, i2};
+        }
         return { NO_NEXT_VAR, NO_NEXT_VAR };
     }
 
