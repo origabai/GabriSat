@@ -13,7 +13,7 @@ CPP_BacktrackingSolver_V3
 CPP_IDsolver
 
 SUDOKU_GEN_STATUS = "NEW_seed" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
-SUDOKU_GEN_LIMIT = 3
+SUDOKU_GEN_LIMIT = 5
 
 SYMMETRY_TOGGLE = True
 MAX_SYMMETRY_OPERATIONS = 1000000 #lets say a million
