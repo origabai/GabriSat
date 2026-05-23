@@ -29,6 +29,14 @@ class SATHandlingDS{
     // should return whether the current assignment has hope to be extended to a valid one
     virtual bool valid(void) = 0;
 
+    // optional, should return whether to fork which variable we are assigning to,
+    // and return those two variables
+    // if no, return {NO_NEXT_VAR, NO_NEXT,VAR}
+    // receives as input the current number of operating processes
+    virtual std::pair<int,int> fork_variable(int num_processes){
+        return {NO_NEXT_VAR, NO_NEXT_VAR};
+    }
+
 };
 
 #endif

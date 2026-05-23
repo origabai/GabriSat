@@ -15,7 +15,7 @@ def benchmark_times():
     # )
     print(
         "Average time to solve a 16x16 sudoku:",
-        test_time(Sudoku.generate(), 16, trials=10),
+        test_time(Sudoku.generate(), 25, trials=10),
     )
     
 def main():

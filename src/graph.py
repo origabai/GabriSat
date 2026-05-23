@@ -50,3 +50,15 @@ class Graph:
         for e in self.edges:
             self.adj[e[0]][e[1]] = True
             self.adj[e[1]][e[0]] = True
+
+    # fix the edges list to remove any duplicates
+    def normalize_edges(self):
+        new_edges = []
+        for e in self.edges:
+            a = e[0]
+            b = e[1]
+            new_edges.append((min(a,b), max(a,b)))
+        new_edges = list(set(new_edges))
+        self.edges = []
+        for e in new_edges:
+            self.edges.append([e[0], e[1]])

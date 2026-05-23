@@ -10,6 +10,7 @@ the executable should be named communication.exe
 #include "constants.h"
 #include "improved_backtracking.cpp"
 #include "backtracking_2sat_2furious.cpp"
+#include "backtracking_threaded.cpp"
 #include "general_backtracking.cpp"
 using namespace std;
 
@@ -19,7 +20,8 @@ using namespace std;
 map<string, function<AbstractSATSolver*(int)>> name_to_solver_map = {
     {"ImprovedBacktrackingSolver", [](int n){return new ImprovedBacktrackingSolver(n);}},
     {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}},
-    {"BacktrackingSolver_V3", [](int n){return new BacktrackingSolver_V3(n);}}
+    {"BacktrackingSolver_V3", [](int n){return new BacktrackingSolver_V3(n);}},
+    {"ThreadedSolver", [](int n){return new ThreadedSolver(n);}},
 };
 
 /*

@@ -73,8 +73,8 @@ class UILayout():
         )(helper_object.process_edge_click)
         
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
+            Output('fail-message', 'children', allow_duplicate=True),
+            Output('sudoku-fail-message', 'children', allow_duplicate=True),
             Output('graph-wrapper', 'children', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('current_mode', 'data', allow_duplicate=True),
@@ -115,8 +115,6 @@ class UILayout():
         )(helper_object.handle_color_num_change)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('graph-div', 'style', allow_duplicate=True),
             Output('sudoku-div', 'style', allow_duplicate=True),
             Output('coloring-div', 'style', allow_duplicate=True),
@@ -130,8 +128,6 @@ class UILayout():
         )(helper_object.switch_problem)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('sudoku-board-div', 'style', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('sudoku-board', 'style', allow_duplicate=True),
@@ -157,8 +153,6 @@ class UILayout():
         )(helper_object.sudoku_cell_clicked)
 
         helper_object.app.callback(
-            Output('success_message', 'children', allow_duplicate=True),
-            Output('success_message', 'style', allow_duplicate=True),
             Output('sudoku-board', 'children', allow_duplicate=True),
             Input('generate-random-board', 'n_clicks'),
             State('sudoku-size-selector', 'value'),
@@ -226,13 +220,20 @@ class UILayout():
             prevent_initial_call=True
         )(helper_object.clear_coloring)
 
+        helper_object.app.callback(
+            Output('fail-message', 'children', allow_duplicate=True),
+            Output('sudoku-fail-message', 'children', allow_duplicate=True),
+            Input('graph-wrapper', 'children'),
+            Input('sudoku-board', 'children'),
+            prevent_initial_call=True
+        )(helper_object.clear_fail_message)
+
 
     '''
     this is default layout of the UI
     '''
     default_layout = html.Div([
         html.H1("SAT solver"),
-        html.H3("Finding a hamiltonian cycle", id='success_message' ,style = {'color' : 'black'}),
         
         #storage for togglable button presses
         dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None, 'previous_color' : None}),
@@ -252,49 +253,65 @@ class UILayout():
         
         #everything graph related
         html.Div([
-            
-            # Control Panel for Adding Edges
-            html.Div([
-                dcc.Input(id='input-edge-source', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Source Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                dcc.Input(id='input-edge-target', style={'width': '200px'}, type='number', min=0, max=0, step=1, placeholder='Target Node ID', debounce=True, autoComplete='on', list='nodes-list'),
-                html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
-                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'})
-            ], id='control-panel',style={'marginBottom': '20px'}),
+            html.Datalist(id='nodes-list', children=[]), # children of type html.Option(value="some string")
             
             # control panel for everything else
             html.Div([
-                # random graph size input
                 dcc.Input(id='graph-size-input', style={'width': '250px', 'marginRight':'10px'},  type='number', min=5, max=50, step=1, placeholder='random graph size'),
                 html.Button('Generate random graph', id='btn-random', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Clear graph', id='btn-clear-graph', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
                 html.Button('Add node', id='btn-add-node', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
-                html.Button('Erase button', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
+                html.Button('Add edge', id='btn-add-edge', n_clicks=0, style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'}),
+                html.Button('Erase', id='btn-erase', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
                 html.Button('Solve!', id='btn-end1', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px'} ,n_clicks=0),
-            ], id='control-panel2',style={'display':'flex','alignItems':'center','marginBottom': '20px'}),
-
-
-
-
-            # add, erase and random button
+                html.Div("", id='fail-message', style={'color': 'red', 'minWidth': '180px', 'height': '40px', 'display': 'flex', 'alignItems': 'center', 'fontWeight': 'bold', 'position': 'absolute', 'marginLeft': '12px'})
+            ], id='control-panel2', style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px', 'position': 'relative'}),
+            # coloring stuff
             html.Div([
                 html.Div([
                     html.Button('Clear coloring', id='btn-clear-coloring', n_clicks=0 ,style={ 'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight':'10px'}),
                     dcc.Input(id='color_num_selector', style={'width': '200px', 'marginRight':'10px'},  type='number', min=1, max=9, step=1, placeholder='max colors'),
-                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px'}),
-                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red'}),
+                    html.Label("Change node color", id = 'label_2', style={'marginRight':'10px', 'marginBottom':'0'}),
+                    html.H2("red", id="multi-colour-selector", style={'margin':'0', 'marginRight':'10px', 'width': '100px', 'textAlign': 'left', 'color': 'red', 'marginBottom':'0'}),
+                    html.Div(
+                        [
+                            html.Button("Legend", id="legend-btn", className="legend-btn"),
+                            html.Div(
+                                [
+                                    html.Div([html.Span(className="color-box grey"), "0 - Erase"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box red"), "1"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box green"), "2"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box blue"), "3"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box yellow"), "4"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box purple"), "5"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box pink"), "6"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box magenta"), "7"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box lime"), "8"], className="legend-row"),
+                                    html.Div([html.Span(className="color-box cyan"), "9"], className="legend-row"),
+                                ],
+                                className="legend-popup",
+                            ),
+                        ],
+                        className="legend-wrap",
+                    ),
                     EventListener(
                         id="coloring-keypress-listener",
                         events=[{"event": "keydown", "props": ["key", "code"]}]
                     ),
-                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px'}),
-            ], className='button-row', style={'marginBottom': '20px'}),
+                ], id='coloring-div', style={'display': 'none', 'alignItems':'center', 'marginRight': '20px', 'marginBottom': '0px'}),
+            ], className='button-row', style={'margin':'0','marginBottom': '10px'}),
 
             # the canvas - for graph display
             html.Div(id='graph-wrapper', children=[
                 cyto.Cytoscape(
                     id='interactive-graph',
                     elements=[],
-                    layout={'name': 'cose'}, # Force-directed physics layout
+                    layout = {
+                        'name': 'random',
+                        'fit': True,
+                        'padding': 60,
+                        'animate': False,
+                    },
                     style={'width': '800px', 'height': '500px', 'border': '1px solid black'},
                     stylesheet=[
                         # Basic styling to make labels visible
@@ -323,7 +340,7 @@ class UILayout():
                     clearable=False,
                 ),
             ], className='sudoku-size-container', style={'marginBottom': '20px'}),
-            
+
             # a div for the sudoku board and similar elements, to be revealed only when a size is selected
             html.Div([
 
@@ -342,15 +359,28 @@ class UILayout():
                         n_clicks=0,
                         style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px', 'marginRight': '10px'}
                     ),
-                    # do task button
-                    html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
                     # the number choice for the sudoku
                     html.Div([
                         html.Label("current number", id="sudoku-num-input-label", style={'margin':'0'}),
                         html.H2("1", id="sudoku-num-input", style={'margin':'0'}),
                     ]),
+                    html.Div(
+                        [
+                            html.Button("Info", id="legend-btn2", className="legend-btn"),
+                            html.Div(
+                                [
+                                    html.Div("Type 0 to erase"),
+                                    html.Div("Type any other number to input it"),
+                                ],
+                                className="legend-popup",
+                            )
+                        ],
+                        className="legend-wrap",
+                    ),
+                    html.Button('Solve!', id='btn-end2', style={'backgroundColor': 'lightgray', 'color': 'black', 'padding': '10px','marginRight':'20px'} ,n_clicks=0),
+                    html.Div("", id='sudoku-fail-message', style={'color': 'red', 'minWidth': '180px', 'height': '40px', 'display': 'flex', 'alignItems': 'center', 'fontWeight': 'bold', 'position': 'absolute', 'marginLeft': '12px'})
+                ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px', 'position': 'relative'}),
 
-                ], style = {'display':'flex', 'alignItems': 'flex-end', 'marginBottom': '20px'}),
 
                 # the sudoku board itself, initialized in UI_utils
                 html.Div(id='sudoku-board', style={'display': 'none'}),

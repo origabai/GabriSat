@@ -25,7 +25,7 @@ class CPP_SATSolver(AbstractSATSolver):
     """
     def __init__(self, num_variables, solver_name):
         super().__init__(num_variables)
-        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication.exe"
+        self.object_path = os.path.dirname(os.path.abspath(__file__)) + os.sep + "cpp" + os.sep + "communication"
         self.solver_name = solver_name
         
     def solve(self):
@@ -46,7 +46,12 @@ class CPP_SATSolver(AbstractSATSolver):
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
         # run the solver
-        os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
+        cpid = os.fork()
+        if (cpid == 0):
+            # child
+            os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
+        os.waitpid(cpid, 0)
+        # os.system(os.path.abspath(self.object_path) + " " + fname + ".in " + fname + ".out " + self.solver_name)
         # read output file
         sans= open(fname + ".out").read().split(" ")
         ans = [(x == "1") for x in sans]
