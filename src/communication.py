@@ -12,6 +12,7 @@ import os
 from multiprocessing import Event
 import signal
 from time import time, sleep
+from pathlib import Path
 """
 A class for communicating with a satsolver written in c++
 """
@@ -90,25 +91,18 @@ class CPP_IDsolver(AbstractSATSolver):
                 for x in self.clauses[i].neg_variables:
                     print(x, file = f)
         
-        success_flag = Event()
+
         stop_time = 2
         while True:
-            print("aaa")
             cpid = os.fork()
-            print("bbb")
             if (cpid == 0):
-                # child
-                if (os.fork() == 0):
-                    os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
-                os.wait()
-                success_flag.set()
-                exit()
-
+                os.execl(os.path.abspath(self.object_path),os.path.abspath(self.object_path), fname+".in",fname+".out",self.solver_name)        
             start_time = time()
-            while (time() - start_time < stop_time and not success_flag.is_set):
+            while (time() - start_time < stop_time and not Path(fname+".out").exists()):
                 os.sched_yield()
-            if (success_flag.is_set):
+            if (Path(fname+".out").exists()):
                 # found solution
+                os.waitpid(cpid, 0)
                 break
             else:
                 # didnt find solution

@@ -69,7 +69,6 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
 }
 
 void sighandler(int){
-    cout<<"pytzov"<<endl;
     exit(0);
 }
 
@@ -84,13 +83,18 @@ int main(int argc, char *argv[]){
         return 1;
     }
     ifstream input_file(argv[1]);
-    ofstream output_file(argv[2]);
-    if (!input_file || !output_file){
-        cerr << "invalid input/output paths\n";
+    if (!input_file){
+        cerr << "invalid input path\n";
         return 1;
     }
     AbstractSATSolver *solver = readinput(input_file, argv[3]);
     vector<int> answer = solver->solve();
+
+    ofstream output_file(argv[2]);
+    if (!output_file){
+        cerr << "invalid output path\n";
+        return 1;
+    }
     if (answer.size() != 0){ // there is a solution
         for (int x : answer){
             output_file << x << " ";
