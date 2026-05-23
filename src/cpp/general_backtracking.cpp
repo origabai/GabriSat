@@ -7,6 +7,7 @@
 #include "persistent_set.h"
 #include "persistent_multiset.h"
 #include "persistent_segment_tree.h"
+#include "SAT_threaded_backtracker.h"
 #include <iostream>
 using std::vector, std::set, std::pair, std::multiset;
 
@@ -293,6 +294,25 @@ class SATHandler_V3 : public SATHandlingDS{
         return valid_bit;
     }
 
+    virtual pair<int,int> fork_variable(int num_processes){
+        if (num_processes >= MAX_PROCESSES) return {NO_NEXT_VAR, NO_NEXT_VAR};
+        if (*active_clause_sizes.rbegin() <= 2){
+            // solve 2sat instead
+            return {NO_NEXT_VAR, NO_NEXT_VAR};
+        }
+        auto [i1, l1] = minqryds.getmin();
+        if (l1.has_value) return {NO_NEXT_VAR, NO_NEXT_VAR};
+        int i2 = -1;
+        for (int i = 0; i < 10; ++i) {
+            i2 = rand() % num_variables;
+            if (!minqryds.get_value(i2).has_value) break;
+        }
+        // if (!minqryds.get_value(i2).has_value) {
+        //     return {i1, i2};
+        // }
+        return { NO_NEXT_VAR, NO_NEXT_VAR };
+    }
+
     // issues rollback tickets for all ds in persistent_data_structures, later used for rollbacks
     void issue_tickets() {
         int n = this->persistent_data_structures.size();
@@ -395,7 +415,7 @@ class SATHandler_V3 : public SATHandlingDS{
     }
 };
 
-class BacktrackingSolver_V3 : public AbstractBacktrackingSolver {
+class BacktrackingSolver_V3 : public AbstractThreadedSolver {
     public:
-    BacktrackingSolver_V3(int num_variables) : AbstractBacktrackingSolver(num_variables, new SATHandler_V3()) {}
+    BacktrackingSolver_V3(int num_variables) : AbstractThreadedSolver(num_variables, new SATHandler_V3()) {}
 };
