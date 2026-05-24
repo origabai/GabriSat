@@ -79,6 +79,7 @@ class UILayout():
             Output('sudoku-board', 'children', allow_duplicate=True),
             Output('current_mode', 'data', allow_duplicate=True),
             Output('btn-add-edge', 'style', allow_duplicate=True),
+            Output('btn-erase', 'style', allow_duplicate=True),
             Input('btn-end1', 'n_clicks'),
             Input('btn-end2', 'n_clicks'),
             State('interactive-graph', 'elements'),
