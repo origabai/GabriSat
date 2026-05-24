@@ -70,24 +70,33 @@ AbstractSATSolver *readinput(ifstream &input_file, string solver_name){
     return solver;
 }
 
+void sighandler(int){
+    exit(0);
+}
+
 // usage: ./path input_file output_file solver_name
 // reads a SAT in a format as specified by readinput
 // outputs the solution array, or UNSAT if there is no solution
 int main(int argc, char *argv[]){
     ios_base::sync_with_stdio(false);
-
+    signal(SIGINT, sighandler);
     if (argc < 4){
         cerr << "invalid command arguments\n";
         return 1;
     }
     ifstream input_file(argv[1]);
-    ofstream output_file(argv[2]);
-    if (!input_file || !output_file){
-        cerr << "invalid input/output paths\n";
+    if (!input_file){
+        cerr << "invalid input path\n";
         return 1;
     }
     AbstractSATSolver *solver = readinput(input_file, argv[3]);
     vector<int> answer = solver->solve();
+
+    ofstream output_file(argv[2]);
+    if (!output_file){
+        cerr << "invalid output path\n";
+        return 1;
+    }
     if (answer.size() != 0){ // there is a solution
         for (int x : answer){
             output_file << x << " ";
