@@ -667,13 +667,13 @@ class UIUtils:
         # prevent accidental press.
         if n_clicks_1 + n_clicks_2 == 0:
             print("i have no clue how to fix this, thats a bug.")
-            return "","", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "yellow"}, no_update, no_update, self.clean_mode, self.clean_button_style, self.clean_button_style
 
         # handle end program:
         if problem == "END":
             self.vis_object.correct_end = True
             _thread.interrupt_main()
-            return "","", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style
+            return "","", {"color": "blue"}, no_update, no_update, self.clean_mode, self.clean_button_style, self.clean_button_style
         
         if problem in ["COLOR", "HAMPATH"]:
             # fix max colors
@@ -706,9 +706,9 @@ class UIUtils:
                 # reassembling the frontend board
                 sudoku_board = self.sudoku_backend_to_frontend(sudoku_board, solution)
         if message == "No solution!":
-            return message,message, no_update, no_update, self.clean_mode, self.clean_button_style
+            return message,message, no_update, no_update, self.clean_mode, self.clean_button_style, self.clean_button_style
         else:
-            return message,message, new_graph, sudoku_board, self.clean_mode, self.clean_button_style
+            return message,message, new_graph, sudoku_board, self.clean_mode, self.clean_button_style, self.clean_button_style
     
     """
     called when the task selector is changed, switches what is shown on screen to match the new task
