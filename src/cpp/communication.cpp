@@ -12,6 +12,9 @@ the executable should be named communication.exe
 #include "backtracking_2sat_2furious.cpp"
 #include "backtracking_threaded.cpp"
 #include "general_backtracking.cpp"
+#include "sudoku_solver.cpp"
+#include "coloring_solver.cpp"
+#include "hamcycle_solver.cpp"
 using namespace std;
 
 
@@ -22,6 +25,9 @@ map<string, function<AbstractSATSolver*(int)>> name_to_solver_map = {
     {"BacktrackingSolver_V2", [](int n){return new BacktrackingSolver_V2(n);}},
     {"BacktrackingSolver_V3", [](int n){return new BacktrackingSolver_V3(n);}},
     {"ThreadedSolver", [](int n){return new ThreadedSolver(n);}},
+    {"SudokuSolver", [](int n){return new SudokuSolver(n);}},
+    {"ColoringSolver", [](int n){return new ColoringSolver(n);}},
+    {"HamcycleSolver", [](int n){return new HamcycleSolver(n);}}
 };
 
 /*

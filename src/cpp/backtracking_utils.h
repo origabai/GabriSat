@@ -135,8 +135,8 @@ struct literal {
 // a major part of the heuristic, how good is this literal? should be an integer, larger is better
 int score_literal(literal l) {
     int score = 0;
-    //score -= std::min(l.pos_clauses, l.neg_clauses);
-    score = -l.ind;
+    score -= std::min(l.pos_clauses, l.neg_clauses);
+    // score = -l.ind;
     return score;
 }
 

@@ -21,3 +21,18 @@ class CPP_BacktrackingSolver_V3(CPP_SATSolver):
 class CPP_IDsolver(CPP_IDsolver):
     def __init__(self, num_variables):
         super().__init__(num_variables, "BacktrackingSolver_V3")
+
+
+class CPP_IDSudokuSolver(CPP_SATSolver):
+    def __init__(self, num_variables):
+        super().__init__(num_variables, "SudokuSolver")
+
+
+class CPP_IDColoringSolver(CPP_IDsolver):
+    def __init__(self, num_variables):
+        super().__init__(num_variables, "ColoringSolver")
+
+
+class CPP_IDHamcycleSolver(CPP_SATSolver):
+    def __init__(self, num_variables):
+        super().__init__(num_variables, "HamcycleSolver")

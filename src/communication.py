@@ -96,7 +96,7 @@ class CPP_IDsolver(AbstractSATSolver):
                     print(x, file = f)
         
 
-        stop_time = 2
+        stop_time = 8
         while True:
             cpid = os.fork()
             if (cpid == 0):
@@ -113,7 +113,7 @@ class CPP_IDsolver(AbstractSATSolver):
             else:
                 # didnt find solution, murder son
                 os.kill(cpid, signal.SIGINT)
-                stop_time += 2
+                stop_time += 4
                 
         # read output file
         sans= open(fname + ".out").read().split(" ")
