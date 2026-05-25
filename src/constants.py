@@ -15,14 +15,14 @@ CPP_IDSudokuSolver
 CPP_IDColoringSolver
 CPP_IDHamcycleSolver
 
-SUDOKU_GEN_STATUS = "OLD" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
-SUDOKU_GEN_LIMIT = 4
+SUDOKU_GEN_STATUS = "NEW_VARIABLE" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
+SUDOKU_GEN_LIMIT = 5
 
 SYMMETRY_TOGGLE = True
 MAX_SYMMETRY_OPERATIONS = 1000000 #lets say a million
 
 RandomGraphMinSize = 5
-RandomGraphMaxSize = 13
+RandomGraphMaxSize = 20
 HAMCYCLE_GENERATION_CONST = 8
 
 SudokuBoxMiddle = [400, 250] # half of the graph box size

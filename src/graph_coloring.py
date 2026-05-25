@@ -1,5 +1,5 @@
 from graph import Graph
-from constants import DEFAULT_SOLVER, SYMMETRY_TOGGLE, MAX_SYMMETRY_OPERATIONS
+from constants import DEFAULT_SOLVER, CPP_IDColoringSolver, SYMMETRY_TOGGLE, MAX_SYMMETRY_OPERATIONS
 from itertools import combinations
 from random import randint
 from math import comb
@@ -14,12 +14,13 @@ class GraphColoring(Graph, SATReducibleProblem):
         edges: list[list[int]],
         colors: list[int],
         max_colors: int,
-        satsolver=DEFAULT_SOLVER,
+        satsolver=CPP_IDColoringSolver,
     ):
         Graph.__init__(self, num_nodes, edges)
         SATReducibleProblem.__init__(self, satsolver)
         self.colors = colors
         self.max_colors = max_colors
+        self.solver = satsolver
 
     def validate(self, sol):
         # check all colors are valid
@@ -36,10 +37,10 @@ class GraphColoring(Graph, SATReducibleProblem):
 
     @classmethod
     def generate(
-        self, num_of_nodes: int = 2, solver=DEFAULT_SOLVER, max_colors: int = None
+        self, num_of_nodes: int = 2, solver=CPP_IDColoringSolver, max_colors: int = None
     ):
         if max_colors is None:
-            max_colors = num_of_nodes // 2
+            max_colors = int(num_of_nodes ** .5)
         g = GraphColoring(
             num_of_nodes, [], [], max_colors, satsolver=solver
         )  # max colors is a random constant fraction

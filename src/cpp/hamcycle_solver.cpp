@@ -11,6 +11,31 @@
 #include <iostream>
 using std::vector, std::set, std::pair, std::multiset;
 
+// a major part of the heuristic, how good is this literal? should be an integer, larger is better
+int score_literal_hamcycle(literal l) {
+    int score = 0;
+    score -= std::max(l.largest_neg_clause_size, l.largest_pos_clause_size);
+    return score;
+}
+
+
+// a major part of the heuristic. should return true if it's better to choose l1 before l2, and false otherwise
+// preferably should be O(1) because it's called a lot. can use random
+bool less_literal_hamcycle(literal l1, literal l2) {
+    if (l1.has_value) return false;
+    if (l2.has_value) return true;
+    if (l1.smallest_neg_clause_size == 1 || l1.smallest_pos_clause_size == 1) return true;
+    if (l2.smallest_neg_clause_size == 1 || l2.smallest_pos_clause_size == 1) return false;
+    if (l1.pos_clauses == 0 || l1.neg_clauses == 0) return true;
+    if (l2.pos_clauses == 0 || l2.neg_clauses == 0) return false;
+    // do not change anything up to here, it's independent of heuristic
+
+    if (score_literal_hamcycle(l1) >= score_literal_hamcycle(l2)) return true;
+    return false;
+    // in order to change the heuristic you can either change the score_literal function,
+    // or change this function, if you do so change only the two line above
+}
+
 class SATHandler_Hamcycle : public SATHandlingDS{
     // is there a contradiction in the whole SAT from the beginning
     bool empty_clause = false;
@@ -20,7 +45,7 @@ class SATHandler_Hamcycle : public SATHandlingDS{
     // current assignment of the variables
     PersistentVector<int> assignment;
     // MinQueryDS for this handler
-    PersistentGeneralSegmentTreeDS<literal, literal::literal_e, less_literal> minqryds;
+    PersistentGeneralSegmentTreeDS<literal, literal::literal_e, less_literal_hamcycle> minqryds;
     // maps from each variable to indices of all unsatisfied positive \ negative clauses it's in, first is the clause current size,
     // second is the clause index. note that a positive clause means that this specific variable needs to be true to satisfy it and vice versa
     vector<PersistentSet<pair<int, int>>> var_to_pos_clause_map, var_to_neg_clause_map;
@@ -74,7 +99,7 @@ class SATHandler_Hamcycle : public SATHandlingDS{
         assignment = PersistentVector<int>(N, VARIABLE_UNSET);
         
         // initialise minqueryds
-        minqryds = PersistentGeneralSegmentTreeDS<literal, literal::literal_e, less_literal>(num_variables);
+        minqryds = PersistentGeneralSegmentTreeDS<literal, literal::literal_e, less_literal_hamcycle>(num_variables);
 
         // initialize to all false
         pos_set_updated = PersistentVector<bool>(num_variables, false);
@@ -295,19 +320,23 @@ class SATHandler_Hamcycle : public SATHandlingDS{
     }
 
     virtual pair<int,int> fork_variable(int num_processes){
+        return {NO_NEXT_VAR, NO_NEXT_VAR};
         if (num_processes >= MAX_PROCESSES) return {NO_NEXT_VAR, NO_NEXT_VAR};
         if (*active_clause_sizes.rbegin() <= 2){
             // solve 2sat instead
             return {NO_NEXT_VAR, NO_NEXT_VAR};
         }
-        auto [i1, l1] = minqryds.getmin();
-        if (l1.has_value) return {NO_NEXT_VAR, NO_NEXT_VAR};
+        int i1 = -1;
+        for (int i = 0; i < 10; ++i) {
+            i1 = rand() % num_variables;
+            if (!minqryds.get_value(i1).has_value) break;
+        }
         int i2 = -1;
         for (int i = 0; i < 10; ++i) {
             i2 = rand() % num_variables;
             if (!minqryds.get_value(i2).has_value) break;
         }
-        if (!minqryds.get_value(i2).has_value) {
+        if (!minqryds.get_value(i1).has_value and !minqryds.get_value(i2).has_value) {
             return {i1, i2};
         }
         return { NO_NEXT_VAR, NO_NEXT_VAR };

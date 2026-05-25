@@ -2,7 +2,7 @@ from math import sqrt, isqrt
 from graph_coloring import GraphColoring
 from random import randint, shuffle
 from SAT_reducible_problem import SATReducibleProblem
-from constants import DEFAULT_SOLVER, CPP_IDsolver, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
+from constants import DEFAULT_SOLVER, CPP_IDSudokuSolver, SUDOKU_GEN_STATUS, SUDOKU_GEN_LIMIT
 from SAT import AbstractSATSolver
 
 """
@@ -15,7 +15,7 @@ or None if no color is set. N must be a square number
 TOGGLE_LINES = False
 
 class Sudoku(SATReducibleProblem):
-    def __init__(self, board: list[list[int | None]], solver = CPP_IDsolver) -> None:
+    def __init__(self, board: list[list[int | None]], solver = CPP_IDSudokuSolver) -> None:
         super().__init__(solver)
         self.board = board
         self.board_size: int = len(board)
@@ -183,7 +183,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
 
     @classmethod
     # creates a new random Sudoku object of size board_size
-    def initializeRandomly(self, board_size: int, satsolver = CPP_IDsolver):
+    def initializeRandomly(self, board_size: int, satsolver = CPP_IDSudokuSolver):
         #board = self.generateTrivialBoard(board_size)
         #this is a shinier version!
         if (isqrt(board_size)**2 != board_size):
@@ -219,7 +219,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
     
     
     @classmethod
-    def generate(self, size = 9, solver = CPP_IDsolver):
+    def generate(self, size = 9, solver = CPP_IDSudokuSolver):
         return self.initializeRandomly(size, satsolver=solver)
 
     # returns a new GraphColoring object with a reduction from the sudoku board
@@ -324,7 +324,7 @@ the numbers should be from 1 to {board_size}, or 0 if the cell is empty"
         return board
     
     @classmethod
-    def generateInterestingSolvedBoard(self, board_size: int, satsolver = CPP_IDsolver) -> list[list[int]]:
+    def generateInterestingSolvedBoard(self, board_size: int, satsolver = CPP_IDSudokuSolver) -> list[list[int]]:
         solution = None
         while solution is None:
             board_seed = self.sudokuSeedGen(board_size)

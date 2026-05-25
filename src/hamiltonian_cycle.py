@@ -1,12 +1,12 @@
 from graph import Graph
-from constants import DEFAULT_SOLVER
+from constants import DEFAULT_SOLVER, CPP_IDHamcycleSolver
 from SAT_reducible_problem import SATReducibleProblem
 from random import shuffle, randint
 from constants import HAMCYCLE_GENERATION_CONST
 from DSU import DSU
 
 class HamiltonianCycle(Graph, SATReducibleProblem):
-    def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = DEFAULT_SOLVER):
+    def __init__(self, num_nodes: int, edges: list[list[int]], satsolver = CPP_IDHamcycleSolver):
         Graph.__init__(self,num_nodes,edges)
         SATReducibleProblem.__init__(self,satsolver)
     
@@ -27,9 +27,15 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
         return True
 
 
+    @classmethod
+    def generate2(self, size = 2, solver = CPP_IDHamcycleSolver):
+        g = Graph(size, [])
+        g.generate_random()
+        return HamiltonianCycle(size, g.edges, solver)
+
 
     @classmethod
-    def generate(self, size = 2, solver = DEFAULT_SOLVER):
+    def generate(self, size = 2, solver = CPP_IDHamcycleSolver):
         g = HamiltonianCycle(size, [], satsolver=solver)
         # make a random tree, and add HAMCYCLE_GENERATION_CONST*N edges to it
         for i in range(1,size):
@@ -47,6 +53,7 @@ class HamiltonianCycle(Graph, SATReducibleProblem):
             shuffle(perm)
             for i in range(size):
                 g.edges.append([perm[i], perm[(i+1)%size]])
+        shuffle(g.edges)
         return g
 
     # returns a hamiltonian cycle if exists, or None otherwise

@@ -92,17 +92,24 @@ class SATHandler_V2 : public SATHandlingDS{
         if (rand()%2 == 0) truthval = SAT_FALSE;
 
         auto [i,v] = minqryds.getmin();
+        vector<int> vars;
         if ((v == minqryds_MAXVAL) || (clause_list[i].size() == 0)){
             // this means everything is already satisfied. give the first unassigned variable
             for (int i=0; i<num_variables; i++){
                 if (assignment[i] == VARIABLE_UNSET){
-                    return {i,truthval};
+                    //return {i,truthval};
+                    vars.push_back(i);
                 }
             }
+            return {vars[rand()%vars.size()], truthval};
         } else if (clause_list[i].pos_variables.size() > 0){
-            return {*clause_list[i].pos_variables.begin(), truthval};
+            auto iter = clause_list[i].pos_variables.begin();
+            advance(iter, rand()%(clause_list[i].pos_variables.size()));
+            return {*iter, truthval};
         } else {
-            return {*clause_list[i].neg_variables.begin(), truthval};
+            auto iter = clause_list[i].neg_variables.begin();
+            advance(iter, rand()%(clause_list[i].neg_variables.size()));
+            return {*iter, truthval};
         }
         return {NO_NEXT_VAR, NO_NEXT_VAR};
     }
