@@ -234,7 +234,7 @@ class UILayout():
     this is default layout of the UI
     '''
     default_layout = html.Div([
-        html.H1("SAT solver"),
+        html.H1("SAT Solver"),
         
         #storage for togglable button presses
         dcc.Store(id="current_mode", storage_type='memory', data = {'current_mode' : None, 'previous_click' : None, 'previous_color' : None}),
