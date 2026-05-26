@@ -2,7 +2,7 @@ from graph_coloring import GraphColoring
 from sudoku import Sudoku
 from hamiltonian_cycle import HamiltonianCycle
 from time_tester import test_time
-from constants import CPP_BacktrackingSolver_V2, CPP_IDHamcycleSolver, CPP_IDColoringSolver
+from constants import CPP_IDSudokuSolver, CPP_IDHamcycleSolver, CPP_IDColoringSolver
 
 def benchmark_times():
     print("Starting time benchmark")
@@ -16,7 +16,7 @@ def benchmark_times():
     # )
     print(
         "Average time to solve a 16x16 sudoku:",
-        test_time(Sudoku.generate(), 16, trials=10, satsolver=CPP_BacktrackingSolver_V2),
+        test_time(Sudoku.generate(), 16, trials=10, satsolver=CPP_IDSudokuSolver),
     )
     
 def main():

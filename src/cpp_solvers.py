@@ -30,10 +30,9 @@ class CPP_IDSudokuSolver(CPP_SATSolver):
 
 class CPP_IDColoringSolver(CPP_IDsolver):
     def __init__(self, num_variables):
-        print("AM I RU*NNING?")
         super().__init__(num_variables, "ColoringSolver")
 
 
-class CPP_IDHamcycleSolver(CPP_SATSolver):
-    def __init__(self, num_variables):
-        super().__init__(num_variables, "HamcycleSolver")
+# class CPP_IDHamcycleSolver(CPP_SATSolver):
+#     def __init__(self, num_variables):
+#         super().__init__(num_variables, "HamcycleSolver")

@@ -114,7 +114,6 @@ class CPP_IDsolver(AbstractSATSolver):
                 # didnt find solution, murder son
                 os.kill(cpid, signal.SIGINT)
                 stop_time += 0.1
-                print("AAA")
                 
         # read output file
         sans= open(fname + ".out").read().split(" ")

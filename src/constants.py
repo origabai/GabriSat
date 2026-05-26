@@ -1,7 +1,7 @@
 from SAT_trivial import TrivialSATSolver
 from trivial_backtracker import TrivialBacktrackingSolver
 from improved_backtracking import ImproverBacktrackingSolver
-from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_BacktrackingSolver_V3, CPP_IDsolver, CPP_IDSudokuSolver, CPP_IDColoringSolver, CPP_IDHamcycleSolver
+from cpp_solvers import CPP_ImprovedBacktracker, CPP_BacktrackingSolver_V2, CPP_BacktrackingSolver_V3, CPP_IDsolver, CPP_IDSudokuSolver, CPP_IDColoringSolver
 
 DEFAULT_SOLVER = CPP_IDsolver
 TrivialSATSolver
@@ -13,7 +13,7 @@ CPP_BacktrackingSolver_V3
 CPP_IDsolver
 CPP_IDSudokuSolver
 CPP_IDColoringSolver
-CPP_IDHamcycleSolver
+CPP_IDHamcycleSolver = CPP_BacktrackingSolver_V2
 
 SUDOKU_GEN_STATUS = "NEW_VARIABLE" #can be NEW_seed, NEW, OLD, NEW_VARIABLE
 SUDOKU_GEN_LIMIT = 5
