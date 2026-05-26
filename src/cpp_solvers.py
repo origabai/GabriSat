@@ -23,7 +23,7 @@ class CPP_IDsolverV3(CPP_IDsolver):
         super().__init__(num_variables, "BacktrackingSolver_V3")
 
 
-class CPP_IDSudokuSolver(CPP_SATSolver):
+class CPP_IDSudokuSolver(CPP_IDsolver):
     def __init__(self, num_variables):
         super().__init__(num_variables, "SudokuSolver")
 
