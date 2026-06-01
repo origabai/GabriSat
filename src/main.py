@@ -11,6 +11,11 @@ from webbrowser import open as webopen
 
 """runs loop for displaying output"""
 
+#Gabri rules
+#EZCHEM
+#best program in the world
+#Fih was here
+
 
 def vis():
     print("STARTING VISUAL EPICNESS")
